@@ -333,9 +333,13 @@
   }
 
   // Bootstrap
-  render(appsmith && appsmith.model ? appsmith.model : {});
-  appsmith.onReady(() => render(appsmith.model));
-  appsmith.onModelChange((m) => render(m));
+  if (typeof appsmith !== 'undefined') {
+    render(appsmith.model || {});
+    appsmith.onReady(() => render(appsmith.model));
+    appsmith.onModelChange((m) => render(m));
+  } else {
+    render({});
+  }
 </script>
 </body>
 </html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-card:    #222244;
+    --bg-row:     rgba(255,255,255,0.03);
+    --bg-hover:   rgba(255,255,255,0.06);
+    --text-1:     #f0f0f5;
+    --text-2:     #a0a0bb;
+    --text-3:     #6e6e88;
+    --green:      #58cc02;
+    --amber:      #ff9600;
+    --amber-bg:   rgba(255,150,0,0.12);
+    --red:        #ff4b4b;
+    --red-bg:     rgba(255,75,75,0.12);
+    --darkred:    #cc3c3c;
+    --darkred-bg: rgba(204,60,60,0.12);
+    --border:     rgba(255,255,255,0.08);
+    --radius:     14px;
+    --font:       'Nunito', system-ui, sans-serif;
+  }
+
+  body { background: transparent; font-family: var(--font); color: var(--text-1); padding: 4px; }
+
+  .container {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .table-header {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1fr 80px 70px;
+    gap: 8px;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1fr 80px 70px;
+    gap: 8px;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+    cursor: default;
+    transition: background .15s;
+  }
+  .row:last-child { border-bottom: none; }
+  .row:hover { background: var(--bg-hover); }
+
+  .opp-name  { font-size: 12px; font-weight: 700; color: var(--text-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .opp-acc   { font-size: 10px; color: var(--text-3); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rep-name  { font-size: 12px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .stage     { font-size: 11px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .arr-val   { font-size: 12px; font-weight: 800; color: var(--text-2); text-align: right; }
+
+  .age-badge {
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+    text-align: center;
+  }
+  .age-badge.b1 { background: var(--amber-bg);   color: var(--amber);   }
+  .age-badge.b2 { background: var(--red-bg);      color: var(--red);     }
+  .age-badge.b3 { background: var(--darkred-bg);  color: var(--darkred); }
+
+  .empty { color: var(--text-3); font-size: 13px; text-align: center; padding: 40px; }
+</style>
+</head>
+<body>
+<div class="container" id="container">
+  <div class="empty">Lade Daten…</div>
+</div>
+
+<script>
+  function fmt(n) {
+    if (!n) return '€\u00a00';
+    const abs = Math.round(Math.abs(n));
+    if (abs >= 1000000) return '€\u00a0' + (abs/1000000).toFixed(1).replace('.',',') + ' Mio.';
+    if (abs >= 1000)    return '€\u00a0' + Math.round(abs/1000) + 'k';
+    return '€\u00a0' + abs;
+  }
+
+  function ageBucket(days) {
+    if (days >= 30) return { cls: 'b3', label: '30d+' };
+    if (days >= 21) return { cls: 'b2', label: '21–30d' };
+    return                  { cls: 'b1', label: '14–21d' };
+  }
+
+  function render(list) {
+    const c = document.getElementById('container');
+    if (!Array.isArray(list) || list.length === 0) {
+      c.innerHTML = '<div class="empty">Keine stale Opps</div>';
+      return;
+    }
+
+    const header = `
+      <div class="table-header">
+        <span>Opportunity</span>
+        <span>Rep</span>
+        <span>Stage</span>
+        <span style="text-align:right">ARR</span>
+        <span style="text-align:center">Alter</span>
+      </div>`;
+
+    const rows = list.map(o => {
+      const bucket = ageBucket(o.daysSinceActivity || 0);
+      return `
+        <div class="row">
+          <div>
+            <div class="opp-name">${o.name || '—'}</div>
+            <div class="opp-acc">${o.account || '—'}</div>
+          </div>
+          <div class="rep-name">${o.rep || '—'}</div>
+          <div class="stage">${o.stage || '—'}</div>
+          <div class="arr-val">${fmt(o.arr)}</div>
+          <div style="text-align:center"><span class="age-badge ${bucket.cls}">${bucket.label}</span></div>
+        </div>`;
+    }).join('');
+
+    c.innerHTML = header + rows;
+  }
+
+  if (typeof appsmith !== 'undefined') {
+    render(appsmith.model || []);
+    appsmith.onReady(() => render(appsmith.model || []));
+    appsmith.onModelChange((m) => render(m || []));
+  } else {
+    render([]);
+  }
+</script>
+</body>
+</html>

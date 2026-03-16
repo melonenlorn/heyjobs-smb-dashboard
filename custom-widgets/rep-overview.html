@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-card:    #222244;
+    --bg-hover:   #2a2a50;
+    --bg-surface: #16162b;
+    --text-1:     #f0f0f5;
+    --text-2:     #a0a0bb;
+    --text-3:     #6e6e88;
+    --green:      #58cc02;
+    --green-bg:   rgba(88,204,2,0.12);
+    --amber:      #ff9600;
+    --amber-bg:   rgba(255,150,0,0.12);
+    --red:        #ff4b4b;
+    --red-bg:     rgba(255,75,75,0.12);
+    --blue:       #1cb0f6;
+    --blue-bg:    rgba(28,176,246,0.12);
+    --border:     rgba(255,255,255,0.08);
+    --radius:     14px;
+    --font:       'Nunito', system-ui, sans-serif;
+  }
+
+  body {
+    background: transparent;
+    font-family: var(--font);
+    color: var(--text-1);
+    padding: 4px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 10px;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    cursor: default;
+    transition: background .2s, border-color .2s;
+    border-left-width: 3px;
+  }
+  .card:hover { background: var(--bg-hover); }
+  .card.red    { border-left-color: var(--red);    }
+  .card.amber  { border-left-color: var(--amber);  }
+  .card.green  { border-left-color: var(--green);  }
+  .card.neutral{ border-left-color: var(--border); }
+
+  /* ── Header ── */
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .rep-name {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text-1);
+    line-height: 1.2;
+  }
+  .rep-meta {
+    display: flex;
+    gap: 5px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+  .tag {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.07);
+    color: var(--text-3);
+    letter-spacing: .04em;
+    white-space: nowrap;
+  }
+  .tag.team-ferdinand { background: rgba(28,176,246,0.15); color: var(--blue); }
+  .tag.team-jan       { background: rgba(255,150,0,0.15);  color: var(--amber); }
+  .tag.team-philipp   { background: rgba(88,204,2,0.15);   color: var(--green); }
+
+  /* ── Composite score ── */
+  .score-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .score-val {
+    font-size: 36px;
+    font-weight: 900;
+    line-height: 1;
+    min-width: 64px;
+  }
+  .score-val.red    { color: var(--red);   }
+  .score-val.amber  { color: var(--amber); }
+  .score-val.green  { color: var(--green); }
+  .score-val.neutral{ color: var(--text-3); }
+
+  .score-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+  }
+  .score-sub {
+    font-size: 11px;
+    color: var(--text-3);
+    display: flex;
+    justify-content: space-between;
+  }
+  .score-sub span:last-child { color: var(--text-2); font-weight: 700; }
+
+  .progress-track {
+    height: 5px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width .4s ease;
+  }
+  .progress-fill.red    { background: var(--red);   }
+  .progress-fill.amber  { background: var(--amber); }
+  .progress-fill.green  { background: var(--green); }
+  .progress-fill.neutral{ background: var(--text-3); }
+
+  /* ── KPI grid ── */
+  .divider { height: 1px; background: var(--border); }
+
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 12px;
+  }
+  .kpi-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .kpi-label { font-size: 10px; color: var(--text-3); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+  .kpi-value { font-size: 15px; font-weight: 800; }
+  .kpi-value.red    { color: var(--red);   }
+  .kpi-value.amber  { color: var(--amber); }
+  .kpi-value.green  { color: var(--green); }
+  .kpi-value.neutral{ color: var(--text-2); }
+
+  /* ── Activity row ── */
+  .activity-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 6px;
+  }
+  .act-cell {
+    flex: 1;
+    background: rgba(255,255,255,0.04);
+    border-radius: 8px;
+    padding: 5px 4px;
+    text-align: center;
+  }
+  .act-val   { font-size: 14px; font-weight: 800; color: var(--text-2); }
+  .act-label { font-size: 9px;  color: var(--text-3); margin-top: 1px; text-transform: uppercase; letter-spacing: .04em; }
+
+  /* ── Diagnosis tag ── */
+  .diagnosis {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 5px 10px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.04);
+    color: var(--text-3);
+  }
+  .diagnosis.sev-3 { background: var(--red-bg);   color: var(--red);   }
+  .diagnosis.sev-2 { background: var(--amber-bg); color: var(--amber); }
+  .diagnosis.sev-1 { background: rgba(255,150,0,0.08); color: var(--text-2); }
+  .diagnosis::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+  .empty { color: var(--text-3); font-size: 13px; text-align: center; padding: 40px; }
+</style>
+</head>
+<body>
+
+<div class="grid" id="grid">
+  <div class="empty">Lade Daten…</div>
+</div>
+
+<script>
+  function pct(n)  { return (n || 0) + '\u202f%'; }
+  function fmt(n)  {
+    if (!n) return '€\u00a00';
+    const abs = Math.round(Math.abs(n));
+    if (abs >= 1000000) return '€\u00a0' + (abs/1000000).toFixed(1).replace('.',',') + ' Mio.';
+    if (abs >= 1000)    return '€\u00a0' + Math.round(abs/1000) + 'k';
+    return '€\u00a0' + abs;
+  }
+  function fmtN(n) { return (n || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+  function clamp(v, mn, mx) { return Math.max(mn, Math.min(mx, v)); }
+
+  function teamClass(team) {
+    return { ferdinand: 'team-ferdinand', jan: 'team-jan', philipp: 'team-philipp' }[team] || '';
+  }
+  function teamLabel(team) {
+    return { ferdinand: 'Ferdinand', jan: 'Jan', philipp: 'Philipp' }[team] || (team || '—');
+  }
+  function levelLabel(level) {
+    return { '3': 'L3', '2': 'L2', '1': 'L1', 'rampup': 'Ramp-up' }[level] || 'L2';
+  }
+
+  function renderCard(rep) {
+    const status      = rep.overallStatus || 'neutral';
+    const composite   = rep.composite != null ? rep.composite : null;
+    const compLabel   = composite != null ? pct(composite) : '—';
+    const bAtt        = rep.bookingsAtt || 0;
+    const pAtt        = rep.pilotenAtt  || 0;
+    const bW          = rep.bookingsWeight != null ? rep.bookingsWeight : 0.5;
+    const pW          = rep.pilotenWeight  != null ? rep.pilotenWeight  : 0.5;
+
+    const cov     = (rep.coverageVal || 0).toFixed(1).replace('.',',') + 'x';
+    const covSt   = rep.coverageStatus  || 'neutral';
+    const wr      = pct(rep.winRateVal  || 0);
+    const wrSt    = rep.winRateStatus   || 'neutral';
+    const stale   = pct(rep.staleRateVal || 0);
+    const staleSt = rep.staleRateStatus || 'neutral';
+
+    const diag    = rep.rootCause || { cause: '—', severity: 0 };
+    const diagCls = diag.severity >= 3 ? 'sev-3' : diag.severity >= 2 ? 'sev-2' : diag.severity >= 1 ? 'sev-1' : '';
+
+    const bFill = clamp(bAtt, 0, 100);
+    const pFill = clamp(pAtt, 0, 100);
+
+    return `
+      <div class="card ${status}">
+        <div class="card-header">
+          <div>
+            <div class="rep-name">${rep.repName || '—'}</div>
+            <div class="rep-meta">
+              <span class="tag">${levelLabel(rep.level)}</span>
+              <span class="tag ${teamClass(rep.team)}">${teamLabel(rep.team)}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="score-row">
+          <div class="score-val ${status}">${compLabel}</div>
+          <div class="score-detail">
+            <div class="score-sub">
+              <span>Bookings (${Math.round((bW||0.5)*100)}%)</span>
+              <span>${pct(bAtt)}</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill ${bAtt >= 80 ? 'green' : bAtt >= 60 ? 'amber' : 'red'}" style="width:${bFill}%"></div>
+            </div>
+            ${pW > 0 ? `
+            <div class="score-sub" style="margin-top:4px">
+              <span>Piloten (${Math.round((pW||0.5)*100)}%)</span>
+              <span>${pct(pAtt)}</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill ${pAtt >= 80 ? 'green' : pAtt >= 60 ? 'amber' : 'red'}" style="width:${pFill}%"></div>
+            </div>` : ''}
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="kpi-grid">
+          <div class="kpi-cell">
+            <span class="kpi-label">Coverage</span>
+            <span class="kpi-value ${covSt}">${cov}</span>
+          </div>
+          <div class="kpi-cell">
+            <span class="kpi-label">Win Rate</span>
+            <span class="kpi-value ${wrSt}">${wr}</span>
+          </div>
+          <div class="kpi-cell">
+            <span class="kpi-label">Stale</span>
+            <span class="kpi-value ${staleSt}">${stale}</span>
+          </div>
+          <div class="kpi-cell">
+            <span class="kpi-label">Forecast</span>
+            <span class="kpi-value neutral">${fmt(rep.forecast)}</span>
+          </div>
+        </div>
+
+        <div class="activity-row">
+          <div class="act-cell"><div class="act-val">${fmtN(rep.dials || 0)}</div><div class="act-label">Anwahlen</div></div>
+          <div class="act-cell"><div class="act-val">${fmtN(rep.qualCalls || 0)}</div><div class="act-label">Qual. Calls</div></div>
+          <div class="act-cell"><div class="act-val">${fmtN(rep.meetings || 0)}</div><div class="act-label">Meetings</div></div>
+          <div class="act-cell"><div class="act-val">${fmtN(rep.emails || 0)}</div><div class="act-label">E-Mails</div></div>
+        </div>
+
+        <div class="diagnosis ${diagCls}">${diag.cause}</div>
+      </div>`;
+  }
+
+  function render(reps) {
+    const grid = document.getElementById('grid');
+    if (!Array.isArray(reps) || reps.length === 0) {
+      grid.innerHTML = '<div class="empty">Keine Daten</div>';
+      return;
+    }
+    grid.innerHTML = reps.map(renderCard).join('');
+  }
+
+  if (typeof appsmith !== 'undefined') {
+    render(appsmith.model || []);
+    appsmith.onReady(() => render(appsmith.model || []));
+    appsmith.onModelChange((m) => render(m || []));
+  } else {
+    render([]);
+  }
+</script>
+</body>
+</html>
