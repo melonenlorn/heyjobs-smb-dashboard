@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-card:    #222244;
+    --bg-hover:   #2a2a50;
+    --bg-surface: #16162b;
+    --text-1:     #f0f0f5;
+    --text-2:     #a0a0bb;
+    --text-3:     #6e6e88;
+    --green:      #58cc02;
+    --green-bg:   rgba(88,204,2,0.12);
+    --amber:      #ff9600;
+    --amber-bg:   rgba(255,150,0,0.12);
+    --red:        #ff4b4b;
+    --red-bg:     rgba(255,75,75,0.12);
+    --blue:       #1cb0f6;
+    --blue-bg:    rgba(28,176,246,0.12);
+    --border:     rgba(255,255,255,0.08);
+    --radius:     14px;
+    --font:       'Nunito', system-ui, sans-serif;
+  }
+
+  body {
+    background: transparent;
+    font-family: var(--font);
+    color: var(--text-1);
+    padding: 4px;
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    cursor: default;
+    transition: border-color .2s, background .2s;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .card:hover { background: var(--bg-hover); border-color: rgba(255,255,255,0.18); }
+
+  .card-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+
+  .card-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .card-value {
+    font-size: 28px;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--text-1);
+  }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 800;
+    padding: 3px 9px;
+    border-radius: 20px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .badge.green  { background: var(--green-bg);  color: var(--green);  }
+  .badge.amber  { background: var(--amber-bg);  color: var(--amber);  }
+  .badge.red    { background: var(--red-bg);    color: var(--red);    }
+  .badge.blue   { background: var(--blue-bg);   color: var(--blue);   }
+  .badge.neutral{ background: rgba(255,255,255,0.06); color: var(--text-3); }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+  }
+
+  .sub-metrics { display: flex; flex-direction: column; gap: 6px; }
+
+  .sub-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+  }
+  .sub-label { color: var(--text-3); }
+  .sub-value { color: var(--text-2); font-weight: 700; }
+  .sub-value.green  { color: var(--green); }
+  .sub-value.amber  { color: var(--amber); }
+  .sub-value.red    { color: var(--red);   }
+
+  /* Progress bar */
+  .progress-wrap { display: flex; flex-direction: column; gap: 4px; }
+  .progress-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--text-3);
+  }
+  .progress-track {
+    height: 6px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 99px;
+    overflow: hidden;
+    position: relative;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width .4s ease;
+  }
+  .progress-fill.green { background: var(--green); }
+  .progress-fill.amber { background: var(--amber); }
+  .progress-fill.red   { background: var(--red);   }
+  .progress-fill.blue  { background: var(--blue);  }
+
+  /* Funnel bars */
+  .funnel { display: flex; flex-direction: column; gap: 4px; }
+  .funnel-row { display: flex; align-items: center; gap: 6px; font-size: 11px; }
+  .funnel-label { color: var(--text-3); width: 64px; flex-shrink: 0; }
+  .funnel-track { flex: 1; height: 5px; background: rgba(255,255,255,0.08); border-radius: 99px; overflow: hidden; }
+  .funnel-fill  { height: 100%; border-radius: 99px; background: var(--blue); }
+  .funnel-val   { color: var(--text-2); font-weight: 700; width: 36px; text-align: right; flex-shrink: 0; }
+
+  /* Stale buckets */
+  .buckets { display: flex; gap: 6px; }
+  .bucket  { flex: 1; background: rgba(255,255,255,0.05); border-radius: 8px; padding: 6px 4px; text-align: center; }
+  .bucket-val   { font-size: 15px; font-weight: 800; }
+  .bucket-label { font-size: 10px; color: var(--text-3); margin-top: 2px; }
+  .bucket.b1 .bucket-val { color: var(--amber); }
+  .bucket.b2 .bucket-val { color: var(--red);   }
+  .bucket.b3 .bucket-val { color: #cc3c3c;      }
+
+  .empty { color: var(--text-3); font-size: 13px; text-align: center; padding: 20px; }
+</style>
+</head>
+<body>
+
+<div class="cards" id="cards">
+  <div class="empty">Lade Daten…</div>
+</div>
+
+<script>
+  function fmt(n) {
+    if (!n || n === 0) return '€\u00a00';
+    const abs = Math.round(Math.abs(n));
+    if (abs >= 1000000) return '€\u00a0' + (abs / 1000000).toFixed(1).replace('.', ',') + ' Mio.';
+    if (abs >= 1000)    return '€\u00a0' + Math.round(abs / 1000) + 'k';
+    return '€\u00a0' + abs.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  }
+  function fmtN(n) {
+    return (n || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  }
+  function pct(n) { return (n || 0) + '\u202f%'; }
+  function clamp(v, mn, mx) { return Math.max(mn, Math.min(mx, v)); }
+
+  function statusLabel(s) {
+    return { green: 'Gesund', amber: 'Warnung', red: 'Kritisch' }[s] || '—';
+  }
+
+  function render(model) {
+    const d = model || {};
+    const b = d.bookings  || {};
+    const c = d.coverage  || {};
+    const w = d.winRate   || {};
+    const a = d.activity  || {};
+    const st = d.stale    || {};
+
+    const container = document.getElementById('cards');
+    container.innerHTML = '';
+
+    // ── Card 1: Bookings Attainment ──────────────────────────────────────
+    const bAtt   = b.attainment || 0;
+    const bFill  = clamp(bAtt, 0, 100);
+    const bColor = b.status || 'neutral';
+    const forecastPct = b.target > 0 ? Math.round((b.forecast / b.target) * 100) : 0;
+
+    container.innerHTML += `
+      <div class="card">
+        <div class="card-label">Bookings Attainment</div>
+        <div class="card-main">
+          <div class="card-value">${pct(bAtt)}</div>
+          <div class="badge ${bColor}">${statusLabel(bColor)}</div>
+        </div>
+        <div class="divider"></div>
+        <div class="sub-metrics">
+          <div class="sub-row"><span class="sub-label">Gebucht</span><span class="sub-value">${fmt(b.arr)}</span></div>
+          <div class="sub-row"><span class="sub-label">Ziel (Quartal)</span><span class="sub-value">${fmt(b.target)}</span></div>
+          <div class="sub-row"><span class="sub-label">Self-Service</span><span class="sub-value">${fmt(b.selfSvcARR)} (${pct(b.selfSvcPct)})</span></div>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-labels">
+            <span>Run Rate Forecast: ${pct(forecastPct)}</span>
+            <span>${fmt(b.forecast)} / ${fmt(b.target)}</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill ${bColor}" style="width:${clamp(forecastPct,0,100)}%"></div>
+          </div>
+        </div>
+      </div>`;
+
+    // ── Card 2: Pipeline Coverage ─────────────────────────────────────────
+    const covVal   = c.value || 0;
+    const covColor = c.status || 'neutral';
+    const covFill  = clamp((covVal / 3) * 100, 0, 100);
+
+    container.innerHTML += `
+      <div class="card">
+        <div class="card-label">Pipeline Coverage</div>
+        <div class="card-main">
+          <div class="card-value">${covVal.toFixed(1).replace('.',',')}x</div>
+          <div class="badge ${covColor}">${statusLabel(covColor)}</div>
+        </div>
+        <div class="divider"></div>
+        <div class="sub-metrics">
+          <div class="sub-row"><span class="sub-label">Open Pipeline</span><span class="sub-value">${fmt(c.pipelineARR)}</span></div>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-labels"><span>0x</span><span>Ziel: 2,5x</span><span>3x</span></div>
+          <div class="progress-track">
+            <div class="progress-fill ${covColor}" style="width:${covFill}%"></div>
+          </div>
+        </div>
+      </div>`;
+
+    // ── Card 3: Win Rate ──────────────────────────────────────────────────
+    const wrVal   = w.value || 0;
+    const wrColor = w.status || 'neutral';
+    const wrFill  = clamp(wrVal, 0, 100);
+
+    container.innerHTML += `
+      <div class="card">
+        <div class="card-label">Win Rate</div>
+        <div class="card-main">
+          <div class="card-value">${pct(wrVal)}</div>
+          <div class="badge ${wrColor}">${statusLabel(wrColor)}</div>
+        </div>
+        <div class="divider"></div>
+        <div class="sub-metrics">
+          <div class="sub-row"><span class="sub-label">Gewonnen</span><span class="sub-value green">${fmtN(w.wonCount)}</span></div>
+          <div class="sub-row"><span class="sub-label">Verloren</span><span class="sub-value red">${fmtN(w.lostCount)}</span></div>
+          <div class="sub-row"><span class="sub-label">Gesamt (90d)</span><span class="sub-value">${fmtN((w.wonCount||0)+(w.lostCount||0))}</span></div>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-labels"><span>0%</span><span>Ziel: 30%</span></div>
+          <div class="progress-track">
+            <div class="progress-fill ${wrColor}" style="width:${wrFill}%"></div>
+          </div>
+        </div>
+      </div>`;
+
+    // ── Card 4: Aktivität & Qual. Conversations ───────────────────────────
+    const maxDials = Math.max(a.dials || 1, 1);
+    const qualTotal = (a.qualCalls || 0) + (a.meetings || 0);
+
+    container.innerHTML += `
+      <div class="card">
+        <div class="card-label">Aktivität</div>
+        <div class="card-main">
+          <div class="card-value">${fmtN(qualTotal)}</div>
+          <div class="badge blue">Qual. Conv.</div>
+        </div>
+        <div class="divider"></div>
+        <div class="funnel">
+          <div class="funnel-row">
+            <span class="funnel-label">Anwahlen</span>
+            <div class="funnel-track"><div class="funnel-fill" style="width:100%"></div></div>
+            <span class="funnel-val">${fmtN(a.dials)}</span>
+          </div>
+          <div class="funnel-row">
+            <span class="funnel-label">Qual. Calls</span>
+            <div class="funnel-track"><div class="funnel-fill" style="width:${clamp(((a.qualCalls||0)/maxDials)*100,0,100)}%"></div></div>
+            <span class="funnel-val">${fmtN(a.qualCalls)}</span>
+          </div>
+          <div class="funnel-row">
+            <span class="funnel-label">Meetings</span>
+            <div class="funnel-track"><div class="funnel-fill" style="width:${clamp(((a.meetings||0)/maxDials)*100,0,100)}%"></div></div>
+            <span class="funnel-val">${fmtN(a.meetings)}</span>
+          </div>
+          <div class="funnel-row">
+            <span class="funnel-label">E-Mails</span>
+            <div class="funnel-track"><div class="funnel-fill" style="width:${clamp(((a.emails||0)/maxDials)*100,0,100)}%"></div></div>
+            <span class="funnel-val">${fmtN(a.emails)}</span>
+          </div>
+        </div>
+      </div>`;
+
+    // ── Card 5: Stale Pipeline ────────────────────────────────────────────
+    const stColor = st.status || 'neutral';
+    const buckets = { '14-21d': 0, '21-30d': 0, '30d+': 0 };
+    (st.list || []).forEach(o => {
+      if (o.daysSinceActivity >= 30)      buckets['30d+']++;
+      else if (o.daysSinceActivity >= 21) buckets['21-30d']++;
+      else                                buckets['14-21d']++;
+    });
+
+    container.innerHTML += `
+      <div class="card">
+        <div class="card-label">Stale Pipeline</div>
+        <div class="card-main">
+          <div class="card-value">${pct(st.value)}</div>
+          <div class="badge ${stColor}">${statusLabel(stColor)}</div>
+        </div>
+        <div class="divider"></div>
+        <div class="sub-metrics">
+          <div class="sub-row"><span class="sub-label">Stale Opps</span><span class="sub-value ${stColor}">${fmtN(st.staleCount)} von ${fmtN(st.totalOpen)}</span></div>
+        </div>
+        <div class="buckets">
+          <div class="bucket b1"><div class="bucket-val">${buckets['14-21d']}</div><div class="bucket-label">14–21d</div></div>
+          <div class="bucket b2"><div class="bucket-val">${buckets['21-30d']}</div><div class="bucket-label">21–30d</div></div>
+          <div class="bucket b3"><div class="bucket-val">${buckets['30d+']}</div><div class="bucket-label">30d+</div></div>
+        </div>
+      </div>`;
+  }
+
+  // Bootstrap
+  render(appsmith && appsmith.model ? appsmith.model : {});
+  appsmith.onReady(() => render(appsmith.model));
+  appsmith.onModelChange((m) => render(m));
+</script>
+</body>
+</html>
