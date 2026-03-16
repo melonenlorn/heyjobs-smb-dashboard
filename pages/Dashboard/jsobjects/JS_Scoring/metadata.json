@@ -1,0 +1,11 @@
+{
+  "id": "Dashboard_JS_Scoring",
+  "gitSyncId": "Dashboard_JS_Scoring",
+  "unpublishedCollection": {
+    "name": "JS_Scoring",
+    "pageId": "Dashboard",
+    "pluginId": "js-plugin",
+    "pluginType": "JS",
+    "variables": []
+  }
+}
