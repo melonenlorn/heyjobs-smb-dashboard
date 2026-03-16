@@ -129,14 +129,18 @@ export default {
     return Math.max(0, Math.min(1, elapsed / total));
   },
 
-  // ── Number formatting (German locale) ────────────────────────────────────
+  // ── Number formatting (German locale, no Intl — Appsmith compatible) ─────
   formatEUR(val) {
-    if (!val || val === 0) return '€0';
-    return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(val);
+    if (!val || val === 0) return '€\u00a00';
+    const n   = Math.round(Math.abs(val));
+    const str = n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return (val < 0 ? '-' : '') + '€\u00a0' + str;
   },
 
   formatNum(val) {
-    return new Intl.NumberFormat('de-DE').format(val || 0);
+    const n   = Math.round(Math.abs(val || 0));
+    const str = n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return ((val || 0) < 0 ? '-' : '') + str;
   },
 
   formatPct(val) {
