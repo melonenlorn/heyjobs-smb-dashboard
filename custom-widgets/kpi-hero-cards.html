@@ -333,8 +333,17 @@
   }
 
   // Bootstrap
+  var _lastKey = null;
+  function poll() {
+    if (typeof appsmith !== 'undefined' && appsmith.model) {
+      var key = JSON.stringify(appsmith.model.bookings);
+      if (key !== _lastKey) { _lastKey = key; render(appsmith.model); }
+    }
+    setTimeout(poll, 300);
+  }
+
   if (typeof appsmith !== 'undefined') {
-    appsmith.onReady(() => render(appsmith.model || {}));
+    appsmith.onReady(() => { render(appsmith.model || {}); poll(); });
     appsmith.onModelChange((m) => render(m || {}));
   } else {
     render({});

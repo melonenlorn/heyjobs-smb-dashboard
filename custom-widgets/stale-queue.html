@@ -139,8 +139,17 @@
 
   function extract(m) { return Array.isArray(m) ? m : (m && m.list) || []; }
 
+  var _lastKey = null;
+  function poll() {
+    if (typeof appsmith !== 'undefined' && appsmith.model) {
+      var key = JSON.stringify(extract(appsmith.model).length);
+      if (key !== _lastKey) { _lastKey = key; render(extract(appsmith.model)); }
+    }
+    setTimeout(poll, 300);
+  }
+
   if (typeof appsmith !== 'undefined') {
-    appsmith.onReady(() => render(extract(appsmith.model)));
+    appsmith.onReady(() => { render(extract(appsmith.model)); poll(); });
     appsmith.onModelChange((m) => render(extract(m)));
   } else {
     render([]);
