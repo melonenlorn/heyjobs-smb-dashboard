@@ -25,7 +25,7 @@
     "fullyQualifiedName": "JS_Init.initDashboard",
     "name": "initDashboard",
     "pageId": "Dashboard",
-    "runBehaviour": "ON_PAGE_LOAD",
+    "runBehaviour": "AUTOMATIC",
     "userSetOnLoad": true
   }
 }

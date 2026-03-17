@@ -8,9 +8,19 @@
       "encodeParamsToggle": true,
       "formData": {
         "CUSTOM_ACTION": {
-          "headers": [{"key": "", "value": ""}],
+          "headers": [
+            {
+              "key": "",
+              "value": ""
+            }
+          ],
           "method": "GET",
-          "params": [{"key": "q", "value": "SELECT Id, OwnerId, Owner.Name, ActivityDate FROM Task WHERE TaskSubtype = 'Email' AND ActivityDate >= 2026-01-01 AND ActivityDate <= 2026-03-31 AND OwnerId IN ('0059L000000JKG9QAO','005W7000000zmHSIAY','005W7000005SxezIAC','005W7000009NCmTIAW','0051v00000BjKXAAA3','0059L000000JKFlQAO','005W7000005SzP3IAK','005W7000005SxQTIA0','005W7000004vQt7IAE','005W7000005WNTFIA4','0059L000000IlsvQAC','0059L000000JKGDQA4','005W7000002HR5tIAG','005W70000048JRNIA2','005W7000003UovJIAS','0059L000000JKGOQA4','005W7000004vQptIAE') ORDER BY OwnerId LIMIT 5000"}],
+          "params": [
+            {
+              "key": "q",
+              "value": "SELECT Id, OwnerId, Owner.Name, ActivityDate FROM Task WHERE TaskSubtype = 'Email' AND ActivityDate >= 2026-01-01 AND ActivityDate <= 2026-03-31 AND OwnerId IN ('0059L000000JKG9QAO','005W7000000zmHSIAY','005W7000005SxezIAC','005W7000009NCmTIAW','0051v00000BjKXAAA3','0059L000000JKFlQAO','005W7000005SzP3IAK','005W7000005SxQTIA0','005W7000004vQt7IAE','005W7000005WNTFIA4','0059L000000IlsvQAC','0059L000000JKGDQA4','005W7000002HR5tIAG','005W70000048JRNIA2','005W7000003UovJIAS','0059L000000JKGOQA4','005W7000004vQptIAE') ORDER BY OwnerId LIMIT 5000"
+            }
+          ],
           "path": "query/?q=SELECT Id, OwnerId, Owner.Name, ActivityDate FROM Task WHERE TaskSubtype = 'Email' AND ActivityDate >= 2026-01-01 AND ActivityDate <= 2026-03-31 AND OwnerId IN ('0059L000000JKG9QAO','005W7000000zmHSIAY','005W7000005SxezIAC','005W7000009NCmTIAW','0051v00000BjKXAAA3','0059L000000JKFlQAO','005W7000005SzP3IAK','005W7000005SxQTIA0','005W7000004vQt7IAE','005W7000005WNTFIA4','0059L000000IlsvQAC','0059L000000JKGDQA4','005W7000002HR5tIAG','005W70000048JRNIA2','005W7000003UovJIAS','0059L000000JKGOQA4','005W7000004vQptIAE') ORDER BY OwnerId LIMIT 5000"
         },
         "command": "CUSTOM_ACTION"
@@ -28,7 +38,7 @@
     "dynamicBindingPathList": [],
     "name": "Q_Emails_QTD",
     "pageId": "Dashboard",
-    "runBehaviour": "AUTOMATIC",
+    "runBehaviour": "ON_PAGE_LOAD",
     "userSetOnLoad": true
   }
 }

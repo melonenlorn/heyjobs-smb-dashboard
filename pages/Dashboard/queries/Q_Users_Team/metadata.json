@@ -8,9 +8,19 @@
       "encodeParamsToggle": true,
       "formData": {
         "CUSTOM_ACTION": {
-          "headers": [{"key": "", "value": ""}],
+          "headers": [
+            {
+              "key": "",
+              "value": ""
+            }
+          ],
           "method": "GET",
-          "params": [{"key": "q", "value": "SELECT Id, Name, UserRole.Name FROM User WHERE IsActive = true AND Id IN ('0059L000000JKG9QAO','005W7000000zmHSIAY','005W7000005SxezIAC','005W7000009NCmTIAW','0051v00000BjKXAAA3','0059L000000JKFlQAO','005W7000005SzP3IAK','005W7000005SxQTIA0','005W7000004vQt7IAE','005W7000005WNTFIA4','0059L000000IlsvQAC','0059L000000JKGDQA4','005W7000002HR5tIAG','005W70000048JRNIA2','005W7000003UovJIAS','0059L000000JKGOQA4','005W7000004vQptIAE') ORDER BY Name"}],
+          "params": [
+            {
+              "key": "q",
+              "value": "SELECT Id, Name, UserRole.Name FROM User WHERE IsActive = true AND Id IN ('0059L000000JKG9QAO','005W7000000zmHSIAY','005W7000005SxezIAC','005W7000009NCmTIAW','0051v00000BjKXAAA3','0059L000000JKFlQAO','005W7000005SzP3IAK','005W7000005SxQTIA0','005W7000004vQt7IAE','005W7000005WNTFIA4','0059L000000IlsvQAC','0059L000000JKGDQA4','005W7000002HR5tIAG','005W70000048JRNIA2','005W7000003UovJIAS','0059L000000JKGOQA4','005W7000004vQptIAE') ORDER BY Name"
+            }
+          ],
           "path": "query/?q=SELECT Id, Name, UserRole.Name FROM User WHERE IsActive = true AND Id IN ('0059L000000JKG9QAO','005W7000000zmHSIAY','005W7000005SxezIAC','005W7000009NCmTIAW','0051v00000BjKXAAA3','0059L000000JKFlQAO','005W7000005SzP3IAK','005W7000005SxQTIA0','005W7000004vQt7IAE','005W7000005WNTFIA4','0059L000000IlsvQAC','0059L000000JKGDQA4','005W7000002HR5tIAG','005W70000048JRNIA2','005W7000003UovJIAS','0059L000000JKGOQA4','005W7000004vQptIAE') ORDER BY Name"
         },
         "command": "CUSTOM_ACTION"
@@ -28,7 +38,7 @@
     "dynamicBindingPathList": [],
     "name": "Q_Users_Team",
     "pageId": "Dashboard",
-    "runBehaviour": "AUTOMATIC",
+    "runBehaviour": "ON_PAGE_LOAD",
     "userSetOnLoad": true
   }
 }
