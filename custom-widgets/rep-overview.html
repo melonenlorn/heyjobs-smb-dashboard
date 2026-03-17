@@ -326,10 +326,15 @@
     return (red.length >= 3 ? red : arr).slice(0, 3);
   }
 
+  // Key: total pipelineARR across all reps — 0 before queries load, non-zero after
+  function modelKey(m) {
+    return (m && m.reps || []).reduce(function(s,r){ return s+(r.pipelineARR||0)+(r.dials||0); }, 0);
+  }
+
   var _lastKey = null;
   function poll() {
     if (typeof appsmith !== 'undefined' && appsmith.model) {
-      var key = JSON.stringify(extract(appsmith.model).length);
+      var key = modelKey(appsmith.model);
       if (key !== _lastKey) { _lastKey = key; render(extract(appsmith.model)); }
     }
     setTimeout(poll, 300);

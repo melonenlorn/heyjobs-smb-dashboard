@@ -248,12 +248,16 @@
     };
   }
 
+  // Key: total pipelineARR + dials — 0 before queries load, non-zero after
+  function modelKey(m) {
+    return (m && m.reps || []).reduce(function(s,r){ return s+(r.pipelineARR||0)+(r.dials||0); }, 0);
+  }
+
   var _lastKey = null;
   function poll() {
     if (typeof appsmith !== 'undefined' && appsmith.model) {
-      const d = extract(appsmith.model);
-      var key = JSON.stringify((d.reps[0] || {}).composite);
-      if (key !== _lastKey) { _lastKey = key; render(d); }
+      var key = modelKey(appsmith.model);
+      if (key !== _lastKey) { _lastKey = key; render(extract(appsmith.model)); }
     }
     setTimeout(poll, 300);
   }
