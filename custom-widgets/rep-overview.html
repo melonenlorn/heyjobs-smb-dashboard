@@ -318,10 +318,12 @@
     grid.innerHTML = reps.map(renderCard).join('');
   }
 
+  function extract(m) { return Array.isArray(m) ? m : (m && m.reps) || []; }
+
   if (typeof appsmith !== 'undefined') {
-    render(appsmith.model || []);
-    appsmith.onReady(() => render(appsmith.model || []));
-    appsmith.onModelChange((m) => render(m || []));
+    render(extract(appsmith.model));
+    appsmith.onReady(() => render(extract(appsmith.model)));
+    appsmith.onModelChange((m) => render(extract(m)));
   } else {
     render([]);
   }

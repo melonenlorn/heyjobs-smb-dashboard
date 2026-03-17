@@ -137,10 +137,12 @@
     c.innerHTML = header + rows;
   }
 
+  function extract(m) { return Array.isArray(m) ? m : (m && m.list) || []; }
+
   if (typeof appsmith !== 'undefined') {
-    render(appsmith.model || []);
-    appsmith.onReady(() => render(appsmith.model || []));
-    appsmith.onModelChange((m) => render(m || []));
+    render(extract(appsmith.model));
+    appsmith.onReady(() => render(extract(appsmith.model)));
+    appsmith.onModelChange((m) => render(extract(m)));
   } else {
     render([]);
   }
