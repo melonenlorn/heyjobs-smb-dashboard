@@ -8,21 +8,20 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg-card:    #222244;
-    --bg-hover:   #2a2a50;
-    --bg-surface: #16162b;
-    --text-1:     #f0f0f5;
-    --text-2:     #a0a0bb;
-    --text-3:     #6e6e88;
-    --green:      #58cc02;
-    --green-bg:   rgba(88,204,2,0.12);
-    --amber:      #ff9600;
-    --amber-bg:   rgba(255,150,0,0.12);
-    --red:        #ff4b4b;
-    --red-bg:     rgba(255,75,75,0.12);
-    --blue:       #1cb0f6;
-    --blue-bg:    rgba(28,176,246,0.12);
-    --border:     rgba(255,255,255,0.08);
+    --bg-card:    #ffffff;
+    --bg-hover:   #f4f4ff;
+    --text-1:     #1a1a2e;
+    --text-2:     #4a4a6a;
+    --text-3:     #9090b0;
+    --green:      #2e9e00;
+    --green-bg:   rgba(46,158,0,0.10);
+    --amber:      #c97800;
+    --amber-bg:   rgba(201,120,0,0.10);
+    --red:        #d93232;
+    --red-bg:     rgba(217,50,50,0.10);
+    --blue:       #0078d4;
+    --blue-bg:    rgba(0,120,212,0.10);
+    --border:     rgba(0,0,0,0.08);
     --radius:     14px;
     --font:       'Nunito', system-ui, sans-serif;
   }
@@ -50,8 +49,9 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
   }
-  .card:hover { background: var(--bg-hover); border-color: rgba(255,255,255,0.18); }
+  .card:hover { background: var(--bg-hover); border-color: rgba(0,0,0,0.14); }
 
   .card-label {
     font-size: 11px;
@@ -87,7 +87,7 @@
   .badge.amber  { background: var(--amber-bg);  color: var(--amber);  }
   .badge.red    { background: var(--red-bg);    color: var(--red);    }
   .badge.blue   { background: var(--blue-bg);   color: var(--blue);   }
-  .badge.neutral{ background: rgba(255,255,255,0.06); color: var(--text-3); }
+  .badge.neutral{ background: rgba(0,0,0,0.05); color: var(--text-3); }
 
   .divider {
     height: 1px;
@@ -118,7 +118,7 @@
   }
   .progress-track {
     height: 6px;
-    background: rgba(255,255,255,0.08);
+    background: rgba(0,0,0,0.07);
     border-radius: 99px;
     overflow: hidden;
     position: relative;
@@ -136,19 +136,19 @@
   /* Funnel bars */
   .funnel { display: flex; flex-direction: column; gap: 4px; }
   .funnel-row { display: flex; align-items: center; gap: 6px; font-size: 11px; }
-  .funnel-label { color: var(--text-3); width: 64px; flex-shrink: 0; }
-  .funnel-track { flex: 1; height: 5px; background: rgba(255,255,255,0.08); border-radius: 99px; overflow: hidden; }
+  .funnel-label { color: var(--text-3); width: 72px; flex-shrink: 0; }
+  .funnel-track { flex: 1; height: 5px; background: rgba(0,0,0,0.07); border-radius: 99px; overflow: hidden; }
   .funnel-fill  { height: 100%; border-radius: 99px; background: var(--blue); }
   .funnel-val   { color: var(--text-2); font-weight: 700; width: 36px; text-align: right; flex-shrink: 0; }
 
   /* Stale buckets */
   .buckets { display: flex; gap: 6px; }
-  .bucket  { flex: 1; background: rgba(255,255,255,0.05); border-radius: 8px; padding: 6px 4px; text-align: center; }
+  .bucket  { flex: 1; background: rgba(0,0,0,0.04); border-radius: 8px; padding: 6px 4px; text-align: center; }
   .bucket-val   { font-size: 15px; font-weight: 800; }
   .bucket-label { font-size: 10px; color: var(--text-3); margin-top: 2px; }
   .bucket.b1 .bucket-val { color: var(--amber); }
   .bucket.b2 .bucket-val { color: var(--red);   }
-  .bucket.b3 .bucket-val { color: #cc3c3c;      }
+  .bucket.b3 .bucket-val { color: #b02020;      }
 
   .empty { color: var(--text-3); font-size: 13px; text-align: center; padding: 20px; }
 </style>
@@ -268,18 +268,26 @@
         </div>
       </div>`;
 
-    // ── Card 4: Aktivität & Qual. Conversations ───────────────────────────
-    const maxDials = Math.max(a.dials || 1, 1);
-    const qualTotal = (a.qualCalls || 0) + (a.meetings || 0);
+    // ── Card 4: Aktivität ─────────────────────────────────────────────────
+    const progress     = d.progress || 0.5;
+    const weeksElapsed = Math.max(1, Math.round(progress * 13));
+    const qualTotal    = (a.qualCalls || 0) + (a.meetings || 0);
+    const weeklyQC     = Math.round(qualTotal / weeksElapsed);
+    const cr           = (a.dials || 0) > 0 ? Math.round((qualTotal / a.dials) * 100) : 0;
+    const maxDials     = Math.max(a.dials || 1, 1);
 
     container.innerHTML += `
       <div class="card">
         <div class="card-label">Aktivität</div>
         <div class="card-main">
-          <div class="card-value">${fmtN(qualTotal)}</div>
-          <div class="badge blue">Qual. Conv.</div>
+          <div class="card-value">${fmtN(weeklyQC)}</div>
+          <div class="badge blue">Ø QC/Woche</div>
         </div>
         <div class="divider"></div>
+        <div class="sub-metrics">
+          <div class="sub-row"><span class="sub-label">CR Anwahl→QC</span><span class="sub-value">${pct(cr)}</span></div>
+          <div class="sub-row"><span class="sub-label">QC gesamt (QTD)</span><span class="sub-value">${fmtN(qualTotal)}</span></div>
+        </div>
         <div class="funnel">
           <div class="funnel-row">
             <span class="funnel-label">Anwahlen</span>

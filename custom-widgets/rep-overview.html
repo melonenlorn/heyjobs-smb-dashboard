@@ -8,21 +8,21 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg-card:    #222244;
-    --bg-hover:   #2a2a50;
-    --bg-surface: #16162b;
-    --text-1:     #f0f0f5;
-    --text-2:     #a0a0bb;
-    --text-3:     #6e6e88;
-    --green:      #58cc02;
-    --green-bg:   rgba(88,204,2,0.12);
-    --amber:      #ff9600;
-    --amber-bg:   rgba(255,150,0,0.12);
-    --red:        #ff4b4b;
-    --red-bg:     rgba(255,75,75,0.12);
-    --blue:       #1cb0f6;
-    --blue-bg:    rgba(28,176,246,0.12);
-    --border:     rgba(255,255,255,0.08);
+    --bg-card:    #ffffff;
+    --bg-hover:   #f4f4ff;
+    --bg-surface: #f0f2ff;
+    --text-1:     #1a1a2e;
+    --text-2:     #4a4a6a;
+    --text-3:     #9090b0;
+    --green:      #2e9e00;
+    --green-bg:   rgba(46,158,0,0.10);
+    --amber:      #c97800;
+    --amber-bg:   rgba(201,120,0,0.10);
+    --red:        #d93232;
+    --red-bg:     rgba(217,50,50,0.10);
+    --blue:       #0078d4;
+    --blue-bg:    rgba(0,120,212,0.10);
+    --border:     rgba(0,0,0,0.08);
     --radius:     14px;
     --font:       'Nunito', system-ui, sans-serif;
   }
@@ -51,6 +51,7 @@
     cursor: default;
     transition: background .2s, border-color .2s;
     border-left-width: 3px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
   }
   .card:hover { background: var(--bg-hover); }
   .card.red    { border-left-color: var(--red);    }
@@ -82,14 +83,14 @@
     font-weight: 700;
     padding: 2px 7px;
     border-radius: 20px;
-    background: rgba(255,255,255,0.07);
+    background: rgba(0,0,0,0.05);
     color: var(--text-3);
     letter-spacing: .04em;
     white-space: nowrap;
   }
-  .tag.team-ferdinand { background: rgba(28,176,246,0.15); color: var(--blue); }
-  .tag.team-jan       { background: rgba(255,150,0,0.15);  color: var(--amber); }
-  .tag.team-philipp   { background: rgba(88,204,2,0.15);   color: var(--green); }
+  .tag.team-ferdinand { background: rgba(0,120,212,0.10); color: var(--blue); }
+  .tag.team-jan       { background: rgba(201,120,0,0.10); color: var(--amber); }
+  .tag.team-philipp   { background: rgba(46,158,0,0.10);  color: var(--green); }
 
   /* ── Composite score ── */
   .score-row {
@@ -124,7 +125,7 @@
 
   .progress-track {
     height: 5px;
-    background: rgba(255,255,255,0.08);
+    background: rgba(0,0,0,0.07);
     border-radius: 99px;
     overflow: hidden;
   }
@@ -166,7 +167,7 @@
   }
   .act-cell {
     flex: 1;
-    background: rgba(255,255,255,0.04);
+    background: rgba(0,0,0,0.04);
     border-radius: 8px;
     padding: 5px 4px;
     text-align: center;
@@ -183,12 +184,12 @@
     font-weight: 700;
     padding: 5px 10px;
     border-radius: 8px;
-    background: rgba(255,255,255,0.04);
+    background: rgba(0,0,0,0.04);
     color: var(--text-3);
   }
   .diagnosis.sev-3 { background: var(--red-bg);   color: var(--red);   }
   .diagnosis.sev-2 { background: var(--amber-bg); color: var(--amber); }
-  .diagnosis.sev-1 { background: rgba(255,150,0,0.08); color: var(--text-2); }
+  .diagnosis.sev-1 { background: rgba(201,120,0,0.06); color: var(--text-2); }
   .diagnosis::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
 
   .empty { color: var(--text-3); font-size: 13px; text-align: center; padding: 40px; }
@@ -312,13 +313,18 @@
   function render(reps) {
     const grid = document.getElementById('grid');
     if (!Array.isArray(reps) || reps.length === 0) {
-      grid.innerHTML = '<div class="empty">Keine Daten</div>';
+      grid.innerHTML = '<div class="empty">Keine Risiko-Reps</div>';
       return;
     }
     grid.innerHTML = reps.map(renderCard).join('');
   }
 
-  function extract(m) { return Array.isArray(m) ? m : (m && m.reps) || []; }
+  // Top-3 worst reps: prefer red, fall back to worst 3 overall
+  function extract(m) {
+    const arr = Array.isArray(m) ? m : (m && m.reps) || [];
+    const red = arr.filter(r => r.overallStatus === 'red');
+    return (red.length >= 3 ? red : arr).slice(0, 3);
+  }
 
   var _lastKey = null;
   function poll() {

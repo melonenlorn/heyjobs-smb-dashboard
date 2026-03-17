@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-card:    #ffffff;
+    --bg-header:  rgba(0,0,0,0.03);
+    --bg-hover:   rgba(0,0,0,0.03);
+    --text-1:     #1a1a2e;
+    --text-2:     #4a4a6a;
+    --text-3:     #9090b0;
+    --green:      #2e9e00;
+    --green-bg:   rgba(46,158,0,0.10);
+    --amber:      #c97800;
+    --amber-bg:   rgba(201,120,0,0.10);
+    --red:        #d93232;
+    --red-bg:     rgba(217,50,50,0.10);
+    --blue:       #0078d4;
+    --blue-bg:    rgba(0,120,212,0.10);
+    --border:     rgba(0,0,0,0.08);
+    --radius:     14px;
+    --font:       'Nunito', system-ui, sans-serif;
+  }
+
+  body { background: transparent; font-family: var(--font); color: var(--text-1); padding: 4px; }
+
+  .container {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  thead tr {
+    background: var(--bg-header);
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    padding: 8px 10px;
+    text-align: right;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    white-space: nowrap;
+  }
+  th:first-child { text-align: left; }
+  th.center      { text-align: center; }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background .12s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--bg-hover); }
+
+  td {
+    padding: 8px 10px;
+    text-align: right;
+    color: var(--text-2);
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  td:first-child { text-align: left; }
+  td.center      { text-align: center; }
+
+  .rep-cell { display: flex; flex-direction: column; gap: 2px; }
+  .rep-name  { font-size: 12px; font-weight: 800; color: var(--text-1); }
+  .rep-tags  { display: flex; gap: 4px; }
+
+  .tag {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 20px;
+    background: rgba(0,0,0,0.05);
+    color: var(--text-3);
+    letter-spacing: .04em;
+    white-space: nowrap;
+  }
+  .tag.team-ferdinand { background: rgba(0,120,212,0.10); color: var(--blue); }
+  .tag.team-jan       { background: rgba(201,120,0,0.10); color: var(--amber); }
+  .tag.team-philipp   { background: rgba(46,158,0,0.10);  color: var(--green); }
+
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  .badge.green  { background: var(--green-bg);  color: var(--green);  }
+  .badge.amber  { background: var(--amber-bg);  color: var(--amber);  }
+  .badge.red    { background: var(--red-bg);    color: var(--red);    }
+  .badge.blue   { background: var(--blue-bg);   color: var(--blue);   }
+  .badge.neutral{ background: rgba(0,0,0,0.05); color: var(--text-3); }
+
+  .risk-label {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+  .risk-label.sev-3 { background: var(--red-bg);   color: var(--red);   }
+  .risk-label.sev-2 { background: var(--amber-bg); color: var(--amber); }
+  .risk-label.sev-1 { background: rgba(201,120,0,0.06); color: var(--text-2); }
+  .risk-label.sev-0 { color: var(--text-3); }
+
+  .num-red   { color: var(--red);   }
+  .num-amber { color: var(--amber); }
+  .num-green { color: var(--green); }
+
+  .empty { color: var(--text-3); font-size: 13px; text-align: center; padding: 40px; }
+</style>
+</head>
+<body>
+<div class="container" id="container">
+  <div class="empty">Lade Daten…</div>
+</div>
+
+<script>
+  function fmt(n) {
+    if (!n) return '—';
+    const abs = Math.round(Math.abs(n));
+    if (abs >= 1000000) return (abs/1000000).toFixed(1).replace('.',',') + ' Mio.';
+    if (abs >= 1000)    return Math.round(abs/1000) + 'k';
+    return abs.toString();
+  }
+  function fmtN(n) { return (n || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+  function pct(n) { return (n || 0) + '\u202f%'; }
+
+  function teamClass(team) {
+    return { ferdinand: 'team-ferdinand', jan: 'team-jan', philipp: 'team-philipp' }[team] || '';
+  }
+  function teamLabel(team) {
+    return { ferdinand: 'Ferdinand', jan: 'Jan', philipp: 'Philipp' }[team] || (team || '—');
+  }
+  function levelLabel(level) {
+    return { '3': 'L3', '2': 'L2', '1': 'L1', 'rampup': 'Ramp' }[level] || 'L2';
+  }
+  function statusColor(v, thresholds, inverted) {
+    if (inverted) {
+      if (v <= thresholds[0]) return 'num-green';
+      if (v <= thresholds[1]) return 'num-amber';
+      return 'num-red';
+    }
+    if (v >= thresholds[0]) return 'num-green';
+    if (v >= thresholds[1]) return 'num-amber';
+    return 'num-red';
+  }
+
+  function render(model) {
+    const reps = model.reps || [];
+    const weeksElapsed = Math.max(1, model.weeksElapsed || 1);
+    const c = document.getElementById('container');
+
+    if (!reps.length) {
+      c.innerHTML = '<div class="empty">Keine Daten</div>';
+      return;
+    }
+
+    const rows = reps.map(r => {
+      const diag    = r.rootCause || { cause: '—', severity: 0 };
+      const diagCls = diag.severity >= 3 ? 'sev-3' : diag.severity >= 2 ? 'sev-2' : diag.severity >= 1 ? 'sev-1' : 'sev-0';
+      const qualTotal = (r.qualCalls || 0) + (r.meetings || 0);
+      const anwW    = Math.round((r.dials || 0) / weeksElapsed);
+      const mailW   = Math.round((r.emails || 0) / weeksElapsed);
+      const cr      = (r.dials || 0) > 0 ? Math.round((qualTotal / r.dials) * 100) : 0;
+      const bkARR   = r.bookingsARR || 0;
+      const rr      = r.bookingsTarget > 0 ? Math.round((r.forecast / r.bookingsTarget) * 100) : 0;
+      const ta      = r.composite != null ? r.composite : 0;
+      const pilots  = r.pilotenTarget > 0 ? `${r.closedPilots || 0}/${r.pilotenTarget}` : `${r.closedPilots || 0}`;
+      const pilotsColor = r.pilotenTarget > 0
+        ? ((r.closedPilots || 0) >= r.pilotenTarget ? 'num-green' : (r.closedPilots || 0) >= r.pilotenTarget * 0.6 ? 'num-amber' : 'num-red')
+        : '';
+
+      return `
+        <tr>
+          <td>
+            <div class="rep-cell">
+              <div class="rep-name">${r.repName || '—'}</div>
+              <div class="rep-tags">
+                <span class="tag">${levelLabel(r.level)}</span>
+                <span class="tag ${teamClass(r.team)}">${teamLabel(r.team)}</span>
+              </div>
+            </div>
+          </td>
+          <td>${fmtN(anwW)}</td>
+          <td>${fmtN(mailW)}</td>
+          <td class="${statusColor(qualTotal, [30, 20])}">${fmtN(qualTotal)}</td>
+          <td class="${statusColor(cr, [20, 12])}">${pct(cr)}</td>
+          <td>${fmtN(r.meetings || 0)}</td>
+          <td>${fmtN(r.openOpps || 0)}</td>
+          <td class="${statusColor(r.coverageVal || 0, [2.5, 1.5])}">${(r.coverageVal || 0).toFixed(1).replace('.',',')}x</td>
+          <td class="${pilotsColor}">${pilots}</td>
+          <td>${fmt(bkARR)}</td>
+          <td><span class="badge ${r.overallStatus || 'neutral'}">${pct(ta)}</span></td>
+          <td class="${statusColor(rr, [80, 60])}">${pct(rr)}</td>
+          <td><span class="risk-label ${diagCls}">${diag.cause}</span></td>
+        </tr>`;
+    }).join('');
+
+    c.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Rep</th>
+            <th>Anw/W</th>
+            <th>Mails/W</th>
+            <th>QC</th>
+            <th>CR%</th>
+            <th>Meetings</th>
+            <th>Opps</th>
+            <th>Cov</th>
+            <th>Pilots</th>
+            <th>Bookings</th>
+            <th class="center">TA%</th>
+            <th>RR%</th>
+            <th>Risk</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }
+
+  function extract(m) {
+    if (!m) return { reps: [], weeksElapsed: 1 };
+    return {
+      reps:         Array.isArray(m) ? m : (m.reps || []),
+      weeksElapsed: m.weeksElapsed || 1,
+    };
+  }
+
+  var _lastKey = null;
+  function poll() {
+    if (typeof appsmith !== 'undefined' && appsmith.model) {
+      const d = extract(appsmith.model);
+      var key = JSON.stringify((d.reps[0] || {}).composite);
+      if (key !== _lastKey) { _lastKey = key; render(d); }
+    }
+    setTimeout(poll, 300);
+  }
+
+  if (typeof appsmith !== 'undefined') {
+    appsmith.onReady(() => { render(extract(appsmith.model)); poll(); });
+    appsmith.onModelChange((m) => render(extract(m)));
+  } else {
+    render({ reps: [], weeksElapsed: 1 });
+  }
+</script>
+</body>
+</html>

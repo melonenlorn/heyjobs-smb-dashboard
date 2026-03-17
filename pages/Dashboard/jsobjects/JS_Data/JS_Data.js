@@ -163,14 +163,17 @@ export default {
       const selfSvcARR   = (selfSvc[id]  && selfSvc[id].arr)   || 0;
       const pipelineARR  = (pipeline[id] && pipeline[id].arr)  || 0;
       const totalOpen    = (pipeline[id] && pipeline[id].opps) || 0;
-      const pilotenCount = openPilots[id] || 0;
+      // Bug 2 fix: use closed pilot deals (from bookings), not open pipeline
+      const pilotenCount = closedPilots;
       const wonCount     = (winLoss[id]   && winLoss[id].won)  || 0;
       const lostCount    = (winLoss[id]   && winLoss[id].lost) || 0;
       const staleCount   = (staleData[id] && staleData[id].stale) || 0;
       const bookingsTarget = quotas[id] || 0;
 
+      // Bug 3 fix: pass total (rep+SS) as bookingsARR for attainment; zero out selfServiceARR
+      // so coverage() doesn't double-subtract. selfSvcARR stored separately for display.
       const kpis = JS_Scoring.buildRepKPIs(name, {
-        bookingsARR, bookingsTarget, selfServiceARR: selfSvcARR,
+        bookingsARR: bookingsARR + selfSvcARR, bookingsTarget, selfServiceARR: 0,
         openPipelineARR: pipelineARR, pilotenCount,
         wonCount, lostCount, staleCount, totalOpenCount: totalOpen,
       });
@@ -179,12 +182,15 @@ export default {
         id,
         ...kpis,
         closedPilots,
+        wonCount,    // Bug 1 fix: expose for heroKPIs() sum
+        lostCount,   // Bug 1 fix: expose for heroKPIs() sum
         dials:     (calls[id]    && calls[id].dials)    || 0,
         qualCalls: (calls[id]    && calls[id].qualCalls) || 0,
         meetings:  meetings[id]  || 0,
         emails:    emails[id]    || 0,
         selfSvcARR,
         pipelineARR,
+        openOpps:  totalOpen,
         bookingsTarget,
       };
     });
@@ -279,7 +285,8 @@ export default {
     const progress       = JS_Config.getQuarterProgress();
     const forecast       = progress > 0 ? Math.round(bookingsARR / progress) : bookingsARR;
     const coverage       = (() => {
-      const rem = bookingsTarget - bookingsARR - selfSvcARR;
+      // bookingsARR already includes selfSvcARR (after Bug 3 fix), so don't subtract again
+      const rem = bookingsTarget - bookingsARR;
       return rem > 0 ? Math.round((pipelineARR / rem) * 10) / 10 : 99;
     })();
     const winRate        = JS_Scoring.winRate(wonCount, lostCount);
@@ -287,6 +294,7 @@ export default {
     const qualConv       = dials > 0 ? Math.round(((qualCalls + meetings) / dials) * 100) : 0;
 
     return {
+      progress,
       bookings: {
         arr:         bookingsARR,
         target:      bookingsTarget,
