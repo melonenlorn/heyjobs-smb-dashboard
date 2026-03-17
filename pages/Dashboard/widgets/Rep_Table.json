@@ -3,7 +3,7 @@
   "borderColor": "#E0DEDE",
   "borderRadius": "{{appsmith.theme.borderRadius.appBorderRadius}}",
   "borderWidth": "1",
-  "bottomRow": 80,
+  "bottomRow": 132,
   "boxShadow": "{{appsmith.theme.boxShadow.appBoxShadow}}",
   "defaultModel": "{{(function(){var _=[Q_Bookings_QTD.data,Q_SelfService_QTD.data,Q_Pipeline_Open.data,Q_Pilots_Open.data,Q_Stale_Pipeline.data,Q_WinLoss.data,Q_Calls_QTD.data,Q_Emails_QTD.data,Q_Meetings_QTD.data,Q_Quotas.data,Q_Users_Team.data];return {reps: JS_Data.dashboardReps(), weeksElapsed: Math.max(1, Math.round(JS_Config.getQuarterProgress() * 13))};})()}}",
   "dynamicBindingPathList": [
