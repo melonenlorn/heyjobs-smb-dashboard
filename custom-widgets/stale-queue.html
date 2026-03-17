@@ -140,7 +140,6 @@
   function extract(m) { return Array.isArray(m) ? m : (m && m.list) || []; }
 
   if (typeof appsmith !== 'undefined') {
-    render(extract(appsmith.model));
     appsmith.onReady(() => render(extract(appsmith.model)));
     appsmith.onModelChange((m) => render(extract(m)));
   } else {
