@@ -248,9 +248,9 @@
     };
   }
 
-  // Key: total pipelineARR + dials — 0 before queries load, non-zero after
+  // Key: total bookingsTarget (quota) — 0 before Q_Quotas loads, non-zero after
   function modelKey(m) {
-    return (m && m.reps || []).reduce(function(s,r){ return s+(r.pipelineARR||0)+(r.dials||0); }, 0);
+    return (m && m.reps || []).reduce(function(s,r){ return s+(r.bookingsTarget||0); }, 0);
   }
 
   var _lastKey = null;

@@ -3,7 +3,8 @@ export default {
   // ── Run all queries in parallel on page load ──────────────────────────────
   // Mark this function as "Run on page load" in Appsmith.
   async initDashboard() {
-    await Promise.all([
+    // Use allSettled so one failing query doesn't block the others
+    await Promise.allSettled([
       Q_Bookings_QTD.run(),
       Q_SelfService_QTD.run(),
       Q_Pipeline_Open.run(),
