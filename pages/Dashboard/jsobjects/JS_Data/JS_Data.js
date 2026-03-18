@@ -347,6 +347,14 @@ export default {
     const bookingsAtt    = bookingsTarget > 0 ? Math.round((bookingsARR / bookingsTarget) * 100) : 0;
     const progress       = JS_Config.getQuarterProgress();
     const forecast       = progress > 0 ? Math.round(bookingsARR / progress) : bookingsARR;
+    const pilotenCount       = sum('pilotenCount');
+    const pilotenTarget      = sum('pilotenTarget');
+    const pilotenAtt         = pilotenTarget > 0 ? Math.round((pilotenCount / pilotenTarget) * 100) : 0;
+    const pilotenForecast    = progress > 0 ? Math.round(pilotenCount / progress) : pilotenCount;
+    const pilotenForecastAtt = pilotenTarget > 0 ? Math.round((pilotenForecast / pilotenTarget) * 100) : 0;
+    const composite          = Math.round(bookingsAtt * 0.75 + pilotenAtt * 0.25);
+    const forecastAtt        = bookingsTarget > 0 ? Math.round((forecast / bookingsTarget) * 100) : 0;
+    const compositeForecast  = Math.round(forecastAtt * 0.75 + pilotenForecastAtt * 0.25);
     const coverage       = (() => {
       // bookingsARR already includes selfSvcARR (after Bug 3 fix), so don't subtract again
       const rem = bookingsTarget - bookingsARR;
@@ -363,9 +371,23 @@ export default {
         target:      bookingsTarget,
         attainment:  bookingsAtt,
         forecast,
+        forecastAtt,
         selfSvcARR,
         selfSvcPct:  bookingsTarget > 0 ? Math.round((selfSvcARR / bookingsTarget) * 100) : 0,
         status:      JS_Scoring.status('compositeAttainment', bookingsAtt),
+      },
+      piloten: {
+        count:       pilotenCount,
+        target:      pilotenTarget,
+        attainment:  pilotenAtt,
+        forecast:    pilotenForecast,
+        forecastAtt: pilotenForecastAtt,
+        status:      JS_Scoring.status('compositeAttainment', pilotenAtt),
+      },
+      composite: {
+        value:    composite,
+        forecast: compositeForecast,
+        status:   JS_Scoring.status('compositeAttainment', composite),
       },
       coverage: {
         value:       coverage,

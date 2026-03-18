@@ -108,6 +108,19 @@ export default {
     const staleRateVal = JS_Scoring.staleRate(staleCount, totalOpenCount);
     const forecast    = JS_Scoring.runRateForecast(bookingsARR, selfServiceARR);
 
+    const progress         = JS_Config.getQuarterProgress();
+    const config           = JS_Config.levelConfig(repName);
+    const pilotenTgt       = attainment ? (attainment.pilotenTarget || 0) : 0;
+    const pilotenCnt       = attainment ? (attainment.pilotenCount  || 0) : 0;
+    const pilotenForecast  = progress > 0 ? Math.round(pilotenCnt / progress) : pilotenCnt;
+    const forecastAtt      = (attainment && attainment.bookingsTarget > 0)
+                               ? Math.round((forecast / attainment.bookingsTarget) * 100) : 0;
+    const pilotenForecastAtt = pilotenTgt > 0
+                               ? Math.round((pilotenForecast / pilotenTgt) * 100) : 0;
+    const compositeForecast = Math.round(
+      forecastAtt * config.bookingsWeight + pilotenForecastAtt * config.pilotenWeight
+    );
+
     return {
       repName,
       level: JS_Config.REP_LEVELS[repName] || '2',
@@ -116,6 +129,12 @@ export default {
       // Attainment
       ...(attainment || {}),
       forecast,
+      pilotenForecast,
+      forecastAtt,
+      pilotenForecastAtt,
+      compositeForecast,
+      bookingsWeight: config.bookingsWeight,
+      pilotenWeight:  config.pilotenWeight,
 
       // Pipeline
       coverageVal,
