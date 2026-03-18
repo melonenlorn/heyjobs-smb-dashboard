@@ -41,9 +41,9 @@ export default {
   teamOptions() {
     return [
       { label: 'Alle Teams', value: 'all' },
-      { label: 'Ferdinand', value: 'ferdinand' },
-      { label: 'Jan',       value: 'jan'       },
-      { label: 'Philipp',   value: 'philipp'   },
+      { label: 'Wolves',    value: 'ferdinand' },
+      { label: 'Titans',    value: 'jan'       },
+      { label: 'Locos',     value: 'philipp'   },
     ];
   },
 

@@ -34,17 +34,17 @@ export default {
   // ── Team membership ───────────────────────────────────────────────────────
   TEAMS: {
     ferdinand: {
-      label: 'Ferdinand',
+      label: 'Wolves',
       tlId:  '005W7000006FAIDIA4',
       reps:  ['Alina Kühne', 'Pierre Byer', 'Friederike Wilsenack', 'Jan-Thore Kaulbach'],
     },
     jan: {
-      label: 'Jan',
+      label: 'Titans',
       tlId:  '005W7000004kT37IAE',
       reps:  ['Hikmet Canbolat', 'Tamina Stange', 'Jane Siewert', 'Florian Dalis', 'Robert Eismann', 'Michael Wahl'],
     },
     philipp: {
-      label: 'Philipp',
+      label: 'Locos',
       tlId:  '0059L000000JKFGQA4',
       reps:  ['Raven Schulz', 'Ebru Kizilkaya', 'Marius Buga', 'Marlies Konrad', 'David Beck', 'Philipp Schmidt', 'Nina Hoffmann'],
     },

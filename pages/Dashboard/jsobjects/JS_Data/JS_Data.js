@@ -276,13 +276,8 @@ export default {
   dashboardReps() {
     const all = JS_Data.allRepKPIs();
     const filtered = JS_Filters.applyFilters(all);
-    // Sort: red first, then amber, then green; within same status sort by composite asc
-    const order = { red: 0, amber: 1, green: 2, neutral: 3 };
-    return filtered.sort((a, b) => {
-      const so = (order[a.overallStatus] || 3) - (order[b.overallStatus] || 3);
-      if (so !== 0) return so;
-      return (a.composite || 0) - (b.composite || 0);
-    });
+    // Sort: highest composite (TA%) first by default
+    return filtered.sort((a, b) => (b.composite || 0) - (a.composite || 0));
   },
 
   // ── Stale pipeline list (for stale queue widget) ──────────────────────────
