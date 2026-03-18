@@ -32,14 +32,48 @@ export default {
     return map;
   },
 
-  // ── Open pipeline per rep ─────────────────────────────────────────────────
+  // ── Open pipeline per rep (with segmentation + new-this-week) ───────────
   pipelineByRep() {
+    const now = new Date();
     const map = {};
     JS_Data._records(Q_Pipeline_Open).forEach(r => {
-      const id = r.OwnerId;
-      if (!map[id]) map[id] = { arr: 0, opps: 0 };
-      map[id].arr  += Number(r.Amount) || 0;
+      const id   = r.OwnerId;
+      const arr  = Number(r.Amount) || 0;
+      const bk12 = Number((r.Account && r.Account.Bookings_last_12_months__c) || 0);
+      const isNew = r.CreatedDate && (Math.floor((now - new Date(r.CreatedDate)) / 86400000) < 7);
+      if (!map[id]) map[id] = { arr: 0, opps: 0, pilotArr: 0, pilotOpps: 0, bestandArr: 0, bestandOpps: 0, newArr: 0, newOpps: 0 };
+      map[id].arr  += arr;
       map[id].opps += 1;
+      if (bk12 === 0) {
+        map[id].pilotArr  += arr;
+        map[id].pilotOpps += 1;
+      } else {
+        map[id].bestandArr  += arr;
+        map[id].bestandOpps += 1;
+      }
+      if (isNew) {
+        map[id].newArr  += arr;
+        map[id].newOpps += 1;
+      }
+    });
+    return map;
+  },
+
+  // ── Pipeline WoW movement per rep (won/lost this week from Q_WinLoss) ────
+  pipelineMovementByRep() {
+    const now = new Date();
+    const isThisWeek = (ts) => ts && Math.floor((now - new Date(ts)) / 86400000) < 7;
+    const map = {};
+    JS_Data._records(Q_WinLoss).forEach(r => {
+      const id  = r.OwnerId;
+      const arr = Number(r.Amount) || 0;
+      if (!map[id]) map[id] = { wonCW: 0, wonCWArr: 0, lostCW: 0, lostCWArr: 0 };
+      if (r.IsWon) {
+        const ts = r.dateTimestampContractreceived__c || r.CloseDate;
+        if (isThisWeek(ts)) { map[id].wonCW += 1; map[id].wonCWArr += arr; }
+      } else {
+        if (isThisWeek(r.CloseDate)) { map[id].lostCW += 1; map[id].lostCWArr += arr; }
+      }
     });
     return map;
   },
@@ -194,8 +228,9 @@ export default {
     const meetings   = JS_Data.meetingsByRep();
     const emails     = JS_Data.emailsByRep();
     const quotas     = JS_Data.quotaByRep();
-    const oppCreated = JS_Data.oppCreatedByRep();
-    const demos      = JS_Data.demosByRep();
+    const oppCreated        = JS_Data.oppCreatedByRep();
+    const demos             = JS_Data.demosByRep();
+    const pipelineMovement  = JS_Data.pipelineMovementByRep();
 
     return JS_Config.ALL_REP_IDS.map(id => {
       const name         = (bookings[id] && bookings[id].name)
@@ -238,6 +273,16 @@ export default {
         pipelineARR,
         openOpps:  totalOpen,
         bookingsTarget,
+        pilotPipeArr:  (pipeline[id] && pipeline[id].pilotArr)   || 0,
+        pilotPipeOpps: (pipeline[id] && pipeline[id].pilotOpps)  || 0,
+        bestandArr:    (pipeline[id] && pipeline[id].bestandArr) || 0,
+        bestandOpps:   (pipeline[id] && pipeline[id].bestandOpps)|| 0,
+        newPipeArr:    (pipeline[id] && pipeline[id].newArr)     || 0,
+        newPipeOpps:   (pipeline[id] && pipeline[id].newOpps)    || 0,
+        wonCW:         (pipelineMovement[id] && pipelineMovement[id].wonCW)    || 0,
+        wonCWArr:      (pipelineMovement[id] && pipelineMovement[id].wonCWArr) || 0,
+        lostCW:        (pipelineMovement[id] && pipelineMovement[id].lostCW)   || 0,
+        lostCWArr:     (pipelineMovement[id] && pipelineMovement[id].lostCWArr)|| 0,
       };
     });
   },
@@ -344,6 +389,17 @@ export default {
       pwSum.meetings  += pw.meetings  || 0;
     });
 
+    const pilotPipeArr  = sum('pilotPipeArr');
+    const pilotPipeOpps = sum('pilotPipeOpps');
+    const bestandArr    = sum('bestandArr');
+    const bestandOpps   = sum('bestandOpps');
+    const newPipeArr    = sum('newPipeArr');
+    const newPipeOpps   = sum('newPipeOpps');
+    const wonCW         = sum('wonCW');
+    const wonCWArr      = sum('wonCWArr');
+    const lostCW        = sum('lostCW');
+    const lostCWArr     = sum('lostCWArr');
+
     const bookingsAtt    = bookingsTarget > 0 ? Math.round((bookingsARR / bookingsTarget) * 100) : 0;
     const progress       = JS_Config.getQuarterProgress();
     const forecast       = progress > 0 ? Math.round(bookingsARR / progress) : bookingsARR;
@@ -392,6 +448,18 @@ export default {
       coverage: {
         value:       coverage,
         pipelineARR,
+        pilotArr:    pilotPipeArr,
+        pilotOpps:   pilotPipeOpps,
+        bestandArr,
+        bestandOpps,
+        wow: {
+          newOpps:  newPipeOpps,
+          newArr:   newPipeArr,
+          wonCW,
+          wonCWArr,
+          lostCW,
+          lostCWArr,
+        },
         status:      JS_Scoring.status('coverage', coverage),
       },
       winRate: {
