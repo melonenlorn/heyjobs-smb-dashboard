@@ -17,7 +17,7 @@
       },
       {
         "name": "TEAMS",
-        "value": "{\n  ferdinand: {\n    label: 'Ferdinand',\n    tlId: '005W7000006FAIDIA4',\n    reps: ['Alina Kühne', 'Pierre Byer', 'Friederike Wilsenack', 'Jan-Thore Kaulbach']\n  },\n  jan: {\n    label: 'Jan',\n    tlId: '005W7000004kT37IAE',\n    reps: ['Hikmet Canbolat', 'Tamina Stange', 'Jane Siewert', 'Florian Dalis', 'Robert Eismann', 'Michael Wahl']\n  },\n  philipp: {\n    label: 'Philipp',\n    tlId: '0059L000000JKFGQA4',\n    reps: ['Raven Schulz', 'Ebru Kizilkaya', 'Marius Buga', 'Marlies Konrad', 'David Beck', 'Philipp Schmidt', 'Nina Hoffmann']\n  }\n}"
+        "value": "{\n  ferdinand: {\n    label: 'Wolves',\n    tlId: '005W7000006FAIDIA4',\n    reps: ['Alina Kühne', 'Pierre Byer', 'Friederike Wilsenack', 'Jan-Thore Kaulbach']\n  },\n  jan: {\n    label: 'Titans',\n    tlId: '005W7000004kT37IAE',\n    reps: ['Hikmet Canbolat', 'Tamina Stange', 'Jane Siewert', 'Florian Dalis', 'Robert Eismann', 'Michael Wahl']\n  },\n  philipp: {\n    label: 'Locos',\n    tlId: '0059L000000JKFGQA4',\n    reps: ['Raven Schulz', 'Ebru Kizilkaya', 'Marius Buga', 'Marlies Konrad', 'David Beck', 'Philipp Schmidt', 'Nina Hoffmann']\n  }\n}"
       },
       {
         "name": "ALL_REP_IDS",
