@@ -12,6 +12,7 @@ export default {
       Q_Stale_Pipeline.run(),
       Q_WinLoss.run(),
       Q_Calls_QTD.run(),
+      Q_QualCalls_QTD.run(),
       Q_Emails_QTD.run(),
       Q_Meetings_QTD.run(),
       Q_Quotas.run(),

@@ -26,7 +26,7 @@
         "command": "CUSTOM_ACTION"
       },
       "paginationType": "NONE",
-      "timeoutInMillisecond": 15000
+      "timeoutInMillisecond": 60000
     },
     "confirmBeforeExecute": false,
     "datasource": {

@@ -91,27 +91,21 @@ export default {
   callsByRep() {
     const map = {};
     JS_Data._records(Q_Calls_QTD).forEach(r => {
-      const id  = r.OwnerId;
-      const dur = Number(r.CallDurationInSeconds) || 0;
-      if (!map[id]) map[id] = { dials: 0, qualCalls: 0 };
-      map[id].dials += 1;
-      if (dur >= 120) map[id].qualCalls += 1;
+      if (!map[r.OwnerId]) map[r.OwnerId] = { dials: 0, qualCalls: 0 };
+      map[r.OwnerId].dials = Number(r.dialCount) || 0;
+    });
+    JS_Data._records(Q_QualCalls_QTD).forEach(r => {
+      if (!map[r.OwnerId]) map[r.OwnerId] = { dials: 0, qualCalls: 0 };
+      map[r.OwnerId].qualCalls = Number(r.qualCount) || 0;
     });
     return map;
   },
 
-  // ── Meetings per rep (QTD, deduplicated by AccountId + ActivityDate) ─────
+  // ── Meetings per rep (QTD, deduplicated via GROUP BY in SOQL) ────────────
   meetingsByRep() {
-    const seen = new Set();
-    const map  = {};
+    const map = {};
     JS_Data._records(Q_Meetings_QTD).forEach(r => {
-      if (!r.AccountId) return; // skip internal meetings
-      const key = r.OwnerId + '|' + r.AccountId + '|' + r.ActivityDate;
-      if (seen.has(key)) return;
-      seen.add(key);
-      const id = r.OwnerId;
-      if (!map[id]) map[id] = 0;
-      map[id] += 1;
+      map[r.OwnerId] = (map[r.OwnerId] || 0) + 1;
     });
     return map;
   },
@@ -120,8 +114,7 @@ export default {
   emailsByRep() {
     const map = {};
     JS_Data._records(Q_Emails_QTD).forEach(r => {
-      const id = r.OwnerId;
-      map[id] = (map[id] || 0) + 1;
+      map[r.OwnerId] = Number(r.emailCount) || 0;
     });
     return map;
   },
