@@ -17,6 +17,16 @@ export default {
       Q_Meetings_QTD.run(),
       Q_Quotas.run(),
       Q_Users_Team.run(),
+      Q_Opps_Created_QTD.run(),
+      Q_Calls_CW.run(),
+      Q_Calls_PW.run(),
+      Q_QualCalls_CW.run(),
+      Q_QualCalls_PW.run(),
+      Q_Emails_CW.run(),
+      Q_Emails_PW.run(),
+      Q_Meetings_CW.run(),
+      Q_Meetings_PW.run(),
+      Q_Demos_QTD.run(),
     ]);
   },
 

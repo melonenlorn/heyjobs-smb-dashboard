@@ -24,9 +24,10 @@ export default {
     const map = {};
     JS_Data._records(Q_SelfService_QTD).forEach(r => {
       const id = r.OwnerId;
-      if (!map[id]) map[id] = { arr: 0, deals: 0 };
+      if (!map[id]) map[id] = { arr: 0, deals: 0, pilots: 0 };
       map[id].arr   += Number(r.Amount) || 0;
       map[id].deals += 1;
+      if ((Number(r.Winback_Pilot__c) || 0) > 0) map[id].pilots += 1;
     });
     return map;
   },
@@ -119,6 +120,53 @@ export default {
     return map;
   },
 
+  // ── Opps created per rep (QTD) ────────────────────────────────────────────
+  oppCreatedByRep() {
+    const map = {};
+    JS_Data._records(Q_Opps_Created_QTD).forEach(r => {
+      map[r.CreatedById] = Number(r.oppCount) || 0;
+    });
+    return map;
+  },
+
+  // ── Demos per rep (QTD) ───────────────────────────────────────────────────
+  demosByRep() {
+    const map = {};
+    JS_Data._records(Q_Demos_QTD).forEach(r => {
+      map[r.OwnerId] = Number(r.demoCount) || 0;
+    });
+    return map;
+  },
+
+  // ── Activity weekly per rep (CW or PW) ───────────────────────────────────
+  activityWeeklyByRep(period) {
+    const map = {};
+    const sfx = period === 'CW' ? '_CW' : '_PW';
+    const callsQ     = period === 'CW' ? Q_Calls_CW     : Q_Calls_PW;
+    const qualCallsQ = period === 'CW' ? Q_QualCalls_CW : Q_QualCalls_PW;
+    const emailsQ    = period === 'CW' ? Q_Emails_CW    : Q_Emails_PW;
+    const meetingsQ  = period === 'CW' ? Q_Meetings_CW  : Q_Meetings_PW;
+
+    JS_Data._records(callsQ).forEach(r => {
+      if (!map[r.OwnerId]) map[r.OwnerId] = { dials: 0, qualCalls: 0, emails: 0, meetings: 0 };
+      map[r.OwnerId].dials = Number(r.dialCount) || 0;
+    });
+    JS_Data._records(qualCallsQ).forEach(r => {
+      if (!map[r.OwnerId]) map[r.OwnerId] = { dials: 0, qualCalls: 0, emails: 0, meetings: 0 };
+      map[r.OwnerId].qualCalls = Number(r.qualCount) || 0;
+    });
+    JS_Data._records(emailsQ).forEach(r => {
+      if (!map[r.OwnerId]) map[r.OwnerId] = { dials: 0, qualCalls: 0, emails: 0, meetings: 0 };
+      map[r.OwnerId].emails = Number(r.emailCount) || 0;
+    });
+    // meetings: count rows per OwnerId (deduplicated by GROUP BY in SOQL)
+    JS_Data._records(meetingsQ).forEach(r => {
+      if (!map[r.OwnerId]) map[r.OwnerId] = { dials: 0, qualCalls: 0, emails: 0, meetings: 0 };
+      map[r.OwnerId].meetings = (map[r.OwnerId].meetings || 0) + 1;
+    });
+    return map;
+  },
+
   // ── Quota per rep ─────────────────────────────────────────────────────────
   quotaByRep() {
     const users  = JS_Data._records(Q_Users_Team);
@@ -146,6 +194,8 @@ export default {
     const meetings   = JS_Data.meetingsByRep();
     const emails     = JS_Data.emailsByRep();
     const quotas     = JS_Data.quotaByRep();
+    const oppCreated = JS_Data.oppCreatedByRep();
+    const demos      = JS_Data.demosByRep();
 
     return JS_Config.ALL_REP_IDS.map(id => {
       const name         = (bookings[id] && bookings[id].name)
@@ -157,7 +207,8 @@ export default {
       const pipelineARR  = (pipeline[id] && pipeline[id].arr)  || 0;
       const totalOpen    = (pipeline[id] && pipeline[id].opps) || 0;
       // Bug 2 fix: use closed pilot deals (from bookings), not open pipeline
-      const pilotenCount = closedPilots;
+      // Bug A fix: also count SS pilots (Winback_Pilot__c > 0 from SS deals)
+      const pilotenCount = closedPilots + ((selfSvc[id] && selfSvc[id].pilots) || 0);
       const wonCount     = (winLoss[id]   && winLoss[id].won)  || 0;
       const lostCount    = (winLoss[id]   && winLoss[id].lost) || 0;
       const staleCount   = (staleData[id] && staleData[id].stale) || 0;
@@ -181,6 +232,8 @@ export default {
         qualCalls: (calls[id]    && calls[id].qualCalls) || 0,
         meetings:  meetings[id]  || 0,
         emails:    emails[id]    || 0,
+        oppCreated: oppCreated[id] || 0,
+        demos:      demos[id]      || 0,
         selfSvcARR,
         pipelineARR,
         openOpps:  totalOpen,
@@ -273,6 +326,28 @@ export default {
     const qualCalls      = sum('qualCalls');
     const meetings       = sum('meetings');
     const emails         = sum('emails');
+    const oppCreated     = sum('oppCreated');
+    const totalQT        = qualCalls + meetings;
+    const repCount       = Math.max(1, filtered.length);
+    const qtConv         = totalQT > 0 ? Math.round((oppCreated / totalQT) * 100) : 0;
+
+    // WoW weekly data (team avg per rep)
+    const cwMap = JS_Data.activityWeeklyByRep('CW');
+    const pwMap = JS_Data.activityWeeklyByRep('PW');
+    const cwSum = { dials: 0, qualCalls: 0, emails: 0, meetings: 0 };
+    const pwSum = { dials: 0, qualCalls: 0, emails: 0, meetings: 0 };
+    filtered.forEach(r => {
+      const cw = cwMap[r.id] || {};
+      const pw = pwMap[r.id] || {};
+      cwSum.dials     += cw.dials     || 0;
+      cwSum.qualCalls += cw.qualCalls || 0;
+      cwSum.emails    += cw.emails    || 0;
+      cwSum.meetings  += cw.meetings  || 0;
+      pwSum.dials     += pw.dials     || 0;
+      pwSum.qualCalls += pw.qualCalls || 0;
+      pwSum.emails    += pw.emails    || 0;
+      pwSum.meetings  += pw.meetings  || 0;
+    });
 
     const bookingsAtt    = bookingsTarget > 0 ? Math.round((bookingsARR / bookingsTarget) * 100) : 0;
     const progress       = JS_Config.getQuarterProgress();
@@ -313,7 +388,21 @@ export default {
         qualCalls,
         meetings,
         emails,
+        oppCreated,
+        qtConv,
         qualConv,
+        cw: {
+          dials:     Math.round(cwSum.dials     / repCount),
+          qualCalls: Math.round(cwSum.qualCalls / repCount),
+          emails:    Math.round(cwSum.emails    / repCount),
+          meetings:  Math.round(cwSum.meetings  / repCount),
+        },
+        pw: {
+          dials:     Math.round(pwSum.dials     / repCount),
+          qualCalls: Math.round(pwSum.qualCalls / repCount),
+          emails:    Math.round(pwSum.emails    / repCount),
+          meetings:  Math.round(pwSum.meetings  / repCount),
+        },
       },
       stale: {
         value:       staleRate,
