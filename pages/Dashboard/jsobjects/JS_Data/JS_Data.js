@@ -69,6 +69,7 @@ export default {
       const arr = Number(r.Amount) || 0;
       if (!map[id]) map[id] = { wonCW: 0, wonCWArr: 0, lostCW: 0, lostCWArr: 0 };
       if (r.IsWon) {
+        if (r.RecordType && r.RecordType.Name === 'Customer Self Service') return;
         const ts = r.dateTimestampContractreceived__c || r.CloseDate;
         if (isThisWeek(ts)) { map[id].wonCW += 1; map[id].wonCWArr += arr; }
       } else {
@@ -89,10 +90,11 @@ export default {
     return map;
   },
 
-  // ── Win / Loss per rep (last 90 days) ────────────────────────────────────
+  // ── Win / Loss per rep (last 90 days, excl. Self-Service) ───────────────
   winLossByRep() {
     const map = {};
     JS_Data._records(Q_WinLoss).forEach(r => {
+      if (r.RecordType && r.RecordType.Name === 'Customer Self Service') return;
       const id = r.OwnerId;
       if (!map[id]) map[id] = { won: 0, lost: 0 };
       if (r.IsWon) map[id].won += 1;
@@ -269,6 +271,7 @@ export default {
         emails:    emails[id]    || 0,
         oppCreated: oppCreated[id] || 0,
         demos:      demos[id]      || 0,
+        demoToOpp:  (demos[id] || 0) > 0 ? Math.round(((oppCreated[id] || 0) / demos[id]) * 100) : 0,
         selfSvcARR,
         pipelineARR,
         openOpps:  totalOpen,
@@ -466,6 +469,12 @@ export default {
         value:       winRate,
         wonCount,
         lostCount,
+        demos:       sum('demos'),
+        oppCreated:  sum('oppCreated'),
+        demoToOpp:   (() => {
+          const d = sum('demos');
+          return d > 0 ? Math.round((sum('oppCreated') / d) * 100) : 0;
+        })(),
         status:      JS_Scoring.status('winRate', winRate),
       },
       activity: {
