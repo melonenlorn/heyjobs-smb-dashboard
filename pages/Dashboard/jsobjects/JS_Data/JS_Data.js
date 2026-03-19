@@ -347,7 +347,8 @@ export default {
     }
 
     return JS_Config.ALL_REP_IDS.map(id => {
-      const name         = (bookings[id] && bookings[id].name)
+      const name         = JS_Config.ID_TO_NAME[id]
+                         || (bookings[id] && bookings[id].name)
                          || (JS_Data._records(Q_Users_Team).find(u => u.Id === id) || {}).Name
                          || id;
       const bookingsARR  = (bookings[id] && bookings[id].arr)  || 0;

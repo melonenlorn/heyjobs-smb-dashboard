@@ -71,6 +71,27 @@ export default {
     '005W7000004vQptIAE', // Nina Hoffmann
   ],
 
+  // ── Static SF-ID → human name (fallback when Owner.Name isn't in query) ──
+  ID_TO_NAME: {
+    '0059L000000JKG9QAO': 'Alina Kühne',
+    '005W7000000zmHSIAY': 'Pierre Byer',
+    '005W7000005SxezIAC': 'Friederike Wilsenack',
+    '005W7000009NCmTIAW': 'Jan-Thore Kaulbach',
+    '0051v00000BjKXAAA3': 'Hikmet Canbolat',
+    '0059L000000JKFlQAO': 'Tamina Stange',
+    '005W7000005SzP3IAK': 'Jane Siewert',
+    '005W7000005SxQTIA0': 'Florian Dalis',
+    '005W7000004vQt7IAE': 'Robert Eismann',
+    '005W7000005WNTFIA4': 'Michael Wahl',
+    '0059L000000IlsvQAC': 'Raven Schulz',
+    '0059L000000JKGDQA4': 'Ebru Kizilkaya',
+    '005W7000002HR5tIAG': 'Marius Buga',
+    '005W70000048JRNIA2': 'Marlies Konrad',
+    '005W7000003UovJIAS': 'David Beck',
+    '0059L000000JKGOQA4': 'Philipp Schmidt',
+    '005W7000004vQptIAE': 'Nina Hoffmann',
+  },
+
   // ── Level config: weights and pilot targets ───────────────────────────────
   LEVEL_CONFIG: {
     '3':      { bookingsWeight: 0.75, pilotenWeight: 0.25, pilotenTarget: 12 },
