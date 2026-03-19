@@ -310,6 +310,7 @@ export default {
     const oppL30Map         = {};
     JS_Data._records(Q_Opps_L30).forEach(r => { oppL30Map[r.OwnerId] = Number(r.oppCount) || 0; });
     const cwDaysElapsed = Math.max(1, [1,1,2,3,4,5,5][new Date().getDay()]);
+    const qtdDaysElapsed = Math.max(1, JS_Config.getWerktageContext().done);
     function repTrendArrow(cwVal, l30Val) {
       if (!l30Val || l30Val === 0) return { arrow: '→', cls: 'neutral' };
       const delta = ((cwVal - l30Val) / l30Val) * 100;
@@ -387,6 +388,10 @@ export default {
           const qual = (l30Map[id] && l30Map[id].qualTouchPerDay) || 0;
           const opp  = Math.round((oppL30Map[id] || 0) / l30WorkingDays * 10) / 10;
           return qual > 0 ? Math.round((opp / qual) * 100) : 0;
+        })(),
+        l30TrendOpp:       (() => {
+          const qtdRate = (oppCreated[id] || 0) / qtdDaysElapsed;
+          return repTrendArrow(qtdRate, Math.round((oppL30Map[id] || 0) / l30WorkingDays * 10) / 10);
         })(),
         l30TrendTouch:     (() => {
           const cw = cwMap[id] || {};
@@ -541,6 +546,9 @@ export default {
     const cwQualPerDay    = ((cwSum.qualCalls || 0) + (cwSum.meetings || 0)) / repCount / cwDaysElapsed;
     const trendTouch      = trendArrow(cwTouchPerDay, avgTouchPerDay);
     const trendQual       = trendArrow(cwQualPerDay,  avgQualPerDay);
+    const wkDone          = Math.max(1, JS_Config.getWerktageContext().done);
+    const qtdOppPerDay    = oppCreated / repCount / wkDone;
+    const trendOpp        = trendArrow(qtdOppPerDay, avgOppPerDay);
 
     const pilotPipeArr  = sum('pilotPipeArr');
     const pilotPipeOpps = sum('pilotPipeOpps');
@@ -674,6 +682,7 @@ export default {
           qualToOpp,
           trendTouch,
           trendQual,
+          trendOpp,
           dialsPerDay:     Math.round(l30DialsSum  / repCount * 10) / 10,
           emailsPerDay:    Math.round(l30EmailsSum / repCount * 10) / 10,
           qualCallsPerDay: Math.round(l30QCSum     / repCount * 10) / 10,
