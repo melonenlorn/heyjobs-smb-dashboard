@@ -305,9 +305,18 @@ export default {
     const demos             = JS_Data.demosByRep();
     const pipelineMovement  = JS_Data.pipelineMovementByRep();
     const l30Map            = JS_Data.activityL30ByRep();
+    const cwMap             = JS_Data.activityWeeklyByRep('CW');
     const l30WorkingDays    = 22;
     const oppL30Map         = {};
     JS_Data._records(Q_Opps_L30).forEach(r => { oppL30Map[r.OwnerId] = Number(r.oppCount) || 0; });
+    const cwDaysElapsed = Math.max(1, [1,1,2,3,4,5,5][new Date().getDay()]);
+    function repTrendArrow(cwVal, l30Val) {
+      if (!l30Val || l30Val === 0) return { arrow: '→', cls: 'neutral' };
+      const delta = ((cwVal - l30Val) / l30Val) * 100;
+      if (delta > 5)  return { arrow: '↑', cls: 'green' };
+      if (delta < -5) return { arrow: '↓', cls: 'red' };
+      return { arrow: '→', cls: 'neutral' };
+    }
 
     return JS_Config.ALL_REP_IDS.map(id => {
       const name         = (bookings[id] && bookings[id].name)
@@ -378,6 +387,16 @@ export default {
           const qual = (l30Map[id] && l30Map[id].qualTouchPerDay) || 0;
           const opp  = Math.round((oppL30Map[id] || 0) / l30WorkingDays * 10) / 10;
           return qual > 0 ? Math.round((opp / qual) * 100) : 0;
+        })(),
+        l30TrendTouch:     (() => {
+          const cw = cwMap[id] || {};
+          const cwTouch = ((cw.dials || 0) + (cw.emails || 0)) / cwDaysElapsed;
+          return repTrendArrow(cwTouch, (l30Map[id] && l30Map[id].touchPerDay) || 0);
+        })(),
+        l30TrendQual:      (() => {
+          const cw = cwMap[id] || {};
+          const cwQual = ((cw.qualCalls || 0) + (cw.meetings || 0)) / cwDaysElapsed;
+          return repTrendArrow(cwQual, (l30Map[id] && l30Map[id].qualTouchPerDay) || 0);
         })(),
       };
     });
