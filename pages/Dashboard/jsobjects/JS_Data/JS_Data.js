@@ -165,6 +165,15 @@ export default {
     return map;
   },
 
+  // ── Pilot Opps per rep (Accounts with no prior bookings, QTD) ─────────────
+  pilotOppsByRep() {
+    const map = {};
+    JS_Data._records(Q_PilotOpps_QTD).forEach(r => {
+      map[r.CreatedById] = Number(r.oppCount) || 0;
+    });
+    return map;
+  },
+
   // ── Demos per rep (QTD) ───────────────────────────────────────────────────
   demosByRep() {
     const map = {};
@@ -230,6 +239,7 @@ export default {
     const meetings   = JS_Data.meetingsByRep();
     const emails     = JS_Data.emailsByRep();
     const quotas     = JS_Data.quotaByRep();
+    const pilotOpps         = JS_Data.pilotOppsByRep();
     const oppCreated        = JS_Data.oppCreatedByRep();
     const demos             = JS_Data.demosByRep();
     const pipelineMovement  = JS_Data.pipelineMovementByRep();
@@ -269,9 +279,13 @@ export default {
         qualCalls: (calls[id]    && calls[id].qualCalls) || 0,
         meetings:  meetings[id]  || 0,
         emails:    emails[id]    || 0,
-        oppCreated: oppCreated[id] || 0,
-        demos:      demos[id]      || 0,
-        demoToOpp:  (demos[id] || 0) > 0 ? Math.round(((oppCreated[id] || 0) / demos[id]) * 100) : 0,
+        pilotOpps:      pilotOpps[id]  || 0,
+        oppCreated:     oppCreated[id] || 0,
+        demos:          demos[id]      || 0,
+        demoToPilotOpp: (demos[id] || 0) > 0
+          ? Math.round(((pilotOpps[id] || 0) / demos[id]) * 100) : 0,
+        pilotToOpp:     (pilotOpps[id] || 0) > 0
+          ? Math.round(((oppCreated[id] || 0) / (pilotOpps[id] || 0)) * 100) : 0,
         selfSvcARR,
         pipelineARR,
         openOpps:  totalOpen,
@@ -466,16 +480,15 @@ export default {
         status:      JS_Scoring.status('coverage', coverage),
       },
       winRate: {
-        value:       winRate,
+        value:          winRate,
         wonCount,
         lostCount,
-        demos:       sum('demos'),
-        oppCreated:  sum('oppCreated'),
-        demoToOpp:   (() => {
-          const d = sum('demos');
-          return d > 0 ? Math.round((sum('oppCreated') / d) * 100) : 0;
-        })(),
-        status:      JS_Scoring.status('winRate', winRate),
+        demos:          sum('demos'),
+        pilotOpps:      sum('pilotOpps'),
+        oppCreated:     sum('oppCreated'),
+        demoToPilotOpp: (() => { const d = sum('demos'); return d > 0 ? Math.round((sum('pilotOpps') / d) * 100) : 0; })(),
+        pilotToOpp:     (() => { const p = sum('pilotOpps'); return p > 0 ? Math.round((sum('oppCreated') / p) * 100) : 0; })(),
+        status:         JS_Scoring.status('winRate', winRate),
       },
       activity: {
         dials,
