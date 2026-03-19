@@ -285,7 +285,7 @@ export default {
         demoToPilotOpp: (demos[id] || 0) > 0
           ? Math.round(((pilotOpps[id] || 0) / demos[id]) * 100) : 0,
         pilotToOpp:     (pilotOpps[id] || 0) > 0
-          ? Math.round(((oppCreated[id] || 0) / (pilotOpps[id] || 0)) * 100) : 0,
+          ? Math.round((closedPilots / (pilotOpps[id] || 0)) * 100) : 0,
         selfSvcARR,
         pipelineARR,
         openOpps:  totalOpen,
@@ -505,7 +505,8 @@ export default {
         pilotOpps:      sum('pilotOpps'),
         oppCreated:     sum('oppCreated'),
         demoToPilotOpp: (() => { const d = sum('demos'); return d > 0 ? Math.round((sum('pilotOpps') / d) * 100) : 0; })(),
-        pilotToOpp:     (() => { const p = sum('pilotOpps'); return p > 0 ? Math.round((sum('oppCreated') / p) * 100) : 0; })(),
+        pilotenCountRep: sum('closedPilots'),
+        pilotToOpp:     (() => { const p = sum('pilotOpps'); return p > 0 ? Math.round((sum('closedPilots') / p) * 100) : 0; })(),
         status:         JS_Scoring.status('winRate', winRate),
       },
       activity: {
