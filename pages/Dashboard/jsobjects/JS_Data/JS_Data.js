@@ -366,6 +366,10 @@ export default {
         l30QualPerDay:     (l30Map[id] && l30Map[id].qualTouchPerDay)   || 0,
         l30CallMinPerDay:  (l30Map[id] && l30Map[id].callTimeMinPerDay) || 0,
         l30TouchToQual:    (l30Map[id] && l30Map[id].touchToQual)       || 0,
+        l30DialsPerDay:    (l30Map[id] && l30Map[id].dialsPerDay)       || 0,
+        l30EmailsPerDay:   (l30Map[id] && l30Map[id].emailsPerDay)      || 0,
+        l30QualCallsPerDay:(l30Map[id] && l30Map[id].qualCallsPerDay)   || 0,
+        l30MeetingsPerDay: (l30Map[id] && l30Map[id].meetingsPerDay)    || 0,
       };
     });
   },
@@ -475,11 +479,16 @@ export default {
     // ── L30 funnel aggregation ─────────────────────────────────────────────
     const l30Map = JS_Data.activityL30ByRep();
     let l30TouchSum = 0, l30QualSum = 0, l30CallMinSum = 0;
+    let l30DialsSum = 0, l30EmailsSum = 0, l30QCSum = 0, l30MtgSum = 0;
     filtered.forEach(r => {
       const d = l30Map[r.id] || {};
       l30TouchSum   += d.touchPerDay       || 0;
       l30QualSum    += d.qualTouchPerDay   || 0;
       l30CallMinSum += d.callTimeMinPerDay || 0;
+      l30DialsSum   += d.dialsPerDay       || 0;
+      l30EmailsSum  += d.emailsPerDay      || 0;
+      l30QCSum      += d.qualCallsPerDay   || 0;
+      l30MtgSum     += d.meetingsPerDay    || 0;
     });
     const oppL30Map = {};
     JS_Data._records(Q_Opps_L30).forEach(r => { oppL30Map[r.OwnerId] = Number(r.oppCount) || 0; });
@@ -637,6 +646,10 @@ export default {
           qualToOpp,
           trendTouch,
           trendQual,
+          dialsPerDay:     Math.round(l30DialsSum  / repCount * 10) / 10,
+          emailsPerDay:    Math.round(l30EmailsSum / repCount * 10) / 10,
+          qualCallsPerDay: Math.round(l30QCSum     / repCount * 10) / 10,
+          meetingsPerDay:  Math.round(l30MtgSum    / repCount * 10) / 10,
         },
       },
       stale: {
