@@ -183,6 +183,67 @@ export default {
     return map;
   },
 
+  // ── 30-day rolling activity per rep (with off-day filtering) ────────────
+  activityL30ByRep() {
+    const dayMap = {};
+    const ensure = (id, date) => {
+      if (!dayMap[id]) dayMap[id] = {};
+      if (!dayMap[id][date]) dayMap[id][date] = { dials: 0, qualCalls: 0, emails: 0, meetings: 0, callTimeSec: 0 };
+      return dayMap[id][date];
+    };
+
+    JS_Data._records(Q_Calls_L30).forEach(r => {
+      const d = ensure(r.OwnerId, r.ActivityDate);
+      d.dials = Number(r.dials) || 0;
+      d.callTimeSec = Number(r.callTimeSec) || 0;
+    });
+    JS_Data._records(Q_QualCalls_L30).forEach(r => {
+      const d = ensure(r.OwnerId, r.ActivityDate);
+      d.qualCalls = Number(r.qualCount) || 0;
+    });
+    JS_Data._records(Q_Emails_L30).forEach(r => {
+      const d = ensure(r.OwnerId, r.ActivityDate);
+      d.emails = Number(r.emailCount) || 0;
+    });
+    JS_Data._records(Q_Meetings_L30).forEach(r => {
+      const d = ensure(r.OwnerId, r.ActivityDate);
+      d.meetings = Number(r.meetingCount) || 0;
+    });
+
+    const isOff = (day) =>
+      day.dials <= 2 && day.emails <= 2 && (day.qualCalls + day.meetings) <= 1;
+
+    const result = {};
+    Object.entries(dayMap).forEach(([repId, days]) => {
+      let ad = 0, totDials = 0, totQC = 0, totEmails = 0, totMtg = 0, totCallTime = 0;
+      Object.values(days).forEach(day => {
+        if (!isOff(day)) {
+          ad++;
+          totDials    += day.dials;
+          totQC       += day.qualCalls;
+          totEmails   += day.emails;
+          totMtg      += day.meetings;
+          totCallTime += day.callTimeSec;
+        }
+      });
+      const n = Math.max(1, ad);
+      const touch   = totDials + totEmails;
+      const qualTch = totQC + totMtg;
+      result[repId] = {
+        activeDays:        ad,
+        touchPerDay:       Math.round(touch   / n * 10) / 10,
+        qualTouchPerDay:   Math.round(qualTch / n * 10) / 10,
+        dialsPerDay:       Math.round(totDials  / n * 10) / 10,
+        emailsPerDay:      Math.round(totEmails / n * 10) / 10,
+        qualCallsPerDay:   Math.round(totQC     / n * 10) / 10,
+        meetingsPerDay:    Math.round(totMtg    / n * 10) / 10,
+        callTimeMinPerDay: Math.round(totCallTime / n / 60 * 10) / 10,
+        touchToQual:   touch  > 0 ? Math.round((qualTch / touch)  * 100) : 0,
+      };
+    });
+    return result;
+  },
+
   // ── Activity weekly per rep (CW or PW) ───────────────────────────────────
   activityWeeklyByRep(period) {
     const map = {};
@@ -243,6 +304,7 @@ export default {
     const oppCreated        = JS_Data.oppCreatedByRep();
     const demos             = JS_Data.demosByRep();
     const pipelineMovement  = JS_Data.pipelineMovementByRep();
+    const l30Map            = JS_Data.activityL30ByRep();
 
     return JS_Config.ALL_REP_IDS.map(id => {
       const name         = (bookings[id] && bookings[id].name)
@@ -300,6 +362,10 @@ export default {
         wonCWArr:      (pipelineMovement[id] && pipelineMovement[id].wonCWArr) || 0,
         lostCW:        (pipelineMovement[id] && pipelineMovement[id].lostCW)   || 0,
         lostCWArr:     (pipelineMovement[id] && pipelineMovement[id].lostCWArr)|| 0,
+        l30TouchPerDay:    (l30Map[id] && l30Map[id].touchPerDay)       || 0,
+        l30QualPerDay:     (l30Map[id] && l30Map[id].qualTouchPerDay)   || 0,
+        l30CallMinPerDay:  (l30Map[id] && l30Map[id].callTimeMinPerDay) || 0,
+        l30TouchToQual:    (l30Map[id] && l30Map[id].touchToQual)       || 0,
       };
     });
   },
@@ -405,6 +471,39 @@ export default {
       pwSum.emails    += pw.emails    || 0;
       pwSum.meetings  += pw.meetings  || 0;
     });
+
+    // ── L30 funnel aggregation ─────────────────────────────────────────────
+    const l30Map = JS_Data.activityL30ByRep();
+    let l30TouchSum = 0, l30QualSum = 0, l30CallMinSum = 0;
+    filtered.forEach(r => {
+      const d = l30Map[r.id] || {};
+      l30TouchSum   += d.touchPerDay       || 0;
+      l30QualSum    += d.qualTouchPerDay   || 0;
+      l30CallMinSum += d.callTimeMinPerDay || 0;
+    });
+    const oppL30Map = {};
+    JS_Data._records(Q_Opps_L30).forEach(r => { oppL30Map[r.OwnerId] = Number(r.oppCount) || 0; });
+    const l30OppTotal = filtered.reduce((s, r) => s + (oppL30Map[r.id] || 0), 0);
+    const avgTouchPerDay   = Math.round(l30TouchSum   / repCount * 10) / 10;
+    const avgQualPerDay    = Math.round(l30QualSum    / repCount * 10) / 10;
+    const avgCallMinPerDay = Math.round(l30CallMinSum / repCount * 10) / 10;
+    const l30WorkingDays   = 22;
+    const avgOppPerDay     = Math.round(l30OppTotal / repCount / l30WorkingDays * 10) / 10;
+    const touchToQual      = avgTouchPerDay > 0 ? Math.round((avgQualPerDay  / avgTouchPerDay) * 100) : 0;
+    const qualToOpp        = avgQualPerDay  > 0 ? Math.round((avgOppPerDay   / avgQualPerDay)  * 100) : 0;
+    // Trend: CW daily rate vs L30 avg
+    function trendArrow(cwVal, l30Val) {
+      if (!l30Val || l30Val === 0) return { arrow: '→', cls: 'neutral' };
+      const delta = ((cwVal - l30Val) / l30Val) * 100;
+      if (delta > 5)  return { arrow: '↑', cls: 'green' };
+      if (delta < -5) return { arrow: '↓', cls: 'red' };
+      return { arrow: '→', cls: 'neutral' };
+    }
+    const cwDaysElapsed   = Math.max(1, [1,1,2,3,4,5,5][new Date().getDay()]);
+    const cwTouchPerDay   = ((cwSum.dials || 0) + (cwSum.emails || 0)) / repCount / cwDaysElapsed;
+    const cwQualPerDay    = ((cwSum.qualCalls || 0) + (cwSum.meetings || 0)) / repCount / cwDaysElapsed;
+    const trendTouch      = trendArrow(cwTouchPerDay, avgTouchPerDay);
+    const trendQual       = trendArrow(cwQualPerDay,  avgQualPerDay);
 
     const pilotPipeArr  = sum('pilotPipeArr');
     const pilotPipeOpps = sum('pilotPipeOpps');
@@ -528,6 +627,16 @@ export default {
           qualCalls: Math.round(pwSum.qualCalls / repCount),
           emails:    Math.round(pwSum.emails    / repCount),
           meetings:  Math.round(pwSum.meetings  / repCount),
+        },
+        l30: {
+          touchPerDay:     avgTouchPerDay,
+          qualTouchPerDay: avgQualPerDay,
+          oppPerDay:       avgOppPerDay,
+          callMinPerDay:   avgCallMinPerDay,
+          touchToQual,
+          qualToOpp,
+          trendTouch,
+          trendQual,
         },
       },
       stale: {
