@@ -313,6 +313,113 @@ export default {
     return map;
   },
 
+  // ── Weekly buckets for drill-down sparkline charts ───────────────────────
+  weeklyBuckets() {
+    function isoWeek(dateStr) {
+      if (!dateStr) return 'KW?';
+      const d = new Date(dateStr);
+      const jan4 = new Date(d.getFullYear(), 0, 4);
+      const startOfWeek1 = new Date(jan4);
+      startOfWeek1.setDate(jan4.getDate() - ((jan4.getDay() + 6) % 7));
+      const weekNo = Math.floor((d - startOfWeek1) / 604800000) + 1;
+      return 'KW' + Math.max(1, weekNo);
+    }
+
+    const result = {};
+    const ensure = (id) => {
+      if (!result[id]) result[id] = { activity: {}, bookings: {}, winLoss: {} };
+      return result[id];
+    };
+
+    // ── Activity: group daily L30 data into ISO-weeks ──
+    const dayMap = {};
+    const ensureDay = (id, date) => {
+      if (!dayMap[id]) dayMap[id] = {};
+      if (!dayMap[id][date]) dayMap[id][date] = { dials: 0, qualCalls: 0, emails: 0, meetings: 0 };
+      return dayMap[id][date];
+    };
+    JS_Data._records(Q_Calls_L30).forEach(r => {
+      const d = ensureDay(r.OwnerId, r.ActivityDate);
+      d.dials = Number(r.dials) || 0;
+    });
+    JS_Data._records(Q_QualCalls_L30).forEach(r => {
+      const d = ensureDay(r.OwnerId, r.ActivityDate);
+      d.qualCalls = Number(r.qualCount) || 0;
+    });
+    JS_Data._records(Q_Emails_L30).forEach(r => {
+      const d = ensureDay(r.OwnerId, r.ActivityDate);
+      d.emails = Number(r.emailCount) || 0;
+    });
+    JS_Data._records(Q_Meetings_L30).forEach(r => {
+      const d = ensureDay(r.OwnerId, r.ActivityDate);
+      d.meetings = Number(r.meetingCount) || 0;
+    });
+    Object.entries(dayMap).forEach(([repId, days]) => {
+      const rep = ensure(repId);
+      const weekMap = {};
+      Object.entries(days).forEach(([date, day]) => {
+        const wk = isoWeek(date);
+        if (!weekMap[wk]) weekMap[wk] = { week: wk, dials: 0, qualCalls: 0, emails: 0, meetings: 0, touch: 0, qual: 0 };
+        weekMap[wk].dials     += day.dials;
+        weekMap[wk].qualCalls += day.qualCalls;
+        weekMap[wk].emails    += day.emails;
+        weekMap[wk].meetings  += day.meetings;
+        weekMap[wk].touch     += day.dials + day.emails;
+        weekMap[wk].qual      += day.qualCalls + day.meetings;
+      });
+      rep.activity = Object.values(weekMap).sort((a, b) => a.week.localeCompare(b.week));
+    });
+
+    // ── Bookings: cumulative QTD by week ──
+    const bookWeekMap = {};
+    const ensureBookWeek = (id, wk) => {
+      if (!bookWeekMap[id]) bookWeekMap[id] = {};
+      if (!bookWeekMap[id][wk]) bookWeekMap[id][wk] = { week: wk, arr: 0, pilots: 0 };
+      return bookWeekMap[id][wk];
+    };
+    JS_Data._records(Q_Bookings_QTD).forEach(r => {
+      const w = ensureBookWeek(r.OwnerId, isoWeek(r.CloseDate));
+      w.arr += Number(r.Amount) || 0;
+      if ((Number(r.Winback_Pilot__c) || 0) > 0) w.pilots += 1;
+    });
+    JS_Data._records(Q_SelfService_QTD).forEach(r => {
+      const w = ensureBookWeek(r.OwnerId, isoWeek(r.CloseDate));
+      w.arr += Number(r.Amount) || 0;
+      if ((Number(r.Winback_Pilot__c) || 0) > 0) w.pilots += 1;
+    });
+    Object.entries(bookWeekMap).forEach(([repId, wks]) => {
+      const rep = ensure(repId);
+      const sorted = Object.values(wks).sort((a, b) => a.week.localeCompare(b.week));
+      let cumArr = 0, cumPilots = 0;
+      rep.bookings = sorted.map(w => {
+        cumArr    += w.arr;
+        cumPilots += w.pilots;
+        return { week: w.week, cumArr, cumPilots };
+      });
+    });
+
+    // ── Win/Loss: weekly win rate ──
+    const wlWeekMap = {};
+    JS_Data._records(Q_WinLoss).forEach(r => {
+      if (r.RecordType && r.RecordType.Name === 'Customer Self Service') return;
+      const id = r.OwnerId;
+      const wk = isoWeek(r.CloseDate);
+      if (!wlWeekMap[id]) wlWeekMap[id] = {};
+      if (!wlWeekMap[id][wk]) wlWeekMap[id][wk] = { week: wk, won: 0, lost: 0 };
+      if (r.IsWon) wlWeekMap[id][wk].won += 1;
+      else         wlWeekMap[id][wk].lost += 1;
+    });
+    Object.entries(wlWeekMap).forEach(([repId, wks]) => {
+      const rep = ensure(repId);
+      rep.winLoss = Object.values(wks).sort((a, b) => a.week.localeCompare(b.week)).map(w => ({
+        week: w.week, won: w.won, lost: w.lost,
+        wr: (w.won + w.lost) > 0 ? Math.round(w.won / (w.won + w.lost) * 100) : 0,
+      }));
+    });
+
+    return result;
+  },
+
   // ── Build full KPI row for every rep ─────────────────────────────────────
   allRepKPIs() {
     const bookings   = JS_Data.bookingsByRep();
