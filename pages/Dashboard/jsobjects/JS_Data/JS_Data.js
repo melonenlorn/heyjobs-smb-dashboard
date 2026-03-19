@@ -437,8 +437,26 @@ export default {
     const staleRate      = totalOpen > 0 ? Math.round((staleCount / totalOpen) * 100) : 0;
     const qualConv       = dials > 0 ? Math.round(((qualCalls + meetings) / dials) * 100) : 0;
 
+    // ── Context (date pace, DRR) ───────────────────────────────────────────────
+    const wk               = JS_Config.getWerktageContext();
+    const pace             = wk.done > 0 ? Math.round(bookingsARR / wk.done) : 0;
+    const neededDRR        = wk.remaining > 0 ? Math.round(Math.max(0, bookingsTarget - bookingsARR) / wk.remaining) : 0;
+    const pilotenPace      = wk.done > 0 ? Math.round((pilotenCount / wk.done) * 10) / 10 : 0;
+    const pilotenNeededDRR = wk.remaining > 0
+      ? Math.round(Math.max(0, pilotenTarget - pilotenCount) / wk.remaining * 10) / 10 : 0;
+
     return {
       progress,
+      context: {
+        quarterLabel:     JS_Config.QUARTER.label,
+        progressPct:      Math.round(progress * 100),
+        werktage:         wk,
+        pace,
+        neededDRR,
+        pilotenPace,
+        pilotenNeededDRR,
+        onTrack:          pace >= neededDRR,
+      },
       bookings: {
         arr:         bookingsARR,
         target:      bookingsTarget,

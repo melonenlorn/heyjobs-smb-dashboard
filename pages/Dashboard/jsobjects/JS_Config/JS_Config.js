@@ -119,6 +119,39 @@ export default {
     return null;
   },
 
+  // ── Berlin public holidays hardcoded per quarter ──────────────────────────
+  BERLIN_HOLIDAYS: ['2026-01-01'], // Neujahr — einziger Feiertag in Q1 2026 in Berlin
+
+  // ── Count working days (Mon–Fri, excl. Berlin holidays) from date A to date B ──
+  werktage(from, to) {
+    const holidays = new Set(JS_Config.BERLIN_HOLIDAYS);
+    let count = 0;
+    const d = new Date(from);
+    while (d <= to) {
+      const dow = d.getDay();
+      const ds  = d.toISOString().slice(0, 10);
+      if (dow !== 0 && dow !== 6 && !holidays.has(ds)) count++;
+      d.setDate(d.getDate() + 1);
+    }
+    return count;
+  },
+
+  // ── Werktage-Kontext für das aktuelle Quartal ──────────────────────────────
+  getWerktageContext() {
+    const start     = new Date(JS_Config.QUARTER.start);
+    const end       = new Date(JS_Config.QUARTER.end);
+    const now       = new Date();
+    const today     = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    // "done" = abgeschlossene Werktage (bis gestern, da heute noch läuft)
+    const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
+    const effectiveEnd = yesterday < start ? new Date(start.getTime() - 86400000) : yesterday;
+    const total     = JS_Config.werktage(start, end);
+    const done      = effectiveEnd < start ? 0 : Math.min(JS_Config.werktage(start, effectiveEnd), total);
+    const remaining = total - done;
+    const daysToEnd = Math.ceil(Math.max(0, end - today) / 86400000);
+    return { total, done, remaining, daysToEnd };
+  },
+
   // ── Helper: quarter date helpers ─────────────────────────────────────────
   getQuarterProgress() {
     const now   = new Date();
