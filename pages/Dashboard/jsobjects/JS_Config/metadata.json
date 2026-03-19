@@ -24,6 +24,10 @@
         "value": "['0059L000000JKG9QAO', '005W7000000zmHSIAY', '005W7000005SxezIAC', '005W7000009NCmTIAW', '0051v00000BjKXAAA3', '0059L000000JKFlQAO', '005W7000005SzP3IAK', '005W7000005SxQTIA0', '005W7000004vQt7IAE', '005W7000005WNTFIA4', '0059L000000IlsvQAC', '0059L000000JKGDQA4', '005W7000002HR5tIAG', '005W70000048JRNIA2', '005W7000003UovJIAS', '0059L000000JKGOQA4', '005W7000004vQptIAE']"
       },
       {
+        "name": "ID_TO_NAME",
+        "value": "{\n  '0059L000000JKG9QAO': 'Alina Kühne',\n  '005W7000000zmHSIAY': 'Pierre Byer',\n  '005W7000005SxezIAC': 'Friederike Wilsenack',\n  '005W7000009NCmTIAW': 'Jan-Thore Kaulbach',\n  '0051v00000BjKXAAA3': 'Hikmet Canbolat',\n  '0059L000000JKFlQAO': 'Tamina Stange',\n  '005W7000005SzP3IAK': 'Jane Siewert',\n  '005W7000005SxQTIA0': 'Florian Dalis',\n  '005W7000004vQt7IAE': 'Robert Eismann',\n  '005W7000005WNTFIA4': 'Michael Wahl',\n  '0059L000000IlsvQAC': 'Raven Schulz',\n  '0059L000000JKGDQA4': 'Ebru Kizilkaya',\n  '005W7000002HR5tIAG': 'Marius Buga',\n  '005W70000048JRNIA2': 'Marlies Konrad',\n  '005W7000003UovJIAS': 'David Beck',\n  '0059L000000JKGOQA4': 'Philipp Schmidt',\n  '005W7000004vQptIAE': 'Nina Hoffmann'\n}"
+      },
+      {
         "name": "LEVEL_CONFIG",
         "value": "{\n  '3': {\n    bookingsWeight: 0.75,\n    pilotenWeight: 0.25,\n    pilotenTarget: 12\n  },\n  '2': {\n    bookingsWeight: 0.50,\n    pilotenWeight: 0.50,\n    pilotenTarget: 16\n  },\n  '1': {\n    bookingsWeight: 0.25,\n    pilotenWeight: 0.75,\n    pilotenTarget: 18\n  },\n  'rampup': {\n    bookingsWeight: 1.00,\n    pilotenWeight: 0.00,\n    pilotenTarget: 0\n  }\n}"
       },
