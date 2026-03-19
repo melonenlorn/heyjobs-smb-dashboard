@@ -120,16 +120,33 @@ export default {
   },
 
   // ── Berlin public holidays hardcoded per quarter ──────────────────────────
-  BERLIN_HOLIDAYS: ['2026-01-01'], // Neujahr — einziger Feiertag in Q1 2026 in Berlin
+  // Q1 2026: only Jan 1 (Neujahr). Mar 8 (Frauentag) falls on Sunday → no impact.
+  BERLIN_HOLIDAYS: ['2026-01-01'],
 
-  // ── Count working days (Mon–Fri, excl. Berlin holidays) from date A to date B ──
+  // ── Parse YYYY-MM-DD string as LOCAL midnight (avoids UTC timezone shift) ──
+  _parseLocal(s) {
+    if (s instanceof Date) return new Date(s.getFullYear(), s.getMonth(), s.getDate());
+    const p = s.split('-');
+    return new Date(+p[0], +p[1] - 1, +p[2]);
+  },
+
+  // ── Format Date as YYYY-MM-DD using LOCAL date methods (not toISOString) ──
+  _localStr(d) {
+    return d.getFullYear() + '-'
+      + String(d.getMonth() + 1).padStart(2, '0') + '-'
+      + String(d.getDate()).padStart(2, '0');
+  },
+
+  // ── Count working days (Mon–Fri, excl. Berlin holidays) from date A to date B inclusive ──
+  // Both from/to can be YYYY-MM-DD strings or Date objects; all arithmetic in local time.
   werktage(from, to) {
     const holidays = new Set(JS_Config.BERLIN_HOLIDAYS);
     let count = 0;
-    const d = new Date(from);
-    while (d <= to) {
+    const d   = JS_Config._parseLocal(from);
+    const end = JS_Config._parseLocal(to);
+    while (d <= end) {
       const dow = d.getDay();
-      const ds  = d.toISOString().slice(0, 10);
+      const ds  = JS_Config._localStr(d);
       if (dow !== 0 && dow !== 6 && !holidays.has(ds)) count++;
       d.setDate(d.getDate() + 1);
     }
@@ -138,16 +155,15 @@ export default {
 
   // ── Werktage-Kontext für das aktuelle Quartal ──────────────────────────────
   getWerktageContext() {
-    const start     = new Date(JS_Config.QUARTER.start);
-    const end       = new Date(JS_Config.QUARTER.end);
     const now       = new Date();
-    const today     = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    // "done" = abgeschlossene Werktage (bis gestern, da heute noch läuft)
+    const today     = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // local midnight
+    const start     = JS_Config._parseLocal(JS_Config.QUARTER.start);
+    const end       = JS_Config._parseLocal(JS_Config.QUARTER.end);
+    // "done" = completed working days up to and including yesterday
     const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
-    const effectiveEnd = yesterday < start ? new Date(start.getTime() - 86400000) : yesterday;
     const total     = JS_Config.werktage(start, end);
-    const done      = effectiveEnd < start ? 0 : Math.min(JS_Config.werktage(start, effectiveEnd), total);
-    const remaining = total - done;
+    const done      = today <= start ? 0 : Math.min(JS_Config.werktage(start, yesterday), total);
+    const remaining = total - done;  // includes today
     const daysToEnd = Math.ceil(Math.max(0, end - today) / 86400000);
     return { total, done, remaining, daysToEnd };
   },
