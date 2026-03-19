@@ -124,6 +124,18 @@ export default {
     return result;
   },
 
+  // ── Overdue opps per rep (CloseDate < today, still open) ─────────────────
+  overdueByRep() {
+    const map = {};
+    JS_Data._records(Q_Overdue_Pipeline).forEach(r => {
+      const id = r.OwnerId;
+      if (!map[id]) map[id] = { count: 0, arr: 0 };
+      map[id].count += 1;
+      map[id].arr   += Number(r.Amount) || 0;
+    });
+    return map;
+  },
+
   // ── Calls per rep (QTD) ───────────────────────────────────────────────────
   callsByRep() {
     const map = {};
@@ -306,6 +318,7 @@ export default {
     const pipelineMovement  = JS_Data.pipelineMovementByRep();
     const l30Map            = JS_Data.activityL30ByRep();
     const cwMap             = JS_Data.activityWeeklyByRep('CW');
+    const overdueMap        = JS_Data.overdueByRep();
     const l30WorkingDays    = 22;
     const oppL30Map         = {};
     JS_Data._records(Q_Opps_L30).forEach(r => { oppL30Map[r.OwnerId] = Number(r.oppCount) || 0; });
@@ -389,6 +402,10 @@ export default {
           const opp  = Math.round((oppL30Map[id] || 0) / l30WorkingDays * 10) / 10;
           return qual > 0 ? Math.round((opp / qual) * 100) : 0;
         })(),
+        staleCount:        (staleData[id] && staleData[id].stale) || 0,
+        totalOpenCount:    totalOpen,
+        overdueCount:      (overdueMap[id] && overdueMap[id].count) || 0,
+        overdueArr:        (overdueMap[id] && overdueMap[id].arr)   || 0,
         l30TrendOpp:       (() => {
           const qtdRate = (oppCreated[id] || 0) / qtdDaysElapsed;
           return repTrendArrow(qtdRate, Math.round((oppL30Map[id] || 0) / l30WorkingDays * 10) / 10);
@@ -480,8 +497,12 @@ export default {
     const selfSvcARR     = sum('selfSvcARR');
     const wonCount       = sum('wonCount');
     const lostCount      = sum('lostCount');
-    const staleCount     = sum('staleCount');
-    const totalOpen      = sum('totalOpenCount');
+    // Fix: compute staleCount directly from filtered stale list (buildRepKPIs doesn't reliably expose staleCount)
+    const allStaleList   = JS_Data.staleList();
+    const filteredIds    = new Set(filtered.map(r => r.id));
+    const filteredStaleList = allStaleList.filter(o => filteredIds.has(o.ownerId));
+    const staleCount     = filteredStaleList.length;
+    const totalOpen      = sum('openOpps');
     const dials          = sum('dials');
     const qualCalls      = sum('qualCalls');
     const meetings       = sum('meetings');
@@ -549,6 +570,11 @@ export default {
     const wkDone          = Math.max(1, JS_Config.getWerktageContext().done);
     const qtdOppPerDay    = oppCreated / repCount / wkDone;
     const trendOpp        = trendArrow(qtdOppPerDay, avgOppPerDay);
+
+    // Overdue opps aggregation (filtered by team)
+    const overdueMap    = JS_Data.overdueByRep();
+    const overdueCount  = filtered.reduce((s, r) => s + ((overdueMap[r.id] && overdueMap[r.id].count) || 0), 0);
+    const overdueArr    = filtered.reduce((s, r) => s + ((overdueMap[r.id] && overdueMap[r.id].arr)   || 0), 0);
 
     const pilotPipeArr  = sum('pilotPipeArr');
     const pilotPipeOpps = sum('pilotPipeOpps');
@@ -694,7 +720,11 @@ export default {
         staleCount,
         totalOpen,
         status:      JS_Scoring.status('staleRate', staleRate),
-        list:        JS_Data.staleList().slice(0, 20),
+        list:        filteredStaleList.slice(0, 20),
+        overdue: {
+          count: overdueCount,
+          arr:   overdueArr,
+        },
       },
     };
   },
