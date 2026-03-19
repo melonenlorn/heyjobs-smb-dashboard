@@ -305,6 +305,9 @@ export default {
     const demos             = JS_Data.demosByRep();
     const pipelineMovement  = JS_Data.pipelineMovementByRep();
     const l30Map            = JS_Data.activityL30ByRep();
+    const l30WorkingDays    = 22;
+    const oppL30Map         = {};
+    JS_Data._records(Q_Opps_L30).forEach(r => { oppL30Map[r.OwnerId] = Number(r.oppCount) || 0; });
 
     return JS_Config.ALL_REP_IDS.map(id => {
       const name         = (bookings[id] && bookings[id].name)
@@ -370,6 +373,12 @@ export default {
         l30EmailsPerDay:   (l30Map[id] && l30Map[id].emailsPerDay)      || 0,
         l30QualCallsPerDay:(l30Map[id] && l30Map[id].qualCallsPerDay)   || 0,
         l30MeetingsPerDay: (l30Map[id] && l30Map[id].meetingsPerDay)    || 0,
+        l30OppPerDay:      Math.round((oppL30Map[id] || 0) / l30WorkingDays * 10) / 10,
+        l30QualToOpp:      (() => {
+          const qual = (l30Map[id] && l30Map[id].qualTouchPerDay) || 0;
+          const opp  = Math.round((oppL30Map[id] || 0) / l30WorkingDays * 10) / 10;
+          return qual > 0 ? Math.round((opp / qual) * 100) : 0;
+        })(),
       };
     });
   },
