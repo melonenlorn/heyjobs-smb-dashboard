@@ -300,6 +300,19 @@ export default {
     return map;
   },
 
+  // ── Overdue accounts per rep (Follow_up_Date < today), grouped by stage ──
+  overdueAccountsByRep() {
+    const map = {};
+    JS_Data._records(Q_Overdue_Accounts).forEach(r => {
+      const id    = r.OwnerId;
+      const stage = r.Stage_ACM__c || 'Sonstige';
+      if (!map[id]) map[id] = { total: 0 };
+      map[id].total++;
+      map[id][stage] = (map[id][stage] || 0) + 1;
+    });
+    return map;
+  },
+
   // ── Build full KPI row for every rep ─────────────────────────────────────
   allRepKPIs() {
     const bookings   = JS_Data.bookingsByRep();
@@ -319,6 +332,7 @@ export default {
     const l30Map            = JS_Data.activityL30ByRep();
     const cwMap             = JS_Data.activityWeeklyByRep('CW');
     const overdueMap        = JS_Data.overdueByRep();
+    const overdueAccMap     = JS_Data.overdueAccountsByRep();
     const l30WorkingDays    = 22;
     const oppL30Map         = {};
     JS_Data._records(Q_Opps_L30).forEach(r => { oppL30Map[r.OwnerId] = Number(r.oppCount) || 0; });
@@ -402,6 +416,8 @@ export default {
           const opp  = Math.round((oppL30Map[id] || 0) / l30WorkingDays * 10) / 10;
           return qual > 0 ? Math.round((opp / qual) * 100) : 0;
         })(),
+        overdueAccounts:   (overdueAccMap[id] && overdueAccMap[id].total) || 0,
+        overdueAccByStage: overdueAccMap[id] || {},
         staleCount:        (staleData[id] && staleData[id].stale) || 0,
         totalOpenCount:    totalOpen,
         overdueCount:      (overdueMap[id] && overdueMap[id].count) || 0,
@@ -575,6 +591,16 @@ export default {
     const overdueMap    = JS_Data.overdueByRep();
     const overdueCount  = filtered.reduce((s, r) => s + ((overdueMap[r.id] && overdueMap[r.id].count) || 0), 0);
     const overdueArr    = filtered.reduce((s, r) => s + ((overdueMap[r.id] && overdueMap[r.id].arr)   || 0), 0);
+    // Overdue accounts aggregation by stage
+    const overdueAccMap = JS_Data.overdueAccountsByRep();
+    const overdueAccByStage = {};
+    filtered.forEach(r => {
+      const d = overdueAccMap[r.id] || {};
+      Object.entries(d).forEach(([stage, cnt]) => {
+        if (stage === 'total') return;
+        overdueAccByStage[stage] = (overdueAccByStage[stage] || 0) + cnt;
+      });
+    });
 
     const pilotPipeArr  = sum('pilotPipeArr');
     const pilotPipeOpps = sum('pilotPipeOpps');
@@ -724,6 +750,10 @@ export default {
         overdue: {
           count: overdueCount,
           arr:   overdueArr,
+        },
+        overdueAccounts: {
+          byStage: overdueAccByStage,
+          total:   Object.values(overdueAccByStage).reduce((s, v) => s + v, 0),
         },
       },
     };
