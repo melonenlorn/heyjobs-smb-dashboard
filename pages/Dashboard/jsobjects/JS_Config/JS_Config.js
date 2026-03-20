@@ -12,7 +12,6 @@ export default {
     // Ferdinand's team
     'Alina Kühne':          '2',
     'Pierre Byer':          '2',
-    'Friederike Wilsenack': '2',
     'Jan-Thore Kaulbach':   'rampup',
     // Jan's team
     'Hikmet Canbolat':      '3',
@@ -36,7 +35,7 @@ export default {
     ferdinand: {
       label: 'Wolves',
       tlId:  '005W7000006FAIDIA4',
-      reps:  ['Alina Kühne', 'Pierre Byer', 'Friederike Wilsenack', 'Jan-Thore Kaulbach'],
+      reps:  ['Alina Kühne', 'Pierre Byer', 'Jan-Thore Kaulbach'],
     },
     jan: {
       label: 'Titans',
@@ -54,7 +53,6 @@ export default {
   ALL_REP_IDS: [
     '0059L000000JKG9QAO', // Alina Kühne
     '005W7000000zmHSIAY', // Pierre Byer
-    '005W7000005SxezIAC', // Friederike Wilsenack
     '005W7000009NCmTIAW', // Jan-Thore Kaulbach
     '0051v00000BjKXAAA3', // Hikmet Canbolat
     '0059L000000JKFlQAO', // Tamina Stange
@@ -75,7 +73,6 @@ export default {
   ID_TO_NAME: {
     '0059L000000JKG9QAO': 'Alina Kühne',
     '005W7000000zmHSIAY': 'Pierre Byer',
-    '005W7000005SxezIAC': 'Friederike Wilsenack',
     '005W7000009NCmTIAW': 'Jan-Thore Kaulbach',
     '0051v00000BjKXAAA3': 'Hikmet Canbolat',
     '0059L000000JKFlQAO': 'Tamina Stange',
