@@ -5,7 +5,7 @@
   "borderWidth": "1",
   "bottomRow": 189,
   "boxShadow": "{{appsmith.theme.boxShadow.appBoxShadow}}",
-  "defaultModel": "{{(function(){\n  var _=[Q_Stale_Pipeline.data,Q_Pipeline_Open.data,Q_Bookings_QTD.data,Q_WinLoss.data,Q_Pilots_Open.data,Q_SelfService_QTD.data,appsmith.store.drilldownContext];\n  var ctx = appsmith.store.drilldownContext || null;\n  return JS_Data.drilldownList(ctx);\n})()}}",
+  "defaultModel": "{{(function(){\n  var _=[Q_Stale_Pipeline.data,Q_Pipeline_Open.data,Q_Bookings_QTD.data,Q_WinLoss.data,Q_Pilots_Open.data,Q_SelfService_QTD.data];\n  var ctx = (typeof appsmith !== 'undefined' && appsmith.store) ? (appsmith.store.drilldownContext || null) : null;\n  try { return JS_Data.drilldownList(ctx); } catch(e) { return {title:'Stale Pipeline', isDrilldown:false, columns:[{key:'name',label:'Opportunity',sortable:true,type:'opp-link'},{key:'account',label:'Account',sortable:true,type:'acc-link'},{key:'rep',label:'Rep',sortable:true},{key:'arr',label:'ARR',sortable:true,type:'currency',align:'right'},{key:'stage',label:'Stage',sortable:true},{key:'age',label:'Inaktiv',sortable:true,type:'age-badge',align:'center'}], rows:[], infoMessage:null}; }\n})()}}",
   "dynamicBindingPathList": [
     {
       "key": "theme"
