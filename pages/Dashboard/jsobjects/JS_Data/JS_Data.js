@@ -1040,6 +1040,15 @@ export default {
         totalOpen,
         status:      JS_Scoring.status('staleRate', staleRate),
         list:        filteredStaleList.slice(0, 20),
+        buckets: (() => {
+          const b = { '14-21d': 0, '21-30d': 0, '30d+': 0 };
+          filteredStaleList.forEach(o => {
+            if (o.daysSinceActivity >= 30)      b['30d+']++;
+            else if (o.daysSinceActivity >= 21) b['21-30d']++;
+            else                                b['14-21d']++;
+          });
+          return b;
+        })(),
         overdue: {
           count: overdueCount,
           arr:   overdueArr,
