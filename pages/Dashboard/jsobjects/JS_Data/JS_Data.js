@@ -587,6 +587,164 @@ export default {
     return filtered.sort((a, b) => (b.composite || 0) - (a.composite || 0));
   },
 
+  // ── Drilldown list — routes ctx.metric to filtered record list ───────────
+  drilldownList(ctx) {
+    const SF_OPP = 'https://heyjobs.lightning.force.com/lightning/r/Opportunity/';
+    const SF_ACC = 'https://heyjobs.lightning.force.com/lightning/r/Account/';
+    const sfUrl    = (id) => id ? SF_OPP + id + '/view' : null;
+    const sfAccUrl = (id) => id ? SF_ACC + id + '/view' : null;
+    const ageInDays = (d) => d ? Math.floor((new Date() - new Date(d)) / 86400000) : 0;
+
+    const repFilter = (ctx && ctx.repId)
+      ? (r) => r.OwnerId === ctx.repId
+      : () => true;
+
+    // Default / stale ─────────────────────────────────────────────────────
+    if (!ctx || !ctx.metric || ctx.metric === 'stale') {
+      const recs = JS_Data._records(Q_Stale_Pipeline).filter(repFilter);
+      const title = ctx && ctx.title ? ctx.title
+        : (ctx && ctx.repName ? 'Stale Pipeline — ' + ctx.repName : 'Stale Pipeline');
+      return {
+        title,
+        isDrilldown: !!(ctx && ctx.metric),
+        columns: [
+          { key:'name',    label:'Opportunity',    sortable:true, type:'opp-link' },
+          { key:'account', label:'Account',        sortable:true, type:'acc-link' },
+          { key:'rep',     label:'Rep',            sortable:true },
+          { key:'arr',     label:'ARR',            sortable:true, type:'currency', align:'right' },
+          { key:'stage',   label:'Stage',          sortable:true },
+          { key:'age',     label:'Inaktiv',        sortable:true, type:'age-badge', align:'center' },
+        ],
+        rows: recs.map(r => {
+          const last = r.LastActivityDate ? new Date(r.LastActivityDate) : null;
+          const days = last ? Math.floor((new Date() - last) / 86400000) : 999;
+          return { name: r.Name||'—', account: (r.Account&&r.Account.Name)||'—', rep: (r.Owner&&r.Owner.Name)||'—', arr: Number(r.Amount)||0, stage: r.StageName||'—', age: days, sfUrl: sfUrl(r.Id), sfAccUrl: sfAccUrl(r.AccountId) };
+        }).sort((a,b) => b.arr - a.arr),
+        infoMessage: null,
+      };
+    }
+
+    const { metric, repName, title: ctxTitle } = ctx;
+    const repSuffix = repName ? ' — ' + repName : '';
+    const title = (ctxTitle || metric) + repSuffix;
+
+    // Non-drillable activity metrics ──────────────────────────────────────
+    if (['touch','calls','mails','qt','qc','mtg'].indexOf(metric) >= 0) {
+      return { title, isDrilldown: true, columns: [], rows: [], infoMessage: 'Aktivitäts-Details sind in Salesforce verfügbar (Reports → Activity).' };
+    }
+
+    // Bookings ─────────────────────────────────────────────────────────────
+    if (metric === 'bookings') {
+      const recs = JS_Data._records(Q_Bookings_QTD).filter(repFilter);
+      return {
+        title, isDrilldown: true,
+        columns: [
+          { key:'name',      label:'Opportunity', sortable:true, type:'opp-link' },
+          { key:'account',   label:'Account',     sortable:true, type:'acc-link' },
+          { key:'arr',       label:'ARR',         sortable:true, type:'currency', align:'right' },
+          { key:'closeDate', label:'Datum',       sortable:true, type:'date' },
+          { key:'rep',       label:'Rep',         sortable:true },
+        ],
+        rows: recs.map(r => ({ name: r.Name||'—', account: (r.Account&&r.Account.Name)||'—', arr: Number(r.Amount)||0, closeDate: r.dateTimestampContractreceived__c||r.CloseDate||null, rep: (r.Owner&&r.Owner.Name)||'—', sfUrl: sfUrl(r.Id), sfAccUrl: sfAccUrl(r.AccountId) })).sort((a,b) => b.arr - a.arr),
+        infoMessage: null,
+      };
+    }
+
+    // Pipeline ─────────────────────────────────────────────────────────────
+    if (metric === 'pipeline') {
+      const recs = JS_Data._records(Q_Pipeline_Open).filter(repFilter);
+      return {
+        title, isDrilldown: true,
+        columns: [
+          { key:'name',      label:'Opportunity', sortable:true, type:'opp-link' },
+          { key:'account',   label:'Account',     sortable:true, type:'acc-link' },
+          { key:'arr',       label:'ARR',         sortable:true, type:'currency', align:'right' },
+          { key:'stage',     label:'Stage',       sortable:true },
+          { key:'closeDate', label:'CloseDate',   sortable:true, type:'date' },
+          { key:'age',       label:'Alter (Tage)',sortable:true, align:'right' },
+          { key:'rep',       label:'Rep',         sortable:true },
+        ],
+        rows: recs.map(r => ({ name: r.Name||'—', account: (r.Account&&r.Account.Name)||'—', arr: Number(r.Amount)||0, stage: r.StageName||'—', closeDate: r.CloseDate||null, age: r.CreatedDate ? ageInDays(r.CreatedDate) : 0, rep: (r.Owner&&r.Owner.Name)||'—', sfUrl: sfUrl(r.Id), sfAccUrl: sfAccUrl(r.AccountId) })).sort((a,b) => b.arr - a.arr),
+        infoMessage: null,
+      };
+    }
+
+    // Overdue ──────────────────────────────────────────────────────────────
+    if (metric === 'overdue') {
+      const today = new Date();
+      const recs = JS_Data._records(Q_Pipeline_Open).filter(repFilter).filter(r => r.CloseDate && new Date(r.CloseDate) < today);
+      return {
+        title, isDrilldown: true,
+        columns: [
+          { key:'name',    label:'Opportunity',       sortable:true, type:'opp-link' },
+          { key:'account', label:'Account',           sortable:true, type:'acc-link' },
+          { key:'arr',     label:'ARR',               sortable:true, type:'currency', align:'right' },
+          { key:'stage',   label:'Stage',             sortable:true },
+          { key:'overdue', label:'Überfällig (Tage)', sortable:true, type:'overdue', align:'right' },
+          { key:'rep',     label:'Rep',               sortable:true },
+        ],
+        rows: recs.map(r => ({ name: r.Name||'—', account: (r.Account&&r.Account.Name)||'—', arr: Number(r.Amount)||0, stage: r.StageName||'—', overdue: Math.floor((today - new Date(r.CloseDate)) / 86400000), rep: (r.Owner&&r.Owner.Name)||'—', sfUrl: sfUrl(r.Id), sfAccUrl: sfAccUrl(r.AccountId) })).sort((a,b) => b.overdue - a.overdue),
+        infoMessage: null,
+      };
+    }
+
+    // Won / Lost ───────────────────────────────────────────────────────────
+    if (metric === 'won' || metric === 'lost') {
+      const isWon = metric === 'won';
+      const recs = JS_Data._records(Q_WinLoss).filter(r => r.IsWon === isWon && repFilter(r) && !(r.RecordType && r.RecordType.Name === 'Customer Self Service'));
+      const cols = [
+        { key:'name',      label:'Opportunity', sortable:true, type:'opp-link' },
+        { key:'account',   label:'Account',     sortable:true, type:'acc-link' },
+        { key:'arr',       label:'ARR',         sortable:true, type:'currency', align:'right' },
+        { key:'closeDate', label:'CloseDate',   sortable:true, type:'date' },
+        { key:'rep',       label:'Rep',         sortable:true },
+      ];
+      if (!isWon) cols.push({ key:'stage', label:'Stage', sortable:true });
+      return {
+        title, isDrilldown: true, columns: cols,
+        rows: recs.map(r => ({ name: r.Name||'—', account: (r.Account&&r.Account.Name)||'—', arr: Number(r.Amount)||0, closeDate: r.CloseDate||null, stage: r.StageName||'—', rep: (r.Owner&&r.Owner.Name)||'—', sfUrl: sfUrl(r.Id), sfAccUrl: sfAccUrl(r.AccountId) })).sort((a,b) => b.arr - a.arr),
+        infoMessage: null,
+      };
+    }
+
+    // Pilots open ──────────────────────────────────────────────────────────
+    if (metric === 'pilots') {
+      const recs = JS_Data._records(Q_Pilots_Open).filter(repFilter);
+      return {
+        title, isDrilldown: true,
+        columns: [
+          { key:'name',      label:'Opportunity', sortable:true, type:'opp-link' },
+          { key:'account',   label:'Account',     sortable:true, type:'acc-link' },
+          { key:'arr',       label:'ARR',         sortable:true, type:'currency', align:'right' },
+          { key:'stage',     label:'Stage',       sortable:true },
+          { key:'closeDate', label:'CloseDate',   sortable:true, type:'date' },
+          { key:'rep',       label:'Rep',         sortable:true },
+        ],
+        rows: recs.map(r => ({ name: r.Name||'—', account: (r.Account&&r.Account.Name)||'—', arr: Number(r.Amount)||0, stage: r.StageName||'—', closeDate: r.CloseDate||null, rep: (r.Owner&&r.Owner.Name)||'—', sfUrl: sfUrl(r.Id), sfAccUrl: sfAccUrl(r.AccountId) })).sort((a,b) => b.arr - a.arr),
+        infoMessage: null,
+      };
+    }
+
+    // Self-service ─────────────────────────────────────────────────────────
+    if (metric === 'selfservice') {
+      const recs = JS_Data._records(Q_SelfService_QTD).filter(repFilter);
+      return {
+        title, isDrilldown: true,
+        columns: [
+          { key:'name',      label:'Opportunity', sortable:true, type:'opp-link' },
+          { key:'arr',       label:'ARR',         sortable:true, type:'currency', align:'right' },
+          { key:'closeDate', label:'Datum',       sortable:true, type:'date' },
+          { key:'rep',       label:'Rep',         sortable:true },
+        ],
+        rows: recs.map(r => ({ name: r.Name||'—', arr: Number(r.Amount)||0, closeDate: r.dateTimestampContractreceived__c||null, rep: (r.Owner&&r.Owner.Name)||'—', sfUrl: sfUrl(r.Id) })).sort((a,b) => b.arr - a.arr),
+        infoMessage: null,
+      };
+    }
+
+    // Fallback ─────────────────────────────────────────────────────────────
+    return JS_Data.drilldownList(null);
+  },
+
   // ── Stale pipeline list (for stale queue widget) ──────────────────────────
   staleList() {
     const today = new Date();
