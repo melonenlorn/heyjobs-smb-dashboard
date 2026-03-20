@@ -595,9 +595,16 @@ export default {
     const sfAccUrl = (id) => id ? SF_ACC + id + '/view' : null;
     const ageInDays = (d) => d ? Math.floor((new Date() - new Date(d)) / 86400000) : 0;
 
+    const teamKey = JS_Filters.getTeam();
+    const teamRepNames = teamKey !== 'all' && JS_Config.TEAMS[teamKey]
+        ? JS_Config.TEAMS[teamKey].reps : null;
+    const teamRepIds = teamRepNames
+        ? new Set(JS_Config.ALL_REP_IDS.filter(id => teamRepNames.includes(JS_Config.ID_TO_NAME[id])))
+        : null;
     const repFilter = (ctx && ctx.repId)
-      ? (r) => r.OwnerId === ctx.repId
-      : () => true;
+        ? (r) => r.OwnerId === ctx.repId
+        : teamRepIds ? (r) => teamRepIds.has(r.OwnerId)
+        : () => true;
 
     // Default / stale ─────────────────────────────────────────────────────
     if (!ctx || !ctx.metric || ctx.metric === 'stale') {
@@ -749,7 +756,15 @@ export default {
   drilldownList_stale(repId) {
     const SF_OPP = 'https://heyjobs.lightning.force.com/lightning/r/Opportunity/';
     const SF_ACC = 'https://heyjobs.lightning.force.com/lightning/r/Account/';
-    const repFilter = repId ? (r) => r.OwnerId === repId : () => true;
+    const teamKey = JS_Filters.getTeam();
+    const teamRepNames = teamKey !== 'all' && JS_Config.TEAMS[teamKey]
+        ? JS_Config.TEAMS[teamKey].reps : null;
+    const teamRepIds = teamRepNames
+        ? new Set(JS_Config.ALL_REP_IDS.filter(id => teamRepNames.includes(JS_Config.ID_TO_NAME[id])))
+        : null;
+    const repFilter = repId ? (r) => r.OwnerId === repId
+        : teamRepIds ? (r) => teamRepIds.has(r.OwnerId)
+        : () => true;
     const recs = JS_Data._records(Q_Stale_Pipeline).filter(repFilter);
     return {
       title: 'Stale Pipeline',
