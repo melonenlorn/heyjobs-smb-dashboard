@@ -377,13 +377,14 @@ export default {
       if (!bookWeekMap[id][wk]) bookWeekMap[id][wk] = { week: wk, arr: 0, pilots: 0 };
       return bookWeekMap[id][wk];
     };
+    // Q_Bookings_QTD uses dateTimestampContractreceived__c, not CloseDate
     JS_Data._records(Q_Bookings_QTD).forEach(r => {
-      const w = ensureBookWeek(r.OwnerId, isoWeek(r.CloseDate));
+      const w = ensureBookWeek(r.OwnerId, isoWeek(r.dateTimestampContractreceived__c));
       w.arr += Number(r.Amount) || 0;
       if ((Number(r.Winback_Pilot__c) || 0) > 0) w.pilots += 1;
     });
     JS_Data._records(Q_SelfService_QTD).forEach(r => {
-      const w = ensureBookWeek(r.OwnerId, isoWeek(r.CloseDate));
+      const w = ensureBookWeek(r.OwnerId, isoWeek(r.dateTimestampContractreceived__c));
       w.arr += Number(r.Amount) || 0;
       if ((Number(r.Winback_Pilot__c) || 0) > 0) w.pilots += 1;
     });
