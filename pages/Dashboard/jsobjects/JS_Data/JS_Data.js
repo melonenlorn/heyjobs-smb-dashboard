@@ -322,7 +322,7 @@ export default {
       const startOfWeek1 = new Date(jan4);
       startOfWeek1.setDate(jan4.getDate() - ((jan4.getDay() + 6) % 7));
       const weekNo = Math.floor((d - startOfWeek1) / 604800000) + 1;
-      return 'KW' + Math.max(1, weekNo);
+      return 'KW' + String(Math.max(1, weekNo)).padStart(2, '0');
     }
 
     const result = {};
