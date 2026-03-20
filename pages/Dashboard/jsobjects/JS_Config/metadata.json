@@ -13,19 +13,19 @@
       },
       {
         "name": "REP_LEVELS",
-        "value": "{\n  'Alina Kühne': '2',\n  'Pierre Byer': '2',\n  'Friederike Wilsenack': '2',\n  'Jan-Thore Kaulbach': 'rampup',\n  'Hikmet Canbolat': '3',\n  'Tamina Stange': '3',\n  'Jane Siewert': '2',\n  'Florian Dalis': '2',\n  'Robert Eismann': '2',\n  'Michael Wahl': '1',\n  'Raven Schulz': '3',\n  'Ebru Kizilkaya': '3',\n  'Marius Buga': '3',\n  'Marlies Konrad': '3',\n  'David Beck': '3',\n  'Philipp Schmidt': '2',\n  'Nina Hoffmann': '2'\n}"
+        "value": "{\n  'Alina Kühne': '2',\n  'Pierre Byer': '2',\n  'Jan-Thore Kaulbach': 'rampup',\n  'Hikmet Canbolat': '3',\n  'Tamina Stange': '3',\n  'Jane Siewert': '2',\n  'Florian Dalis': '2',\n  'Robert Eismann': '2',\n  'Michael Wahl': '1',\n  'Raven Schulz': '3',\n  'Ebru Kizilkaya': '3',\n  'Marius Buga': '3',\n  'Marlies Konrad': '3',\n  'David Beck': '3',\n  'Philipp Schmidt': '2',\n  'Nina Hoffmann': '2'\n}"
       },
       {
         "name": "TEAMS",
-        "value": "{\n  ferdinand: {\n    label: 'Wolves',\n    tlId: '005W7000006FAIDIA4',\n    reps: ['Alina Kühne', 'Pierre Byer', 'Friederike Wilsenack', 'Jan-Thore Kaulbach']\n  },\n  jan: {\n    label: 'Titans',\n    tlId: '005W7000004kT37IAE',\n    reps: ['Hikmet Canbolat', 'Tamina Stange', 'Jane Siewert', 'Florian Dalis', 'Robert Eismann', 'Michael Wahl']\n  },\n  philipp: {\n    label: 'Locos',\n    tlId: '0059L000000JKFGQA4',\n    reps: ['Raven Schulz', 'Ebru Kizilkaya', 'Marius Buga', 'Marlies Konrad', 'David Beck', 'Philipp Schmidt', 'Nina Hoffmann']\n  }\n}"
+        "value": "{\n  ferdinand: {\n    label: 'Wolves',\n    tlId: '005W7000006FAIDIA4',\n    reps: ['Alina Kühne', 'Pierre Byer', 'Jan-Thore Kaulbach']\n  },\n  jan: {\n    label: 'Titans',\n    tlId: '005W7000004kT37IAE',\n    reps: ['Hikmet Canbolat', 'Tamina Stange', 'Jane Siewert', 'Florian Dalis', 'Robert Eismann', 'Michael Wahl']\n  },\n  philipp: {\n    label: 'Locos',\n    tlId: '0059L000000JKFGQA4',\n    reps: ['Raven Schulz', 'Ebru Kizilkaya', 'Marius Buga', 'Marlies Konrad', 'David Beck', 'Philipp Schmidt', 'Nina Hoffmann']\n  }\n}"
       },
       {
         "name": "ALL_REP_IDS",
-        "value": "['0059L000000JKG9QAO', '005W7000000zmHSIAY', '005W7000005SxezIAC', '005W7000009NCmTIAW', '0051v00000BjKXAAA3', '0059L000000JKFlQAO', '005W7000005SzP3IAK', '005W7000005SxQTIA0', '005W7000004vQt7IAE', '005W7000005WNTFIA4', '0059L000000IlsvQAC', '0059L000000JKGDQA4', '005W7000002HR5tIAG', '005W70000048JRNIA2', '005W7000003UovJIAS', '0059L000000JKGOQA4', '005W7000004vQptIAE']"
+        "value": "['0059L000000JKG9QAO', '005W7000000zmHSIAY', '005W7000009NCmTIAW', '0051v00000BjKXAAA3', '0059L000000JKFlQAO', '005W7000005SzP3IAK', '005W7000005SxQTIA0', '005W7000004vQt7IAE', '005W7000005WNTFIA4', '0059L000000IlsvQAC', '0059L000000JKGDQA4', '005W7000002HR5tIAG', '005W70000048JRNIA2', '005W7000003UovJIAS', '0059L000000JKGOQA4', '005W7000004vQptIAE']"
       },
       {
         "name": "ID_TO_NAME",
-        "value": "{\n  '0059L000000JKG9QAO': 'Alina Kühne',\n  '005W7000000zmHSIAY': 'Pierre Byer',\n  '005W7000005SxezIAC': 'Friederike Wilsenack',\n  '005W7000009NCmTIAW': 'Jan-Thore Kaulbach',\n  '0051v00000BjKXAAA3': 'Hikmet Canbolat',\n  '0059L000000JKFlQAO': 'Tamina Stange',\n  '005W7000005SzP3IAK': 'Jane Siewert',\n  '005W7000005SxQTIA0': 'Florian Dalis',\n  '005W7000004vQt7IAE': 'Robert Eismann',\n  '005W7000005WNTFIA4': 'Michael Wahl',\n  '0059L000000IlsvQAC': 'Raven Schulz',\n  '0059L000000JKGDQA4': 'Ebru Kizilkaya',\n  '005W7000002HR5tIAG': 'Marius Buga',\n  '005W70000048JRNIA2': 'Marlies Konrad',\n  '005W7000003UovJIAS': 'David Beck',\n  '0059L000000JKGOQA4': 'Philipp Schmidt',\n  '005W7000004vQptIAE': 'Nina Hoffmann'\n}"
+        "value": "{\n  '0059L000000JKG9QAO': 'Alina Kühne',\n  '005W7000000zmHSIAY': 'Pierre Byer',\n  '005W7000009NCmTIAW': 'Jan-Thore Kaulbach',\n  '0051v00000BjKXAAA3': 'Hikmet Canbolat',\n  '0059L000000JKFlQAO': 'Tamina Stange',\n  '005W7000005SzP3IAK': 'Jane Siewert',\n  '005W7000005SxQTIA0': 'Florian Dalis',\n  '005W7000004vQt7IAE': 'Robert Eismann',\n  '005W7000005WNTFIA4': 'Michael Wahl',\n  '0059L000000IlsvQAC': 'Raven Schulz',\n  '0059L000000JKGDQA4': 'Ebru Kizilkaya',\n  '005W7000002HR5tIAG': 'Marius Buga',\n  '005W70000048JRNIA2': 'Marlies Konrad',\n  '005W7000003UovJIAS': 'David Beck',\n  '0059L000000JKGOQA4': 'Philipp Schmidt',\n  '005W7000004vQptIAE': 'Nina Hoffmann'\n}"
       },
       {
         "name": "LEVEL_CONFIG",
