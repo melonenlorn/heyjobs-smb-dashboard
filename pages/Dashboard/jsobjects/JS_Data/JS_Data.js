@@ -741,8 +741,34 @@ export default {
       };
     }
 
-    // Fallback ─────────────────────────────────────────────────────────────
-    return JS_Data.drilldownList(null);
+    // Fallback: unbekannte metric → stale list
+    return JS_Data.drilldownList_stale(null);
+  },
+
+  // ── Stale-only helper (used as drilldownList fallback, avoids self-reference) ─
+  drilldownList_stale(repId) {
+    const SF_OPP = 'https://heyjobs.lightning.force.com/lightning/r/Opportunity/';
+    const SF_ACC = 'https://heyjobs.lightning.force.com/lightning/r/Account/';
+    const repFilter = repId ? (r) => r.OwnerId === repId : () => true;
+    const recs = JS_Data._records(Q_Stale_Pipeline).filter(repFilter);
+    return {
+      title: 'Stale Pipeline',
+      isDrilldown: false,
+      columns: [
+        { key:'name',    label:'Opportunity', sortable:true, type:'opp-link' },
+        { key:'account', label:'Account',     sortable:true, type:'acc-link' },
+        { key:'rep',     label:'Rep',         sortable:true },
+        { key:'arr',     label:'ARR',         sortable:true, type:'currency', align:'right' },
+        { key:'stage',   label:'Stage',       sortable:true },
+        { key:'age',     label:'Inaktiv',     sortable:true, type:'age-badge', align:'center' },
+      ],
+      rows: recs.map(r => {
+        const last = r.LastActivityDate ? new Date(r.LastActivityDate) : null;
+        const days = last ? Math.floor((new Date() - last) / 86400000) : 999;
+        return { name: r.Name||'—', account: (r.Account&&r.Account.Name)||'—', rep: (r.Owner&&r.Owner.Name)||'—', arr: Number(r.Amount)||0, stage: r.StageName||'—', age: days, sfUrl: r.Id ? SF_OPP+r.Id+'/view' : null, sfAccUrl: r.AccountId ? SF_ACC+r.AccountId+'/view' : null };
+      }).sort((a,b) => b.arr - a.arr),
+      infoMessage: null,
+    };
   },
 
   // ── Stale pipeline list (for stale queue widget) ──────────────────────────
