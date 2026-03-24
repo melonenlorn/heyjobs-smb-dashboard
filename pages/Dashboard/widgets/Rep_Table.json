@@ -3,7 +3,7 @@
   "borderColor": "#E0DEDE",
   "borderRadius": "{{appsmith.theme.borderRadius.appBorderRadius}}",
   "borderWidth": "1",
-  "bottomRow": 108,
+  "bottomRow": 109,
   "boxShadow": "{{appsmith.theme.boxShadow.appBoxShadow}}",
   "defaultModel": "{{(function(){var _=[Q_Bookings_QTD.data,Q_SelfService_QTD.data,Q_Pipeline_Open.data,Q_Pilots_Open.data,Q_Stale_Pipeline.data,Q_WinLoss.data,Q_Calls_QTD.data,Q_QualCalls_QTD.data,Q_Emails_QTD.data,Q_Meetings_QTD.data,Q_Quotas.data,Q_Users_Team.data,Q_Opps_Created_QTD.data,Q_Demos_QTD.data,Q_Calls_CW.data,Q_Calls_PW.data,Q_QualCalls_CW.data,Q_QualCalls_PW.data,Q_Emails_CW.data,Q_Emails_PW.data,Q_Meetings_CW.data,Q_Meetings_PW.data,Q_Calls_L30.data,Q_QualCalls_L30.data,Q_Emails_L30.data,Q_Meetings_L30.data,Q_Opps_L30.data,Q_Overdue_Pipeline.data];return {reps: JS_Data.dashboardReps(), weeksElapsed: Math.max(1, Math.round(JS_Config.getQuarterProgress() * 13)), staleList: JS_Data.staleList(), wk: JS_Config.getWerktageContext(), weeklyData: (function(){try{return JS_Data.weeklyBuckets();}catch(e){return {};}})()};})()}}",
   "dynamicBindingPathList": [
@@ -84,7 +84,7 @@
     "js": "appsmith.onReady(() => { if (typeof poll === 'function') { poll(); } });"
   },
   "theme": "{{appsmith.theme}}",
-  "topRow": 45,
+  "topRow": 46,
   "type": "CUSTOM_WIDGET",
   "uncompiledSrcDoc": {
     "css": ".app {\n  height: calc(var(--appsmith-ui-height) * 1px);\n  width: calc(var(--appsmith-ui-width) * 1px);\n  justify-content: center;\n  border-radius: var(--appsmith-theme-borderRadius);\n  box-shadow: var(--appsmith-theme-boxShadow);\n  padding: 29px 25px;\n  box-sizing: border-box;\n  font-family: system-ui;\n  background: #fff;\n}\n\n.tip-container {\n  margin-bottom: 20px;\n  font-size: 14px;\n  line-height: 1.571429;\n}\n\n.tip-container h2 {\n  margin-bottom: 20px;\n  font-size: 16px;\n  font-weight: 700;\n}\n\n.tip-header {\n  display: flex;\n  justify-content: space-between;\n  align-items: baseline;\n  margin-bottom: 9px;\n}\n\n.tip-header div {\n  color: #999;\n}\n\n.content {\n  white-space: pre-wrap;\n  word-break: break-word;\n  font-size: 14px;\n  line-height: 1.571429;\n}\n\n.button-container {\n  text-align: right;\n  padding-top: 4px;\n}\n\n.button-container button {\n  margin: 0 10px;\n  cursor: pointer;\n  border-radius: var(--appsmith-theme-borderRadius);\n  padding: 6px 16px;\n  background: none;\n  height: auto;\n  transition: all 0.3s ease;\n}\n\n.button-container button.primary {\n  background: var(--appsmith-theme-primaryColor) !important;\n  color: #fff;\n  border: 1px solid var(--appsmith-theme-primaryColor) !important;\n}\n\n.button-container button.reset {\n  border: 1px solid #999;\n  color: #999;\n  outline: none;\n  box-shadow: none;\n}\n\n.button-container button.reset:hover:not(:disabled) {\n  color: var(--appsmith-theme-primaryColor);\n  border-color: var(--appsmith-theme-primaryColor);\n}\n\n.button-container button.reset:disabled {\n  cursor: default;\n}",
