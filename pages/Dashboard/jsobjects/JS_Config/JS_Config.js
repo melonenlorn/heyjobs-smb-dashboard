@@ -28,7 +28,7 @@ export default {
     'Q1 2026': {
       wolves: { label: 'Wolves', emoji: '🐺', tlName: 'Ferdinand Bärenfänger' },
       titans: { label: 'Titans', emoji: '⚡', tlName: 'Jan Hinrichsen' },
-      locos:  { label: 'Locos',  emoji: '🔥', tlName: 'Philipp Bahls' },
+      locos:  { label: 'Locos',  emoji: '🔥', tlName: 'Philipp xBahls' },
     },
     'Q2 2026': {
       wolves: { label: 'Wolves', emoji: '🐺', tlName: 'Mareike Schliesser' },
