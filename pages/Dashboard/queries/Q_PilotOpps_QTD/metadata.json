@@ -18,10 +18,10 @@
                     "params": [
                         {
                             "key": "q",
-                            "value": "SELECT CreatedById, COUNT(Id) oppCount FROM Opportunity WHERE CreatedDate >= {{JS_Config.getActiveQuarter().start}}T00:00:00Z AND CreatedDate <= {{JS_Config.getActiveQuarter().end}}T23:59:59Z AND Account.Bookings_last_12_months__c = 0 AND RecordType.Name != 'Customer Self Service' AND CreatedById IN ('0059L000000JKG9QAO','005W7000000zmHSIAY','005W7000009NCmTIAW','0051v00000BjKXAAA3','0059L000000JKFlQAO','005W7000005SzP3IAK','005W7000005SxQTIA0','005W7000004vQt7IAE','005W7000005WNTFIA4','0059L000000IlsvQAC','0059L000000JKGDQA4','005W7000002HR5tIAG','005W70000048JRNIA2','005W7000003UovJIAS','0059L000000JKGOQA4','005W7000004vQptIAE') GROUP BY CreatedById"
+                            "value": "SELECT CreatedById, COUNT(Id) oppCount FROM Opportunity WHERE CreatedDate >= 2026-01-01T00:00:00Z AND CreatedDate <= 2026-03-31T23:59:59Z AND Account.Bookings_last_12_months__c = 0 AND RecordType.Name != 'Customer Self Service' AND CreatedById IN ('0059L000000JKG9QAO','005W7000000zmHSIAY','005W7000009NCmTIAW','0051v00000BjKXAAA3','0059L000000JKFlQAO','005W7000005SzP3IAK','005W7000005SxQTIA0','005W7000004vQt7IAE','005W7000005WNTFIA4','0059L000000IlsvQAC','0059L000000JKGDQA4','005W7000002HR5tIAG','005W70000048JRNIA2','005W7000003UovJIAS','0059L000000JKGOQA4','005W7000004vQptIAE') GROUP BY CreatedById"
                         }
                     ],
-                    "path": "query/?q=SELECT CreatedById, COUNT(Id) oppCount FROM Opportunity WHERE CreatedDate >= {{JS_Config.getActiveQuarter().start}}T00:00:00Z AND CreatedDate <= {{JS_Config.getActiveQuarter().end}}T23:59:59Z AND Account.Bookings_last_12_months__c = 0 AND RecordType.Name != 'Customer Self Service' AND CreatedById IN ('0059L000000JKG9QAO','005W7000000zmHSIAY','005W7000009NCmTIAW','0051v00000BjKXAAA3','0059L000000JKFlQAO','005W7000005SzP3IAK','005W7000005SxQTIA0','005W7000004vQt7IAE','005W7000005WNTFIA4','0059L000000IlsvQAC','0059L000000JKGDQA4','005W7000002HR5tIAG','005W70000048JRNIA2','005W7000003UovJIAS','0059L000000JKGOQA4','005W7000004vQptIAE') GROUP BY CreatedById"
+                    "path": "query/?q=SELECT CreatedById, COUNT(Id) oppCount FROM Opportunity WHERE CreatedDate >= 2026-01-01T00:00:00Z AND CreatedDate <= 2026-03-31T23:59:59Z AND Account.Bookings_last_12_months__c = 0 AND RecordType.Name != 'Customer Self Service' AND CreatedById IN ('0059L000000JKG9QAO','005W7000000zmHSIAY','005W7000009NCmTIAW','0051v00000BjKXAAA3','0059L000000JKFlQAO','005W7000005SzP3IAK','005W7000005SxQTIA0','005W7000004vQt7IAE','005W7000005WNTFIA4','0059L000000IlsvQAC','0059L000000JKGDQA4','005W7000002HR5tIAG','005W70000048JRNIA2','005W7000003UovJIAS','0059L000000JKGOQA4','005W7000004vQptIAE') GROUP BY CreatedById"
                 },
                 "command": "CUSTOM_ACTION"
             },
@@ -35,14 +35,7 @@
             "name": "SalesforceAPI",
             "pluginId": "salesforce"
         },
-        "dynamicBindingPathList": [
-            {
-                "key": "actionConfiguration.formData.CUSTOM_ACTION.params[0].value"
-            },
-            {
-                "key": "actionConfiguration.formData.CUSTOM_ACTION.path"
-            }
-        ],
+        "dynamicBindingPathList": [],
         "name": "Q_PilotOpps_QTD",
         "pageId": "Dashboard",
         "runBehaviour": "ON_PAGE_LOAD",

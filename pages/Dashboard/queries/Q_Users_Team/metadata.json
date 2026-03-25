@@ -18,10 +18,10 @@
                     "params": [
                         {
                             "key": "q",
-                            "value": "SELECT Id, Name, ManagerId, Manager.Name, UserRole.Name FROM User WHERE IsActive = true AND (Name IN ({{JS_Config.managerNames().map(function(n){return \"'\" + n + \"'\"}).join(',')}}) OR ManagerId IN (SELECT Id FROM User WHERE IsActive = true AND Name IN ({{JS_Config.managerNames().map(function(n){return \"'\" + n + \"'\"}).join(',')}}))) ORDER BY ManagerId, Name LIMIT 200"
+                            "value": "SELECT Id, Name, ManagerId, Manager.Name FROM User WHERE IsActive = true AND Id IN ('0059L000000JKG9QAO','005W7000000zmHSIAY','005W7000009NCmTIAW','0051v00000BjKXAAA3','0059L000000JKFlQAO','005W7000005SzP3IAK','005W7000005SxQTIA0','005W7000004vQt7IAE','005W7000005WNTFIA4','0059L000000IlsvQAC','0059L000000JKGDQA4','005W7000002HR5tIAG','005W70000048JRNIA2','005W7000003UovJIAS','0059L000000JKGOQA4','005W7000004vQptIAE','005W7000006FAIDIA4','005W7000004kT37IAE','0059L000000JKFGQA4') ORDER BY ManagerId, Name"
                         }
                     ],
-                    "path": "query/?q=SELECT Id, Name, ManagerId, Manager.Name, UserRole.Name FROM User WHERE IsActive = true AND (Name IN ({{JS_Config.managerNames().map(function(n){return \"'\" + n + \"'\"}).join(',')}}) OR ManagerId IN (SELECT Id FROM User WHERE IsActive = true AND Name IN ({{JS_Config.managerNames().map(function(n){return \"'\" + n + \"'\"}).join(',')}}))) ORDER BY ManagerId, Name LIMIT 200"
+                    "path": "query/?q=SELECT Id, Name, ManagerId, Manager.Name FROM User WHERE IsActive = true AND Id IN ('0059L000000JKG9QAO','005W7000000zmHSIAY','005W7000009NCmTIAW','0051v00000BjKXAAA3','0059L000000JKFlQAO','005W7000005SzP3IAK','005W7000005SxQTIA0','005W7000004vQt7IAE','005W7000005WNTFIA4','0059L000000IlsvQAC','0059L000000JKGDQA4','005W7000002HR5tIAG','005W70000048JRNIA2','005W7000003UovJIAS','0059L000000JKGOQA4','005W7000004vQptIAE','005W7000006FAIDIA4','005W7000004kT37IAE','0059L000000JKFGQA4') ORDER BY ManagerId, Name"
                 },
                 "command": "CUSTOM_ACTION"
             },
@@ -35,14 +35,7 @@
             "name": "SalesforceAPI",
             "pluginId": "salesforce"
         },
-        "dynamicBindingPathList": [
-            {
-                "key": "actionConfiguration.formData.CUSTOM_ACTION.params[0].value"
-            },
-            {
-                "key": "actionConfiguration.formData.CUSTOM_ACTION.path"
-            }
-        ],
+        "dynamicBindingPathList": [],
         "name": "Q_Users_Team",
         "pageId": "Dashboard",
         "runBehaviour": "ON_PAGE_LOAD",
