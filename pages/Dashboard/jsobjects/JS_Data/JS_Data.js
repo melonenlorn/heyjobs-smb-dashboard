@@ -1,14 +1,58 @@
 export default {
 
-  // ── Safe record accessor ──────────────────────────────────────────────────
+  // ── Safe record accessor (live mode only, kept for backward compat) ─────
   _records(query) {
     try { return query.data.output.records || []; } catch(e) { return []; }
+  },
+
+  // ── Dualmode record accessor: live or snapshot ───────────────────────────
+  _r(queryName) {
+    const aq = JS_Config.getActiveQuarter();
+    if (!aq.isCurrent) {
+      // 1. Git-committed snapshot (update_quarter.py)
+      try {
+        const snap = JS_Snapshots.data[aq.label];
+        if (snap && snap.queries && snap.queries[queryName]) {
+          return snap.queries[queryName];
+        }
+      } catch(e) {}
+      // 2. Appsmith Store snapshot (auto-saved on page load)
+      try {
+        const snapKey = 'snap_' + aq.label.replace(' ', '_');
+        const snap = appsmith.store[snapKey];
+        if (snap && snap.queries && snap.queries[queryName]) {
+          return snap.queries[queryName];
+        }
+      } catch(e) {}
+      return [];
+    }
+    // Live mode: lookup query by name
+    const liveMap = {
+      Q_Bookings_QTD: Q_Bookings_QTD, Q_SelfService_QTD: Q_SelfService_QTD,
+      Q_Pipeline_Open: Q_Pipeline_Open, Q_Pilots_Open: Q_Pilots_Open,
+      Q_Stale_Pipeline: Q_Stale_Pipeline, Q_WinLoss: Q_WinLoss,
+      Q_Calls_QTD: Q_Calls_QTD, Q_QualCalls_QTD: Q_QualCalls_QTD,
+      Q_Emails_QTD: Q_Emails_QTD, Q_Meetings_QTD: Q_Meetings_QTD,
+      Q_Quotas: Q_Quotas, Q_Users_Team: Q_Users_Team,
+      Q_Opps_Created_QTD: Q_Opps_Created_QTD, Q_PilotOpps_QTD: Q_PilotOpps_QTD,
+      Q_Demos_QTD: Q_Demos_QTD, Q_Calls_CW: Q_Calls_CW, Q_Calls_PW: Q_Calls_PW,
+      Q_QualCalls_CW: Q_QualCalls_CW, Q_QualCalls_PW: Q_QualCalls_PW,
+      Q_Emails_CW: Q_Emails_CW, Q_Emails_PW: Q_Emails_PW,
+      Q_Meetings_CW: Q_Meetings_CW, Q_Meetings_PW: Q_Meetings_PW,
+      Q_Calls_L30: Q_Calls_L30, Q_QualCalls_L30: Q_QualCalls_L30,
+      Q_Emails_L30: Q_Emails_L30, Q_Meetings_L30: Q_Meetings_L30,
+      Q_Opps_L30: Q_Opps_L30, Q_Overdue_Pipeline: Q_Overdue_Pipeline,
+      Q_Overdue_Accounts: Q_Overdue_Accounts,
+    };
+    const q = liveMap[queryName];
+    if (!q) return [];
+    try { return q.data.output.records || []; } catch(e) { return []; }
   },
 
   // ── Bookings per rep (rep-driven, QTD) ───────────────────────────────────
   bookingsByRep() {
     const map = {};
-    JS_Data._records(Q_Bookings_QTD).forEach(r => {
+    JS_Data._r('Q_Bookings_QTD').forEach(r => {
       const id   = r.OwnerId;
       const name = r.Owner && r.Owner.Name ? r.Owner.Name : id;
       if (!map[id]) map[id] = { name, arr: 0, deals: 0, pilots: 0 };
@@ -22,7 +66,7 @@ export default {
   // ── Self-service per rep (QTD) ────────────────────────────────────────────
   selfServiceByRep() {
     const map = {};
-    JS_Data._records(Q_SelfService_QTD).forEach(r => {
+    JS_Data._r('Q_SelfService_QTD').forEach(r => {
       const id = r.OwnerId;
       if (!map[id]) map[id] = { arr: 0, deals: 0, pilots: 0 };
       map[id].arr   += Number(r.Amount) || 0;
@@ -36,7 +80,7 @@ export default {
   pipelineByRep() {
     const now = new Date();
     const map = {};
-    JS_Data._records(Q_Pipeline_Open).forEach(r => {
+    JS_Data._r('Q_Pipeline_Open').forEach(r => {
       const id   = r.OwnerId;
       const arr  = Number(r.Amount) || 0;
       const bk12 = Number((r.Account && r.Account.Bookings_last_12_months__c) || 0);
@@ -64,7 +108,7 @@ export default {
     const now = new Date();
     const isThisWeek = (ts) => ts && Math.floor((now - new Date(ts)) / 86400000) < 7;
     const map = {};
-    JS_Data._records(Q_WinLoss).forEach(r => {
+    JS_Data._r('Q_WinLoss').forEach(r => {
       const id  = r.OwnerId;
       const arr = Number(r.Amount) || 0;
       if (!map[id]) map[id] = { wonCW: 0, wonCWArr: 0, lostCW: 0, lostCWArr: 0 };
@@ -82,7 +126,7 @@ export default {
   // ── Open pilots per rep ───────────────────────────────────────────────────
   openPilotsByRep() {
     const map = {};
-    JS_Data._records(Q_Pilots_Open).forEach(r => {
+    JS_Data._r('Q_Pilots_Open').forEach(r => {
       const id = r.OwnerId;
       if (!map[id]) map[id] = 0;
       map[id] += 1;
@@ -93,7 +137,7 @@ export default {
   // ── Win / Loss per rep (last 90 days, excl. Self-Service) ───────────────
   winLossByRep() {
     const map = {};
-    JS_Data._records(Q_WinLoss).forEach(r => {
+    JS_Data._r('Q_WinLoss').forEach(r => {
       if (r.RecordType && r.RecordType.Name === 'Customer Self Service') return;
       const id = r.OwnerId;
       if (!map[id]) map[id] = { won: 0, lost: 0 };
@@ -105,8 +149,8 @@ export default {
 
   // ── Stale opps per rep ───────────────────────────────────────────────────
   staleByRep() {
-    const allOpen = JS_Data._records(Q_Pipeline_Open);
-    const stale   = JS_Data._records(Q_Stale_Pipeline);
+    const allOpen = JS_Data._r('Q_Pipeline_Open');
+    const stale   = JS_Data._r('Q_Stale_Pipeline');
     const totalMap = {};
     allOpen.forEach(r => {
       const id = r.OwnerId;
@@ -127,7 +171,7 @@ export default {
   // ── Overdue opps per rep (CloseDate < today, still open) ─────────────────
   overdueByRep() {
     const map = {};
-    JS_Data._records(Q_Overdue_Pipeline).forEach(r => {
+    JS_Data._r('Q_Overdue_Pipeline').forEach(r => {
       const id = r.OwnerId;
       if (!map[id]) map[id] = { count: 0, arr: 0 };
       map[id].count += 1;
@@ -139,11 +183,11 @@ export default {
   // ── Calls per rep (QTD) ───────────────────────────────────────────────────
   callsByRep() {
     const map = {};
-    JS_Data._records(Q_Calls_QTD).forEach(r => {
+    JS_Data._r('Q_Calls_QTD').forEach(r => {
       if (!map[r.OwnerId]) map[r.OwnerId] = { dials: 0, qualCalls: 0 };
       map[r.OwnerId].dials = Number(r.dialCount) || 0;
     });
-    JS_Data._records(Q_QualCalls_QTD).forEach(r => {
+    JS_Data._r('Q_QualCalls_QTD').forEach(r => {
       if (!map[r.OwnerId]) map[r.OwnerId] = { dials: 0, qualCalls: 0 };
       map[r.OwnerId].qualCalls = Number(r.qualCount) || 0;
     });
@@ -153,7 +197,7 @@ export default {
   // ── Meetings per rep (QTD, deduplicated via GROUP BY in SOQL) ────────────
   meetingsByRep() {
     const map = {};
-    JS_Data._records(Q_Meetings_QTD).forEach(r => {
+    JS_Data._r('Q_Meetings_QTD').forEach(r => {
       map[r.OwnerId] = (map[r.OwnerId] || 0) + 1;
     });
     return map;
@@ -162,7 +206,7 @@ export default {
   // ── Emails per rep (QTD) ──────────────────────────────────────────────────
   emailsByRep() {
     const map = {};
-    JS_Data._records(Q_Emails_QTD).forEach(r => {
+    JS_Data._r('Q_Emails_QTD').forEach(r => {
       map[r.OwnerId] = Number(r.emailCount) || 0;
     });
     return map;
@@ -171,7 +215,7 @@ export default {
   // ── Opps created per rep (QTD) ────────────────────────────────────────────
   oppCreatedByRep() {
     const map = {};
-    JS_Data._records(Q_Opps_Created_QTD).forEach(r => {
+    JS_Data._r('Q_Opps_Created_QTD').forEach(r => {
       map[r.CreatedById] = Number(r.oppCount) || 0;
     });
     return map;
@@ -180,7 +224,7 @@ export default {
   // ── Pilot Opps per rep (Accounts with no prior bookings, QTD) ─────────────
   pilotOppsByRep() {
     const map = {};
-    JS_Data._records(Q_PilotOpps_QTD).forEach(r => {
+    JS_Data._r('Q_PilotOpps_QTD').forEach(r => {
       map[r.CreatedById] = Number(r.oppCount) || 0;
     });
     return map;
@@ -189,7 +233,7 @@ export default {
   // ── Demos per rep (QTD) ───────────────────────────────────────────────────
   demosByRep() {
     const map = {};
-    JS_Data._records(Q_Demos_QTD).forEach(r => {
+    JS_Data._r('Q_Demos_QTD').forEach(r => {
       map[r.OwnerId] = Number(r.demoCount) || 0;
     });
     return map;
@@ -204,20 +248,20 @@ export default {
       return dayMap[id][date];
     };
 
-    JS_Data._records(Q_Calls_L30).forEach(r => {
+    JS_Data._r('Q_Calls_L30').forEach(r => {
       const d = ensure(r.OwnerId, r.ActivityDate);
       d.dials = Number(r.dials) || 0;
       d.callTimeSec = Number(r.callTimeSec) || 0;
     });
-    JS_Data._records(Q_QualCalls_L30).forEach(r => {
+    JS_Data._r('Q_QualCalls_L30').forEach(r => {
       const d = ensure(r.OwnerId, r.ActivityDate);
       d.qualCalls = Number(r.qualCount) || 0;
     });
-    JS_Data._records(Q_Emails_L30).forEach(r => {
+    JS_Data._r('Q_Emails_L30').forEach(r => {
       const d = ensure(r.OwnerId, r.ActivityDate);
       d.emails = Number(r.emailCount) || 0;
     });
-    JS_Data._records(Q_Meetings_L30).forEach(r => {
+    JS_Data._r('Q_Meetings_L30').forEach(r => {
       const d = ensure(r.OwnerId, r.ActivityDate);
       d.meetings = Number(r.meetingCount) || 0;
     });
@@ -260,25 +304,21 @@ export default {
   activityWeeklyByRep(period) {
     const map = {};
     const sfx = period === 'CW' ? '_CW' : '_PW';
-    const callsQ     = period === 'CW' ? Q_Calls_CW     : Q_Calls_PW;
-    const qualCallsQ = period === 'CW' ? Q_QualCalls_CW : Q_QualCalls_PW;
-    const emailsQ    = period === 'CW' ? Q_Emails_CW    : Q_Emails_PW;
-    const meetingsQ  = period === 'CW' ? Q_Meetings_CW  : Q_Meetings_PW;
 
-    JS_Data._records(callsQ).forEach(r => {
+    JS_Data._r('Q_Calls' + sfx).forEach(r => {
       if (!map[r.OwnerId]) map[r.OwnerId] = { dials: 0, qualCalls: 0, emails: 0, meetings: 0 };
       map[r.OwnerId].dials = Number(r.dialCount) || 0;
     });
-    JS_Data._records(qualCallsQ).forEach(r => {
+    JS_Data._r('Q_QualCalls' + sfx).forEach(r => {
       if (!map[r.OwnerId]) map[r.OwnerId] = { dials: 0, qualCalls: 0, emails: 0, meetings: 0 };
       map[r.OwnerId].qualCalls = Number(r.qualCount) || 0;
     });
-    JS_Data._records(emailsQ).forEach(r => {
+    JS_Data._r('Q_Emails' + sfx).forEach(r => {
       if (!map[r.OwnerId]) map[r.OwnerId] = { dials: 0, qualCalls: 0, emails: 0, meetings: 0 };
       map[r.OwnerId].emails = Number(r.emailCount) || 0;
     });
     // meetings: count rows per OwnerId (deduplicated by GROUP BY in SOQL)
-    JS_Data._records(meetingsQ).forEach(r => {
+    JS_Data._r('Q_Meetings' + sfx).forEach(r => {
       if (!map[r.OwnerId]) map[r.OwnerId] = { dials: 0, qualCalls: 0, emails: 0, meetings: 0 };
       map[r.OwnerId].meetings = (map[r.OwnerId].meetings || 0) + 1;
     });
@@ -287,12 +327,12 @@ export default {
 
   // ── Quota per rep ─────────────────────────────────────────────────────────
   quotaByRep() {
-    const users  = JS_Data._records(Q_Users_Team);
+    const users  = JS_Data._r('Q_Users_Team');
     const idToName = {};
     users.forEach(u => { idToName[u.Id] = u.Name; });
 
     const map = {};
-    JS_Data._records(Q_Quotas).forEach(r => {
+    JS_Data._r('Q_Quotas').forEach(r => {
       const id  = r.QuotaOwnerId;
       const amt = Number(r.QuotaAmount) || 0;
       if (!map[id] || amt > map[id]) map[id] = amt;
@@ -303,7 +343,7 @@ export default {
   // ── Overdue accounts per rep (Follow_up_Date < today), grouped by stage ──
   overdueAccountsByRep() {
     const map = {};
-    JS_Data._records(Q_Overdue_Accounts).forEach(r => {
+    JS_Data._r('Q_Overdue_Accounts').forEach(r => {
       const id    = r.OwnerId;
       const stage = r.Stage_ACM__c || 'Sonstige';
       if (!map[id]) map[id] = { total: 0 };
@@ -338,19 +378,19 @@ export default {
       if (!dayMap[id][date]) dayMap[id][date] = { dials: 0, qualCalls: 0, emails: 0, meetings: 0 };
       return dayMap[id][date];
     };
-    JS_Data._records(Q_Calls_L30).forEach(r => {
+    JS_Data._r('Q_Calls_L30').forEach(r => {
       const d = ensureDay(r.OwnerId, r.ActivityDate);
       d.dials = Number(r.dials) || 0;
     });
-    JS_Data._records(Q_QualCalls_L30).forEach(r => {
+    JS_Data._r('Q_QualCalls_L30').forEach(r => {
       const d = ensureDay(r.OwnerId, r.ActivityDate);
       d.qualCalls = Number(r.qualCount) || 0;
     });
-    JS_Data._records(Q_Emails_L30).forEach(r => {
+    JS_Data._r('Q_Emails_L30').forEach(r => {
       const d = ensureDay(r.OwnerId, r.ActivityDate);
       d.emails = Number(r.emailCount) || 0;
     });
-    JS_Data._records(Q_Meetings_L30).forEach(r => {
+    JS_Data._r('Q_Meetings_L30').forEach(r => {
       const d = ensureDay(r.OwnerId, r.ActivityDate);
       d.meetings = Number(r.meetingCount) || 0;
     });
@@ -378,12 +418,12 @@ export default {
       return bookWeekMap[id][wk];
     };
     // Q_Bookings_QTD uses dateTimestampContractreceived__c, not CloseDate
-    JS_Data._records(Q_Bookings_QTD).forEach(r => {
+    JS_Data._r('Q_Bookings_QTD').forEach(r => {
       const w = ensureBookWeek(r.OwnerId, isoWeek(r.dateTimestampContractreceived__c));
       w.arr += Number(r.Amount) || 0;
       if ((Number(r.Winback_Pilot__c) || 0) > 0) w.pilots += 1;
     });
-    JS_Data._records(Q_SelfService_QTD).forEach(r => {
+    JS_Data._r('Q_SelfService_QTD').forEach(r => {
       const w = ensureBookWeek(r.OwnerId, isoWeek(r.dateTimestampContractreceived__c));
       w.arr += Number(r.Amount) || 0;
       if ((Number(r.Winback_Pilot__c) || 0) > 0) w.pilots += 1;
@@ -401,7 +441,7 @@ export default {
 
     // ── Win/Loss: weekly win rate ──
     const wlWeekMap = {};
-    JS_Data._records(Q_WinLoss).forEach(r => {
+    JS_Data._r('Q_WinLoss').forEach(r => {
       if (r.RecordType && r.RecordType.Name === 'Customer Self Service') return;
       const id = r.OwnerId;
       const wk = isoWeek(r.CloseDate);
@@ -422,20 +462,7 @@ export default {
   },
 
   // ── Build full KPI row for every rep ─────────────────────────────────────
-  // ── Snapshot-Daten für historisches Quartal laden ────────────────────────
-  _loadFromSnapshot() {
-    const aq  = JS_Config.getActiveQuarter();
-    const snap = JS_Init.loadSnapshot(aq.label);
-    if (snap && snap.reps) return snap.reps;
-    return []; // Kein Snapshot → leere Liste
-  },
-
   allRepKPIs() {
-    // Historisches Quartal → aus Snapshot laden
-    if (!JS_Config.getActiveQuarter().isCurrent) {
-      return JS_Data._loadFromSnapshot();
-    }
-
     const bookings   = JS_Data.bookingsByRep();
     const selfSvc    = JS_Data.selfServiceByRep();
     const pipeline   = JS_Data.pipelineByRep();
@@ -456,7 +483,7 @@ export default {
     const overdueAccMap     = JS_Data.overdueAccountsByRep();
     const l30WorkingDays    = 22;
     const oppL30Map         = {};
-    JS_Data._records(Q_Opps_L30).forEach(r => { oppL30Map[r.OwnerId] = Number(r.oppCount) || 0; });
+    JS_Data._r('Q_Opps_L30').forEach(r => { oppL30Map[r.OwnerId] = Number(r.oppCount) || 0; });
     const cwDaysElapsed = Math.max(1, [1,1,2,3,4,5,5][new Date().getDay()]);
     const qtdDaysElapsed = Math.max(1, JS_Config.getWerktageContext().done);
     function repTrendArrow(cwVal, l30Val) {
@@ -470,7 +497,7 @@ export default {
     return JS_Config.ALL_REP_IDS.map(id => {
       const name         = JS_Config.ID_TO_NAME[id]
                          || (bookings[id] && bookings[id].name)
-                         || (JS_Data._records(Q_Users_Team).find(u => u.Id === id) || {}).Name
+                         || (JS_Data._r('Q_Users_Team').find(u => u.Id === id) || {}).Name
                          || id;
       const bookingsARR  = (bookings[id] && bookings[id].arr)  || 0;
       const closedPilots = (bookings[id] && bookings[id].pilots) || 0;
@@ -621,7 +648,7 @@ export default {
 
     // Default / stale ─────────────────────────────────────────────────────
     if (!ctx || !ctx.metric || ctx.metric === 'stale') {
-      const recs = JS_Data._records(Q_Stale_Pipeline).filter(repFilter);
+      const recs = JS_Data._r('Q_Stale_Pipeline').filter(repFilter);
       const title = ctx && ctx.title ? ctx.title
         : (ctx && ctx.repName ? 'Stale Pipeline — ' + ctx.repName : 'Stale Pipeline');
       return {
@@ -655,7 +682,7 @@ export default {
 
     // Bookings ─────────────────────────────────────────────────────────────
     if (metric === 'bookings') {
-      const recs = JS_Data._records(Q_Bookings_QTD).filter(repFilter);
+      const recs = JS_Data._r('Q_Bookings_QTD').filter(repFilter);
       return {
         title, isDrilldown: true,
         columns: [
@@ -672,7 +699,7 @@ export default {
 
     // Pipeline ─────────────────────────────────────────────────────────────
     if (metric === 'pipeline') {
-      const recs = JS_Data._records(Q_Pipeline_Open).filter(repFilter);
+      const recs = JS_Data._r('Q_Pipeline_Open').filter(repFilter);
       return {
         title, isDrilldown: true,
         columns: [
@@ -692,7 +719,7 @@ export default {
     // Overdue ──────────────────────────────────────────────────────────────
     if (metric === 'overdue') {
       const today = new Date();
-      const recs = JS_Data._records(Q_Pipeline_Open).filter(repFilter).filter(r => r.CloseDate && new Date(r.CloseDate) < today);
+      const recs = JS_Data._r('Q_Pipeline_Open').filter(repFilter).filter(r => r.CloseDate && new Date(r.CloseDate) < today);
       return {
         title, isDrilldown: true,
         columns: [
@@ -711,7 +738,7 @@ export default {
     // Won / Lost ───────────────────────────────────────────────────────────
     if (metric === 'won' || metric === 'lost') {
       const isWon = metric === 'won';
-      const recs = JS_Data._records(Q_WinLoss).filter(r => r.IsWon === isWon && repFilter(r) && !(r.RecordType && r.RecordType.Name === 'Customer Self Service'));
+      const recs = JS_Data._r('Q_WinLoss').filter(r => r.IsWon === isWon && repFilter(r) && !(r.RecordType && r.RecordType.Name === 'Customer Self Service'));
       const cols = [
         { key:'name',      label:'Opportunity', sortable:true, type:'opp-link' },
         { key:'account',   label:'Account',     sortable:true, type:'acc-link' },
@@ -729,7 +756,7 @@ export default {
 
     // Pilots open ──────────────────────────────────────────────────────────
     if (metric === 'pilots') {
-      const recs = JS_Data._records(Q_Pilots_Open).filter(repFilter);
+      const recs = JS_Data._r('Q_Pilots_Open').filter(repFilter);
       return {
         title, isDrilldown: true,
         columns: [
@@ -747,7 +774,7 @@ export default {
 
     // Self-service ─────────────────────────────────────────────────────────
     if (metric === 'selfservice') {
-      const recs = JS_Data._records(Q_SelfService_QTD).filter(repFilter);
+      const recs = JS_Data._r('Q_SelfService_QTD').filter(repFilter);
       return {
         title, isDrilldown: true,
         columns: [
@@ -778,7 +805,7 @@ export default {
     const repFilter = repId ? (r) => r.OwnerId === repId
         : teamRepIds ? (r) => teamRepIds.has(r.OwnerId)
         : () => true;
-    const recs = JS_Data._records(Q_Stale_Pipeline).filter(repFilter);
+    const recs = JS_Data._r('Q_Stale_Pipeline').filter(repFilter);
     return {
       title: 'Stale Pipeline',
       isDrilldown: false,
@@ -802,7 +829,7 @@ export default {
   // ── Stale pipeline list (for stale queue widget) ──────────────────────────
   staleList() {
     const today = new Date();
-    return JS_Data._records(Q_Stale_Pipeline).map(r => {
+    return JS_Data._r('Q_Stale_Pipeline').map(r => {
       const last  = r.LastActivityDate ? new Date(r.LastActivityDate) : null;
       const days  = last ? Math.floor((today - last) / 86400000) : 999;
       return {
@@ -822,11 +849,6 @@ export default {
   // ── KPI cards data (team-level aggregation for hero cards) ───────────────
   heroKPIs() {
     const aq   = JS_Config.getActiveQuarter();
-    // Historisches Quartal → hero aus Snapshot
-    if (!aq.isCurrent) {
-      const snap = JS_Init.loadSnapshot(aq.label);
-      return snap && snap.heroKPIs ? snap.heroKPIs : {};
-    }
     const reps = JS_Data.allRepKPIs();
     // Filter by active team filter
     const filtered = JS_Filters.applyFilters(reps);
@@ -888,7 +910,7 @@ export default {
       l30MtgSum     += d.meetingsPerDay    || 0;
     });
     const oppL30Map = {};
-    JS_Data._records(Q_Opps_L30).forEach(r => { oppL30Map[r.OwnerId] = Number(r.oppCount) || 0; });
+    JS_Data._r('Q_Opps_L30').forEach(r => { oppL30Map[r.OwnerId] = Number(r.oppCount) || 0; });
     const l30OppTotal = filtered.reduce((s, r) => s + (oppL30Map[r.id] || 0), 0);
     const avgTouchPerDay   = Math.round(l30TouchSum   / repCount * 10) / 10;
     const avgQualPerDay    = Math.round(l30QualSum    / repCount * 10) / 10;

@@ -7,27 +7,14 @@ export default {
     await Q_Users_Team.run();
     JS_Config.buildTeamsFromQuery();
 
-    // Snapshot-Check: Automatisch Snapshot für das letzte Quartal erstellen
-    // wenn noch keiner existiert (muss VOR update_quarter.py laufen!)
-    const curr  = JS_Config.currentQuarter();
-    const prevQ = JS_Config.previousQuarterLabel();
-    if (prevQ !== curr.label) {
-      const snapKey = 'snap_' + prevQ.replace(' ', '_');
-      const hasSnap = !!(appsmith.store[snapKey]);
-      if (!hasSnap) {
-        // Queries enthalten noch die alten Daten → jetzt Snapshot erstellen
-        await JS_Init.createSnapshot();
-      }
-    }
-
-    // Phase 2: Historisches Quartal → nur Snapshot, keine Live-Queries
+    // Phase 2: Historisches Quartal → Daten kommen aus Snapshot (kein Query nötig)
     const aq = JS_Config.getActiveQuarter();
     if (!aq.isCurrent) {
       await storeValue('_refreshTs', Date.now());
-      return; // JS_Data liest direkt aus appsmith.store
+      return;
     }
 
-    // Phase 2: Laufendes Quartal → alle Daten-Queries parallel
+    // Phase 3: Laufendes Quartal → alle Daten-Queries parallel
     await Promise.allSettled([
       Q_Bookings_QTD.run(),
       Q_SelfService_QTD.run(),
@@ -59,43 +46,61 @@ export default {
       Q_Overdue_Accounts.run(),
       Q_PilotOpps_QTD.run(),
     ]);
+
+    // Phase 4: Auto-Snapshot — immer nach Query-Load speichern (überschreibt vorherigen)
+    // → beim letzten Öffnen im Quartal ist der Snapshot immer aktuell gespeichert
+    await JS_Init.saveSnapshot();
+
     // Refresh-Signal: zwingt Appsmith defaultModel-Bindings zur Re-Evaluierung
     await storeValue('_refreshTs', Date.now());
   },
 
-  // ── Snapshot für aktuelles (oder aktives) Quartal erstellen ──────────────
-  // Speichert alle KPI-Daten persistent im Appsmith Store (localStorage).
-  async createSnapshot() {
-    const aq   = JS_Config.getActiveQuarter();
-    const reps = JS_Data.allRepKPIs();
-    const hero = JS_Data.heroKPIs();
-    const teams = {};
-    for (const [key, t] of Object.entries(JS_Config.TEAMS || {})) {
-      teams[key] = { label: t.label, emoji: t.emoji, tlId: t.tlId, reps: t.reps };
-    }
+  // ── Snapshot für aktuelles Quartal speichern ──────────────────────────────
+  // Wird automatisch nach jedem Query-Load aufgerufen — kein manueller Button nötig.
+  // Speichert Rohdaten aller Queries persistent im Appsmith Store (localStorage).
+  async saveSnapshot() {
+    const aq  = JS_Config.getActiveQuarter();
+    const key = 'snap_' + aq.label.replace(' ', '_');
 
     const snapshot = {
       quarter:      aq.label,
       snapshotDate: JS_Config._localStr(new Date()),
-      version:      1,
-      teams,
-      reps,
-      heroKPIs: hero,
+      version:      2,
+      queries: {
+        Q_Bookings_QTD:     JS_Data._r('Q_Bookings_QTD'),
+        Q_SelfService_QTD:  JS_Data._r('Q_SelfService_QTD'),
+        Q_Pipeline_Open:    JS_Data._r('Q_Pipeline_Open'),
+        Q_Pilots_Open:      JS_Data._r('Q_Pilots_Open'),
+        Q_Stale_Pipeline:   JS_Data._r('Q_Stale_Pipeline'),
+        Q_WinLoss:          JS_Data._r('Q_WinLoss'),
+        Q_Calls_QTD:        JS_Data._r('Q_Calls_QTD'),
+        Q_QualCalls_QTD:    JS_Data._r('Q_QualCalls_QTD'),
+        Q_Emails_QTD:       JS_Data._r('Q_Emails_QTD'),
+        Q_Meetings_QTD:     JS_Data._r('Q_Meetings_QTD'),
+        Q_Quotas:           JS_Data._r('Q_Quotas'),
+        Q_Opps_Created_QTD: JS_Data._r('Q_Opps_Created_QTD'),
+        Q_PilotOpps_QTD:    JS_Data._r('Q_PilotOpps_QTD'),
+        Q_Demos_QTD:        JS_Data._r('Q_Demos_QTD'),
+        Q_Calls_CW:         JS_Data._r('Q_Calls_CW'),
+        Q_Calls_PW:         JS_Data._r('Q_Calls_PW'),
+        Q_QualCalls_CW:     JS_Data._r('Q_QualCalls_CW'),
+        Q_QualCalls_PW:     JS_Data._r('Q_QualCalls_PW'),
+        Q_Emails_CW:        JS_Data._r('Q_Emails_CW'),
+        Q_Emails_PW:        JS_Data._r('Q_Emails_PW'),
+        Q_Meetings_CW:      JS_Data._r('Q_Meetings_CW'),
+        Q_Meetings_PW:      JS_Data._r('Q_Meetings_PW'),
+        Q_Calls_L30:        JS_Data._r('Q_Calls_L30'),
+        Q_QualCalls_L30:    JS_Data._r('Q_QualCalls_L30'),
+        Q_Emails_L30:       JS_Data._r('Q_Emails_L30'),
+        Q_Meetings_L30:     JS_Data._r('Q_Meetings_L30'),
+        Q_Opps_L30:         JS_Data._r('Q_Opps_L30'),
+        Q_Overdue_Pipeline: JS_Data._r('Q_Overdue_Pipeline'),
+        Q_Overdue_Accounts: JS_Data._r('Q_Overdue_Accounts'),
+      },
     };
 
-    const snapKey = 'snap_' + aq.label.replace(' ', '_');
-    // true = persist across sessions (localStorage)
-    await storeValue(snapKey, snapshot, true);
-    await storeValue('missingSnapshot', null);
-
-    showAlert('Snapshot für ' + aq.label + ' gespeichert ✓', 'success');
-    return snapshot;
-  },
-
-  // ── Snapshot für ein Quartal laden ────────────────────────────────────────
-  loadSnapshot(quarterLabel) {
-    const snapKey = 'snap_' + quarterLabel.replace(' ', '_');
-    return appsmith.store[snapKey] || null;
+    // true = persist across sessions (Appsmith localStorage)
+    await storeValue(key, snapshot, true);
   },
 
 }

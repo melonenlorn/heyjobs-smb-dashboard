@@ -28,7 +28,7 @@ export default {
     'Q1 2026': {
       wolves: { label: 'Wolves', emoji: '🐺', tlName: 'Ferdinand Bärenfänger' },
       titans: { label: 'Titans', emoji: '⚡', tlName: 'Jan Hinrichsen' },
-      locos:  { label: 'Locos',  emoji: '🔥', tlName: 'Philipp xBahls' },
+      locos:  { label: 'Locos',  emoji: '🔥', tlName: 'Philipp Bahls' },
     },
     'Q2 2026': {
       wolves: { label: 'Wolves', emoji: '🐺', tlName: 'Mareike Schliesser' },
@@ -45,12 +45,15 @@ export default {
     'Q4 2026': ['2026-12-25', '2026-12-26'],
   },
 
+  // ── Manuell ausgeschlossene Reps (aktiv in SF, aber nicht im Dashboard) ───
+  EXCLUDED_REPS: ['Friederike Wilsenack'],
+
   // ── Team-Daten: statische Defaults, werden durch buildTeamsFromQuery() überschrieben ──
   // WICHTIG: Appsmith JSObjects unterstützen keine ES6 Getter → direkte Properties
   TEAMS: {
     wolves: { label: 'Wolves', emoji: '🐺', tlId: '005W7000006FAIDIA4', reps: ['Alina Kühne', 'Pierre Byer', 'Jan-Thore Kaulbach'] },
     titans: { label: 'Titans', emoji: '⚡', tlId: '005W7000004kT37IAE', reps: ['Hikmet Canbolat', 'Tamina Stange', 'Jane Siewert', 'Florian Dalis', 'Robert Eismann', 'Michael Wahl'] },
-    locos:  { label: 'Locos',  emoji: '🔥', tlId: '0059L000000JKFGQA4', reps: ['Raven Schulz', 'Ebru Kizilkaya', 'Marius Buga', 'Marlies Konrad', 'David Beck', 'Philipp Schmidt', 'Nina Hoffmann'] },
+    locos:  { label: 'Locos',  emoji: '🔥', tlId: '005W700000AXqN3IAL', reps: ['Raven Schulz', 'Ebru Kizilkaya', 'Marius Buga', 'Marlies Konrad', 'David Beck', 'Philipp Schmidt', 'Nina Hoffmann'] },
   },
   ALL_REP_IDS: [
     '0059L000000JKG9QAO', '005W7000000zmHSIAY', '005W7000009NCmTIAW',
@@ -153,11 +156,10 @@ export default {
     let records = [];
     try { records = Q_Users_Team.data.output.records || []; } catch(e) { records = []; }
 
-    // Manager-IDs per Name finden
-    const mgrLookup = {}; // SF-Id → teamKey
+    // Manager.Name → teamKey Mapping (role-based: ICs include Manager.Name in result)
+    const mgrNameToKey = {};
     for (const [key, m] of Object.entries(mgrs)) {
-      const found = records.find(function(r) { return r.Name === m.tlName; });
-      if (found) mgrLookup[found.Id] = key;
+      mgrNameToKey[m.tlName] = key;
     }
 
     // Teams initialisieren
@@ -169,12 +171,13 @@ export default {
     const allIds = [], idToName = {}, newReps = [];
 
     for (const r of records) {
-      if (mgrLookup[r.Id]) {
-        // Ist selbst Manager
-        teams[mgrLookup[r.Id]].tlId = r.Id;
-      } else if (mgrLookup[r.ManagerId]) {
-        // IC unter bekanntem Manager
-        const teamKey = mgrLookup[r.ManagerId];
+      // EXCLUDED_REPS überspringen
+      if (JS_Config.EXCLUDED_REPS && JS_Config.EXCLUDED_REPS.indexOf(r.Name) !== -1) continue;
+
+      const mgrName = r.Manager ? r.Manager.Name : null;
+      const teamKey = mgrNameToKey[mgrName];
+      if (teamKey) {
+        teams[teamKey].tlId = r.ManagerId;
         teams[teamKey].reps.push(r.Name);
         allIds.push(r.Id);
         idToName[r.Id] = r.Name;

@@ -88,13 +88,34 @@ export default {
   quarterOptions() {
     const curr = JS_Config.currentQuarter();
     const opts = [{ label: 'Laufendes Quartal (' + curr.label + ')', value: curr.label }];
-    // Vergangene Quartale mit gespeicherten Snapshots
-    const knownQuarters = ['Q1 2026']; // wird erweitert wenn Snapshots existieren
-    for (const q of knownQuarters) {
-      if (q !== curr.label) {
-        opts.push({ label: q, value: q });
+    const seen = {};
+    seen[curr.label] = true;
+
+    // Aus git-committed JS_Snapshots
+    try {
+      const snapKeys = Object.keys(JS_Snapshots.data || {});
+      for (var i = 0; i < snapKeys.length; i++) {
+        if (!seen[snapKeys[i]]) {
+          opts.push({ label: snapKeys[i], value: snapKeys[i] });
+          seen[snapKeys[i]] = true;
+        }
       }
-    }
+    } catch(e) {}
+
+    // Aus Appsmith Store (auto-snapshots)
+    try {
+      const storeKeys = Object.keys(appsmith.store || {});
+      for (var j = 0; j < storeKeys.length; j++) {
+        if (storeKeys[j].startsWith('snap_')) {
+          const label = storeKeys[j].replace('snap_', '').replace('_', ' ');
+          if (!seen[label]) {
+            opts.push({ label: label, value: label });
+            seen[label] = true;
+          }
+        }
+      }
+    } catch(e) {}
+
     return opts;
   },
 

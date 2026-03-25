@@ -1,0 +1,11 @@
+{
+  "gitSyncId": "Dashboard_JS_Snapshots",
+  "id": "Dashboard_JS_Snapshots",
+  "unpublishedCollection": {
+    "name": "JS_Snapshots",
+    "pageId": "Dashboard",
+    "pluginId": "js-plugin",
+    "pluginType": "JS",
+    "variables": []
+  }
+}
