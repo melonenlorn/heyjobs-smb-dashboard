@@ -23,6 +23,14 @@ export default {
     storeValue('filterRisk', val);
   },
 
+  getQuarter() {
+    return appsmith.store.selectedQuarter || JS_Config.currentQuarter().label;
+  },
+  async setQuarter(val) {
+    await storeValue('selectedQuarter', val);
+    await JS_Init.initDashboard();
+  },
+
   // ── Filter a list of rep KPI rows by current filter state ────────────────
   applyFilters(repRows) {
     let rows = repRows || [];
@@ -38,13 +46,24 @@ export default {
   },
 
   // ── Options for Select widgets ────────────────────────────────────────────
+
+  // Dynamisch aus JS_Config.TEAMS (wird durch buildTeamsFromQuery befüllt)
   teamOptions() {
-    return [
-      { label: 'Alle Teams', value: 'all' },
-      { label: 'Wolves',    value: 'ferdinand' },
-      { label: 'Titans',    value: 'jan'       },
-      { label: 'Locos',     value: 'philipp'   },
-    ];
+    const teams = JS_Config.TEAMS || {};
+    const opts  = [{ label: 'Alle Teams', value: 'all' }];
+    for (const [key, t] of Object.entries(teams)) {
+      opts.push({ label: (t.emoji || '') + ' ' + t.label, value: key });
+    }
+    // Fallback: statische Optionen wenn Teams noch nicht geladen
+    if (opts.length <= 1) {
+      return [
+        { label: 'Alle Teams', value: 'all'       },
+        { label: '🐺 Wolves',  value: 'wolves'    },
+        { label: '⚡ Titans',  value: 'titans'    },
+        { label: '🔥 Locos',   value: 'locos'     },
+      ];
+    }
+    return opts;
   },
 
   levelOptions() {
@@ -64,6 +83,19 @@ export default {
       { label: 'Warnung',       value: 'amber'  },
       { label: 'Gesund',        value: 'green'  },
     ];
+  },
+
+  quarterOptions() {
+    const curr = JS_Config.currentQuarter();
+    const opts = [{ label: 'Laufendes Quartal (' + curr.label + ')', value: curr.label }];
+    // Vergangene Quartale mit gespeicherten Snapshots
+    const knownQuarters = ['Q1 2026']; // wird erweitert wenn Snapshots existieren
+    for (const q of knownQuarters) {
+      if (q !== curr.label) {
+        opts.push({ label: q, value: q });
+      }
+    }
+    return opts;
   },
 
 }

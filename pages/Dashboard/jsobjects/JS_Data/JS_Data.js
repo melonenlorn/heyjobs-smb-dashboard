@@ -422,7 +422,20 @@ export default {
   },
 
   // ── Build full KPI row for every rep ─────────────────────────────────────
+  // ── Snapshot-Daten für historisches Quartal laden ────────────────────────
+  _loadFromSnapshot() {
+    const aq  = JS_Config.getActiveQuarter();
+    const snap = JS_Init.loadSnapshot(aq.label);
+    if (snap && snap.reps) return snap.reps;
+    return []; // Kein Snapshot → leere Liste
+  },
+
   allRepKPIs() {
+    // Historisches Quartal → aus Snapshot laden
+    if (!JS_Config.getActiveQuarter().isCurrent) {
+      return JS_Data._loadFromSnapshot();
+    }
+
     const bookings   = JS_Data.bookingsByRep();
     const selfSvc    = JS_Data.selfServiceByRep();
     const pipeline   = JS_Data.pipelineByRep();
@@ -808,6 +821,12 @@ export default {
 
   // ── KPI cards data (team-level aggregation for hero cards) ───────────────
   heroKPIs() {
+    const aq   = JS_Config.getActiveQuarter();
+    // Historisches Quartal → hero aus Snapshot
+    if (!aq.isCurrent) {
+      const snap = JS_Init.loadSnapshot(aq.label);
+      return snap && snap.heroKPIs ? snap.heroKPIs : {};
+    }
     const reps = JS_Data.allRepKPIs();
     // Filter by active team filter
     const filtered = JS_Filters.applyFilters(reps);
@@ -952,7 +971,7 @@ export default {
     return {
       progress,
       context: {
-        quarterLabel:     JS_Config.QUARTER.label,
+        quarterLabel:     JS_Config.getActiveQuarter().label,
         progressPct:      Math.round(progress * 100),
         werktage:         wk,
         pace,
@@ -960,7 +979,12 @@ export default {
         pilotenPace,
         pilotenNeededDRR,
         onTrack:          pace >= neededDRR,
+        isHistorical:     !JS_Config.getActiveQuarter().isCurrent,
       },
+      // Neue Reps Warnung (falls buildTeamsFromQuery neue Reps erkannt hat)
+      newRepsWarning:   JS_Config._newReps && JS_Config._newReps.length > 0 ? JS_Config._newReps : null,
+      // Fehlender Snapshot für letztes Quartal
+      missingSnapshot:  (typeof appsmith !== 'undefined' && appsmith.store && appsmith.store.missingSnapshot) || null,
       bookings: {
         arr:         bookingsARR,
         target:      bookingsTarget,

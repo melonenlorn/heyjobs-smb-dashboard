@@ -1,26 +1,19 @@
 export default {
 
-  // ── Quarter definition ────────────────────────────────────────────────────
-  QUARTER: {
-    start: '2026-01-01',
-    end:   '2026-03-31',
-    label: 'Q1 2026',
-  },
-
   // ── Rep level mapping (by Salesforce Owner.Name) ─────────────────────────
   REP_LEVELS: {
-    // Ferdinand's team
+    // Ferdinand's / Mareike's team (Wolves)
     'Alina Kühne':          '2',
     'Pierre Byer':          '2',
     'Jan-Thore Kaulbach':   'rampup',
-    // Jan's team
+    // Jan's team (Titans)
     'Hikmet Canbolat':      '3',
     'Tamina Stange':        '3',
     'Jane Siewert':         '2',
     'Florian Dalis':        '2',
     'Robert Eismann':       '2',
     'Michael Wahl':         '1',
-    // Philipp's team
+    // Philipp's / Raven's team (Locos)
     'Raven Schulz':         '3',
     'Ebru Kizilkaya':       '3',
     'Marius Buga':          '3',
@@ -30,64 +23,33 @@ export default {
     'Nina Hoffmann':        '2',
   },
 
-  // ── Team membership ───────────────────────────────────────────────────────
-  TEAMS: {
-    ferdinand: {
-      label: 'Wolves',
-      tlId:  '005W7000006FAIDIA4',
-      reps:  ['Alina Kühne', 'Pierre Byer', 'Jan-Thore Kaulbach'],
+  // ── Manager-Registry je Quartal ───────────────────────────────────────────
+  MANAGERS: {
+    'Q1 2026': {
+      wolves: { label: 'Wolves', emoji: '🐺', tlName: 'Ferdinand Bärenfänger' },
+      titans: { label: 'Titans', emoji: '⚡', tlName: 'Jan Hinrichsen' },
+      locos:  { label: 'Locos',  emoji: '🔥', tlName: 'Philipp Bahls' },
     },
-    jan: {
-      label: 'Titans',
-      tlId:  '005W7000004kT37IAE',
-      reps:  ['Hikmet Canbolat', 'Tamina Stange', 'Jane Siewert', 'Florian Dalis', 'Robert Eismann', 'Michael Wahl'],
-    },
-    philipp: {
-      label: 'Locos',
-      tlId:  '0059L000000JKFGQA4',
-      reps:  ['Raven Schulz', 'Ebru Kizilkaya', 'Marius Buga', 'Marlies Konrad', 'David Beck', 'Philipp Schmidt', 'Nina Hoffmann'],
+    'Q2 2026': {
+      wolves: { label: 'Wolves', emoji: '🐺', tlName: 'Mareike Schliesser' },
+      titans: { label: 'Titans', emoji: '⚡', tlName: 'Jan Hinrichsen' },
+      locos:  { label: 'Locos',  emoji: '🔥', tlName: 'Raven Schulz' },
     },
   },
 
-  // ── All rep Salesforce IDs ────────────────────────────────────────────────
-  ALL_REP_IDS: [
-    '0059L000000JKG9QAO', // Alina Kühne
-    '005W7000000zmHSIAY', // Pierre Byer
-    '005W7000009NCmTIAW', // Jan-Thore Kaulbach
-    '0051v00000BjKXAAA3', // Hikmet Canbolat
-    '0059L000000JKFlQAO', // Tamina Stange
-    '005W7000005SzP3IAK', // Jane Siewert
-    '005W7000005SxQTIA0', // Florian Dalis
-    '005W7000004vQt7IAE', // Robert Eismann
-    '005W7000005WNTFIA4', // Michael Wahl
-    '0059L000000IlsvQAC', // Raven Schulz
-    '0059L000000JKGDQA4', // Ebru Kizilkaya
-    '005W7000002HR5tIAG', // Marius Buga
-    '005W70000048JRNIA2', // Marlies Konrad
-    '005W7000003UovJIAS', // David Beck
-    '0059L000000JKGOQA4', // Philipp Schmidt
-    '005W7000004vQptIAE', // Nina Hoffmann
-  ],
-
-  // ── Static SF-ID → human name (fallback when Owner.Name isn't in query) ──
-  ID_TO_NAME: {
-    '0059L000000JKG9QAO': 'Alina Kühne',
-    '005W7000000zmHSIAY': 'Pierre Byer',
-    '005W7000009NCmTIAW': 'Jan-Thore Kaulbach',
-    '0051v00000BjKXAAA3': 'Hikmet Canbolat',
-    '0059L000000JKFlQAO': 'Tamina Stange',
-    '005W7000005SzP3IAK': 'Jane Siewert',
-    '005W7000005SxQTIA0': 'Florian Dalis',
-    '005W7000004vQt7IAE': 'Robert Eismann',
-    '005W7000005WNTFIA4': 'Michael Wahl',
-    '0059L000000IlsvQAC': 'Raven Schulz',
-    '0059L000000JKGDQA4': 'Ebru Kizilkaya',
-    '005W7000002HR5tIAG': 'Marius Buga',
-    '005W70000048JRNIA2': 'Marlies Konrad',
-    '005W7000003UovJIAS': 'David Beck',
-    '0059L000000JKGOQA4': 'Philipp Schmidt',
-    '005W7000004vQptIAE': 'Nina Hoffmann',
+  // ── Feiertage je Quartal (Berlin) ─────────────────────────────────────────
+  QUARTER_HOLIDAYS: {
+    'Q1 2026': ['2026-01-01'],
+    'Q2 2026': ['2026-05-01', '2026-05-14', '2026-05-25'],
+    'Q3 2026': [],
+    'Q4 2026': ['2026-12-25', '2026-12-26'],
   },
+
+  // ── Dynamisch befüllte Team-Daten (aus Q_Users_Team) ─────────────────────
+  _teams:    {},
+  _allRepIds: [],
+  _idToName:  {},
+  _newReps:   [],
 
   // ── Level config: weights and pilot targets ───────────────────────────────
   LEVEL_CONFIG: {
@@ -97,10 +59,13 @@ export default {
     'rampup': { bookingsWeight: 1.00, pilotenWeight: 0.00, pilotenTarget: 0  },
   },
 
-  // ── Per-rep overrides (special cases) ────────────────────────────────────
+  // ── Per-rep overrides (quartals-aware) ────────────────────────────────────
   // David Beck: promoted to L3 in Q1 but keeps L2 pilot target until 2026-03-31
   LEVEL_OVERRIDES: {
-    'David Beck': { bookingsWeight: 0.50, pilotenWeight: 0.50, pilotenTarget: 16 },
+    'David Beck': {
+      'Q1 2026': { bookingsWeight: 0.50, pilotenWeight: 0.50, pilotenTarget: 16 },
+      // Ab Q2: kein Override → Standard L3
+    },
   },
 
   // ── Thresholds for traffic light status ──────────────────────────────────
@@ -117,11 +82,108 @@ export default {
   // ── ForecastingQuota type IDs ─────────────────────────────────────────────
   FORECASTING_TYPE_BOOKINGS: '0DbW7000000DaaLKAS',
 
-  // ── Helper: get level config for a rep (with override support) ───────────
+  // ── Dynamisches Quartal: aktuelles Quartal aus Systemdatum ───────────────
+  currentQuarter() {
+    const now = new Date();
+    const q = Math.floor(now.getMonth() / 3) + 1;
+    const y = now.getFullYear();
+    const start = y + '-' + String((q - 1) * 3 + 1).padStart(2, '0') + '-01';
+    const endDate = new Date(y, q * 3, 0);
+    return { start, end: JS_Config._localStr(endDate), label: 'Q' + q + ' ' + y, q, year: y };
+  },
+
+  // ── Aktives Quartal (aus Store oder aktuell) ──────────────────────────────
+  getActiveQuarter() {
+    const curr = JS_Config.currentQuarter();
+    const sel  = (typeof appsmith !== 'undefined' && appsmith.store && appsmith.store.selectedQuarter)
+                 ? appsmith.store.selectedQuarter
+                 : curr.label;
+    const holidays = JS_Config.QUARTER_HOLIDAYS[sel] || [];
+    if (sel === curr.label) {
+      return { ...curr, isCurrent: true, holidays };
+    }
+    // Historisches Quartal
+    const qn = parseInt(sel[1]);
+    const y  = parseInt(sel.slice(3));
+    const start = y + '-' + String((qn - 1) * 3 + 1).padStart(2, '0') + '-01';
+    const endDate = new Date(y, qn * 3, 0);
+    return { start, end: JS_Config._localStr(endDate), label: sel, q: qn, year: y, isCurrent: false, holidays };
+  },
+
+  // ── Hilfsfunktion: Vorheriges Quartal bestimmen ──────────────────────────
+  previousQuarterLabel() {
+    const curr = JS_Config.currentQuarter();
+    let q = curr.q - 1, y = curr.year;
+    if (q < 1) { q = 4; y -= 1; }
+    return 'Q' + q + ' ' + y;
+  },
+
+  // ── Manager-Namen für aktives Quartal ────────────────────────────────────
+  managerNames() {
+    const q    = JS_Config.getActiveQuarter().label;
+    const mgrs = JS_Config.MANAGERS[q] || JS_Config.MANAGERS[JS_Config.currentQuarter().label] || {};
+    return Object.values(mgrs).map(function(m) { return m.tlName; });
+  },
+
+  // ── Team-Struktur aus Q_Users_Team aufbauen ──────────────────────────────
+  buildTeamsFromQuery() {
+    const q    = JS_Config.getActiveQuarter().label;
+    const mgrs = JS_Config.MANAGERS[q] || JS_Config.MANAGERS[JS_Config.currentQuarter().label] || {};
+    let records = [];
+    try { records = Q_Users_Team.data.output.records || []; } catch(e) { records = []; }
+
+    // Manager-IDs per Name finden
+    const mgrLookup = {}; // SF-Id → teamKey
+    for (const [key, m] of Object.entries(mgrs)) {
+      const found = records.find(function(r) { return r.Name === m.tlName; });
+      if (found) mgrLookup[found.Id] = key;
+    }
+
+    // Teams initialisieren
+    const teams = {};
+    for (const [key, m] of Object.entries(mgrs)) {
+      teams[key] = { label: m.label, emoji: m.emoji || '', tlId: null, reps: [] };
+    }
+
+    const allIds = [], idToName = {}, newReps = [];
+
+    for (const r of records) {
+      if (mgrLookup[r.Id]) {
+        // Ist selbst Manager
+        teams[mgrLookup[r.Id]].tlId = r.Id;
+      } else if (mgrLookup[r.ManagerId]) {
+        // IC unter bekanntem Manager
+        const teamKey = mgrLookup[r.ManagerId];
+        teams[teamKey].reps.push(r.Name);
+        allIds.push(r.Id);
+        idToName[r.Id] = r.Name;
+        if (!JS_Config.REP_LEVELS[r.Name]) newReps.push(r.Name);
+      }
+    }
+
+    JS_Config._teams    = teams;
+    JS_Config._allRepIds = allIds;
+    JS_Config._idToName  = idToName;
+    JS_Config._newReps   = newReps;
+  },
+
+  // ── Getter: aktuelle Team-Struktur ────────────────────────────────────────
+  get TEAMS()      { return JS_Config._teams; },
+  get ALL_REP_IDS(){ return JS_Config._allRepIds; },
+  get ID_TO_NAME() { return JS_Config._idToName; },
+
+  // ── SOQL IN-Clause für Rep-IDs ────────────────────────────────────────────
+  repIdInClause() {
+    return JS_Config._allRepIds.map(function(id) { return "'" + id + "'"; }).join(',');
+  },
+
+  // ── Helper: get level config for a rep (quartals-aware override) ─────────
   levelConfig(repName) {
-    if (JS_Config.LEVEL_OVERRIDES[repName]) return JS_Config.LEVEL_OVERRIDES[repName];
-    const level = JS_Config.REP_LEVELS[repName] || '2';
-    return JS_Config.LEVEL_CONFIG[level] || JS_Config.LEVEL_CONFIG['2'];
+    const q         = JS_Config.getActiveQuarter().label;
+    const overrides = JS_Config.LEVEL_OVERRIDES[repName];
+    if (overrides && overrides[q]) return overrides[q];
+    const level = JS_Config.REP_LEVELS[repName] || 'rampup';
+    return JS_Config.LEVEL_CONFIG[level] || JS_Config.LEVEL_CONFIG['rampup'];
   },
 
   // ── Helper: get pilot target for a rep ───────────────────────────────────
@@ -131,15 +193,11 @@ export default {
 
   // ── Helper: get team key for a rep ───────────────────────────────────────
   teamForRep(repName) {
-    for (const [key, team] of Object.entries(JS_Config.TEAMS)) {
-      if (team.reps.includes(repName)) return key;
+    for (const [key, team] of Object.entries(JS_Config._teams)) {
+      if (team.reps && team.reps.includes(repName)) return key;
     }
     return null;
   },
-
-  // ── Berlin public holidays hardcoded per quarter ──────────────────────────
-  // Q1 2026: only Jan 1 (Neujahr). Mar 8 (Frauentag) falls on Sunday → no impact.
-  BERLIN_HOLIDAYS: ['2026-01-01'],
 
   // ── Parse YYYY-MM-DD string as LOCAL midnight (avoids UTC timezone shift) ──
   _parseLocal(s) {
@@ -156,9 +214,8 @@ export default {
   },
 
   // ── Count working days (Mon–Fri, excl. Berlin holidays) from date A to date B inclusive ──
-  // Both from/to can be YYYY-MM-DD strings or Date objects; all arithmetic in local time.
   werktage(from, to) {
-    const holidays = new Set(JS_Config.BERLIN_HOLIDAYS);
+    const holidays = new Set(JS_Config.getActiveQuarter().holidays);
     let count = 0;
     const d   = JS_Config._parseLocal(from);
     const end = JS_Config._parseLocal(to);
@@ -171,26 +228,27 @@ export default {
     return count;
   },
 
-  // ── Werktage-Kontext für das aktuelle Quartal ──────────────────────────────
+  // ── Werktage-Kontext für das aktive Quartal ──────────────────────────────
   getWerktageContext() {
-    const now       = new Date();
-    const today     = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // local midnight
-    const start     = JS_Config._parseLocal(JS_Config.QUARTER.start);
-    const end       = JS_Config._parseLocal(JS_Config.QUARTER.end);
-    // "done" = completed working days up to and including yesterday
+    const aq      = JS_Config.getActiveQuarter();
+    const now     = new Date();
+    const today   = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const start   = JS_Config._parseLocal(aq.start);
+    const end     = JS_Config._parseLocal(aq.end);
     const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
-    const total     = JS_Config.werktage(start, end);
-    const done      = today <= start ? 0 : Math.min(JS_Config.werktage(start, yesterday), total);
-    const remaining = total - done;  // includes today
+    const total   = JS_Config.werktage(start, end);
+    const done    = today <= start ? 0 : Math.min(JS_Config.werktage(start, yesterday), total);
+    const remaining = total - done;
     const daysToEnd = Math.ceil(Math.max(0, end - today) / 86400000);
     return { total, done, remaining, daysToEnd };
   },
 
   // ── Helper: quarter date helpers ─────────────────────────────────────────
   getQuarterProgress() {
+    const aq    = JS_Config.getActiveQuarter();
     const now   = new Date();
-    const start = new Date(JS_Config.QUARTER.start);
-    const end   = new Date(JS_Config.QUARTER.end);
+    const start = new Date(aq.start);
+    const end   = new Date(aq.end);
     const total = end - start;
     const elapsed = Math.min(now - start, total);
     return Math.max(0, Math.min(1, elapsed / total));
