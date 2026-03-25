@@ -45,15 +45,14 @@ export default {
     'Q4 2026': ['2026-12-25', '2026-12-26'],
   },
 
-  // ── Dynamisch befüllte Team-Daten (aus Q_Users_Team) ─────────────────────
-  // Statische Defaults: werden sofort beim Page-Load genutzt (bevor buildTeamsFromQuery läuft)
-  // damit ON_PAGE_LOAD Queries einen validen OwnerId IN (...) Clause haben.
-  _teams: {
+  // ── Team-Daten: statische Defaults, werden durch buildTeamsFromQuery() überschrieben ──
+  // WICHTIG: Appsmith JSObjects unterstützen keine ES6 Getter → direkte Properties
+  TEAMS: {
     wolves: { label: 'Wolves', emoji: '🐺', tlId: '005W7000006FAIDIA4', reps: ['Alina Kühne', 'Pierre Byer', 'Jan-Thore Kaulbach'] },
     titans: { label: 'Titans', emoji: '⚡', tlId: '005W7000004kT37IAE', reps: ['Hikmet Canbolat', 'Tamina Stange', 'Jane Siewert', 'Florian Dalis', 'Robert Eismann', 'Michael Wahl'] },
     locos:  { label: 'Locos',  emoji: '🔥', tlId: '0059L000000JKFGQA4', reps: ['Raven Schulz', 'Ebru Kizilkaya', 'Marius Buga', 'Marlies Konrad', 'David Beck', 'Philipp Schmidt', 'Nina Hoffmann'] },
   },
-  _allRepIds: [
+  ALL_REP_IDS: [
     '0059L000000JKG9QAO', '005W7000000zmHSIAY', '005W7000009NCmTIAW',
     '0051v00000BjKXAAA3', '0059L000000JKFlQAO', '005W7000005SzP3IAK',
     '005W7000005SxQTIA0', '005W7000004vQt7IAE', '005W7000005WNTFIA4',
@@ -61,7 +60,7 @@ export default {
     '005W70000048JRNIA2', '005W7000003UovJIAS', '0059L000000JKGOQA4',
     '005W7000004vQptIAE',
   ],
-  _idToName: {
+  ID_TO_NAME: {
     '0059L000000JKG9QAO': 'Alina Kühne',       '005W7000000zmHSIAY': 'Pierre Byer',
     '005W7000009NCmTIAW': 'Jan-Thore Kaulbach', '0051v00000BjKXAAA3': 'Hikmet Canbolat',
     '0059L000000JKFlQAO': 'Tamina Stange',      '005W7000005SzP3IAK': 'Jane Siewert',
@@ -183,20 +182,15 @@ export default {
       }
     }
 
-    JS_Config._teams    = teams;
-    JS_Config._allRepIds = allIds;
-    JS_Config._idToName  = idToName;
-    JS_Config._newReps   = newReps;
+    JS_Config.TEAMS      = teams;
+    JS_Config.ALL_REP_IDS = allIds;
+    JS_Config.ID_TO_NAME  = idToName;
+    JS_Config._newReps    = newReps;
   },
-
-  // ── Getter: aktuelle Team-Struktur ────────────────────────────────────────
-  get TEAMS()      { return JS_Config._teams; },
-  get ALL_REP_IDS(){ return JS_Config._allRepIds; },
-  get ID_TO_NAME() { return JS_Config._idToName; },
 
   // ── SOQL IN-Clause für Rep-IDs ────────────────────────────────────────────
   repIdInClause() {
-    return JS_Config._allRepIds.map(function(id) { return "'" + id + "'"; }).join(',');
+    return JS_Config.ALL_REP_IDS.map(function(id) { return "'" + id + "'"; }).join(',');
   },
 
   // ── Helper: get level config for a rep (quartals-aware override) ─────────
@@ -215,7 +209,7 @@ export default {
 
   // ── Helper: get team key for a rep ───────────────────────────────────────
   teamForRep(repName) {
-    for (const [key, team] of Object.entries(JS_Config._teams)) {
+    for (const [key, team] of Object.entries(JS_Config.TEAMS)) {
       if (team.reps && team.reps.includes(repName)) return key;
     }
     return null;
