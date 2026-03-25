@@ -46,10 +46,32 @@ export default {
   },
 
   // ── Dynamisch befüllte Team-Daten (aus Q_Users_Team) ─────────────────────
-  _teams:    {},
-  _allRepIds: [],
-  _idToName:  {},
-  _newReps:   [],
+  // Statische Defaults: werden sofort beim Page-Load genutzt (bevor buildTeamsFromQuery läuft)
+  // damit ON_PAGE_LOAD Queries einen validen OwnerId IN (...) Clause haben.
+  _teams: {
+    wolves: { label: 'Wolves', emoji: '🐺', tlId: '005W7000006FAIDIA4', reps: ['Alina Kühne', 'Pierre Byer', 'Jan-Thore Kaulbach'] },
+    titans: { label: 'Titans', emoji: '⚡', tlId: '005W7000004kT37IAE', reps: ['Hikmet Canbolat', 'Tamina Stange', 'Jane Siewert', 'Florian Dalis', 'Robert Eismann', 'Michael Wahl'] },
+    locos:  { label: 'Locos',  emoji: '🔥', tlId: '0059L000000JKFGQA4', reps: ['Raven Schulz', 'Ebru Kizilkaya', 'Marius Buga', 'Marlies Konrad', 'David Beck', 'Philipp Schmidt', 'Nina Hoffmann'] },
+  },
+  _allRepIds: [
+    '0059L000000JKG9QAO', '005W7000000zmHSIAY', '005W7000009NCmTIAW',
+    '0051v00000BjKXAAA3', '0059L000000JKFlQAO', '005W7000005SzP3IAK',
+    '005W7000005SxQTIA0', '005W7000004vQt7IAE', '005W7000005WNTFIA4',
+    '0059L000000IlsvQAC', '0059L000000JKGDQA4', '005W7000002HR5tIAG',
+    '005W70000048JRNIA2', '005W7000003UovJIAS', '0059L000000JKGOQA4',
+    '005W7000004vQptIAE',
+  ],
+  _idToName: {
+    '0059L000000JKG9QAO': 'Alina Kühne',       '005W7000000zmHSIAY': 'Pierre Byer',
+    '005W7000009NCmTIAW': 'Jan-Thore Kaulbach', '0051v00000BjKXAAA3': 'Hikmet Canbolat',
+    '0059L000000JKFlQAO': 'Tamina Stange',      '005W7000005SzP3IAK': 'Jane Siewert',
+    '005W7000005SxQTIA0': 'Florian Dalis',      '005W7000004vQt7IAE': 'Robert Eismann',
+    '005W7000005WNTFIA4': 'Michael Wahl',        '0059L000000IlsvQAC': 'Raven Schulz',
+    '0059L000000JKGDQA4': 'Ebru Kizilkaya',     '005W7000002HR5tIAG': 'Marius Buga',
+    '005W70000048JRNIA2': 'Marlies Konrad',      '005W7000003UovJIAS': 'David Beck',
+    '0059L000000JKGOQA4': 'Philipp Schmidt',     '005W7000004vQptIAE': 'Nina Hoffmann',
+  },
+  _newReps: [],
 
   // ── Level config: weights and pilot targets ───────────────────────────────
   LEVEL_CONFIG: {
