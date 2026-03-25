@@ -1,6 +1,6 @@
 {
-  "gitSyncId": "69b43dbe8090126bad399758_drilldownListStale",
-  "id": "Dashboard_JS_Data.drilldownList_stale",
+  "gitSyncId": "69b43dbe8090126bad399758_d42c9814-838a-4a2d-8d2d-14e4145fbff6",
+  "id": "Dashboard_JS_Data._r",
   "pluginId": "js-plugin",
   "pluginType": "JS",
   "unpublishedAction": {
@@ -8,7 +8,7 @@
       "encodeParamsToggle": true,
       "jsArguments": [
         {
-          "name": "repId"
+          "name": "queryName"
         }
       ],
       "paginationType": "NONE",
@@ -26,8 +26,8 @@
         "key": "body"
       }
     ],
-    "fullyQualifiedName": "JS_Data.drilldownList_stale",
-    "name": "drilldownList_stale",
+    "fullyQualifiedName": "JS_Data._r",
+    "name": "_r",
     "pageId": "Dashboard",
     "runBehaviour": "MANUAL",
     "userSetOnLoad": false
