@@ -7,23 +7,23 @@ export default {
     await Q_Users_Team.run();
     JS_Config.buildTeamsFromQuery();
 
-    // Snapshot-Check: Fehlt ein Snapshot für das letzte abgeschlossene Quartal?
+    // Snapshot-Check: Automatisch Snapshot für das letzte Quartal erstellen
+    // wenn noch keiner existiert (muss VOR update_quarter.py laufen!)
     const curr  = JS_Config.currentQuarter();
     const prevQ = JS_Config.previousQuarterLabel();
-    // Nur wenn ein vergangenes Quartal existiert
     if (prevQ !== curr.label) {
       const snapKey = 'snap_' + prevQ.replace(' ', '_');
       const hasSnap = !!(appsmith.store[snapKey]);
       if (!hasSnap) {
-        storeValue('missingSnapshot', prevQ);
-      } else {
-        storeValue('missingSnapshot', null);
+        // Queries enthalten noch die alten Daten → jetzt Snapshot erstellen
+        await JS_Init.createSnapshot();
       }
     }
 
     // Phase 2: Historisches Quartal → nur Snapshot, keine Live-Queries
     const aq = JS_Config.getActiveQuarter();
     if (!aq.isCurrent) {
+      await storeValue('_refreshTs', Date.now());
       return; // JS_Data liest direkt aus appsmith.store
     }
 
@@ -59,6 +59,8 @@ export default {
       Q_Overdue_Accounts.run(),
       Q_PilotOpps_QTD.run(),
     ]);
+    // Refresh-Signal: zwingt Appsmith defaultModel-Bindings zur Re-Evaluierung
+    await storeValue('_refreshTs', Date.now());
   },
 
   // ── Snapshot für aktuelles (oder aktives) Quartal erstellen ──────────────

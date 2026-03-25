@@ -983,8 +983,6 @@ export default {
       },
       // Neue Reps Warnung (falls buildTeamsFromQuery neue Reps erkannt hat)
       newRepsWarning:   JS_Config._newReps && JS_Config._newReps.length > 0 ? JS_Config._newReps : null,
-      // Fehlender Snapshot für letztes Quartal
-      missingSnapshot:  (typeof appsmith !== 'undefined' && appsmith.store && appsmith.store.missingSnapshot) || null,
       bookings: {
         arr:         bookingsARR,
         target:      bookingsTarget,

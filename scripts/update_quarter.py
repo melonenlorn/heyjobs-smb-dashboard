@@ -160,10 +160,12 @@ def main():
         print(f'\n[2] Rep-IDs: SKIPPED (pass --rep-ids id1,id2,... to update)')
 
     print(f'\n✅ Done! Next steps:')
-    print(f'   1. Verify JS_Config.MANAGERS has correct managers for {new_label}')
-    print(f'   2. Update JS_Config.QUARTER_HOLIDAYS if needed')
-    print(f'   3. git add -A && git commit -m "Q{q_num} {year}: Update Queries" && git push')
-    print(f'   4. Pull in Appsmith + take Snapshot von {old_start[:7]} vor April')
+    print(f'   ⚠️  WICHTIG: Reihenfolge beachten!')
+    print(f'   1. Zuerst Dashboard im Browser öffnen (BEVOR du pushst)')
+    print(f'      → Auto-Snapshot des vorherigen Quartals wird erstellt')
+    print(f'   2. Dann pushen: git add -A && git commit -m "Q{q_num} {year}: Update Queries" && git push')
+    print(f'   3. Pull in Appsmith + Verify JS_Config.MANAGERS für {new_label}')
+    print(f'   4. Update JS_Config.QUARTER_HOLIDAYS wenn nötig')
 
 
 if __name__ == '__main__':
