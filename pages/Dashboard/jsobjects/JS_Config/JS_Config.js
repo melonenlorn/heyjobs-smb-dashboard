@@ -120,6 +120,7 @@ export default {
 
   // ── ForecastingQuota type IDs ─────────────────────────────────────────────
   FORECASTING_TYPE_BOOKINGS: '0DbW7000000DaaLKAS',
+  FORECASTING_TYPE_PILOTS:   '0DbW7000001ZgGjKAK',
 
   // ── Dynamisches Quartal: aktuelles Quartal aus Systemdatum ───────────────
   currentQuarter() {

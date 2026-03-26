@@ -45,6 +45,8 @@ export default {
       Q_Overdue_Accounts: Q_Overdue_Accounts,
       // eslint-disable-next-line no-undef
       Q_Forecast_Commit: typeof Q_Forecast_Commit !== 'undefined' ? Q_Forecast_Commit : null,
+      // eslint-disable-next-line no-undef
+      Q_Forecast_Commit_Pilots: typeof Q_Forecast_Commit_Pilots !== 'undefined' ? Q_Forecast_Commit_Pilots : null,
     };
     const q = liveMap[queryName];
     if (!q) return [];
@@ -477,10 +479,19 @@ export default {
     return result;
   },
 
-  // ── SF Forecast Commit: OwnerId → ForecastAmount ─────────────────────────
+  // ── SF Forecast Commit: OwnerId → ForecastAmount (Bookings) ─────────────
   forecastCommitMap() {
     const map = {};
     JS_Data._r('Q_Forecast_Commit').forEach(r => {
+      map[r.OwnerId] = Number(r.ForecastAmount) || 0;
+    });
+    return map;
+  },
+
+  // ── SF Forecast Commit: OwnerId → ForecastAmount (Piloten) ───────────────
+  forecastCommitPilotsMap() {
+    const map = {};
+    JS_Data._r('Q_Forecast_Commit_Pilots').forEach(r => {
       map[r.OwnerId] = Number(r.ForecastAmount) || 0;
     });
     return map;
@@ -510,6 +521,7 @@ export default {
     const oppL30Map         = {};
     JS_Data._r('Q_Opps_L30').forEach(r => { oppL30Map[r.OwnerId] = (oppL30Map[r.OwnerId] || 0) + 1; });
     const commitMap         = JS_Data.forecastCommitMap();
+    const pilotCommitMap    = JS_Data.forecastCommitPilotsMap();
     const cwDaysElapsed = Math.max(1, [1,1,2,3,4,5,5][new Date().getDay()]);
     const qtdDaysElapsed = Math.max(1, JS_Config.getWerktageContext().done);
     function repTrendArrow(cwVal, l30Val) {
@@ -550,6 +562,9 @@ export default {
       const commitAtt       = bookingsTarget > 0 ? Math.round((commitAmount / bookingsTarget) * 100) : 0;
       const commitDeviation = (kpis.forecast || 0) > 0
         ? Math.round(((commitAmount - (kpis.forecast || 0)) / (kpis.forecast || 0)) * 100) : 0;
+      const pilotenTgt          = kpis.pilotenTarget || 0;
+      const pilotCommitCount    = pilotCommitMap[id] || 0;
+      const pilotCommitAtt      = pilotenTgt > 0 ? Math.round((pilotCommitCount / pilotenTgt) * 100) : 0;
 
       return {
         id,
@@ -557,6 +572,8 @@ export default {
         commitAmount,
         commitAtt,
         commitDeviation,
+        pilotCommitCount,
+        pilotCommitAtt,
         closedPilots,
         wonCount,    // Bug 1 fix: expose for heroKPIs() sum
         lostCount,   // Bug 1 fix: expose for heroKPIs() sum
@@ -1025,17 +1042,23 @@ export default {
       ? Math.round(Math.max(0, pilotenTarget - pilotenCount) / wk.remaining * 10) / 10 : 0;
 
     // ── SF Forecast Commit (team- / motion-level) ─────────────────────────
-    const commitMap2     = JS_Data.forecastCommitMap();
-    const teamFilter     = JS_Filters.getTeam();
-    let heroCommitAmount = 0;
+    const commitMap2        = JS_Data.forecastCommitMap();
+    const pilotCommitMap2   = JS_Data.forecastCommitPilotsMap();
+    const teamFilter        = JS_Filters.getTeam();
+    let heroCommitAmount    = 0;
+    let heroPilotCommitCount = 0;
     if (teamFilter === 'all') {
-      heroCommitAmount = commitMap2[JS_Config.HEAD_OF_ID] || 0;
+      heroCommitAmount     = commitMap2[JS_Config.HEAD_OF_ID] || 0;
+      heroPilotCommitCount = pilotCommitMap2[JS_Config.HEAD_OF_ID] || 0;
     } else {
       const tlId = JS_Config.TEAMS[teamFilter] ? JS_Config.TEAMS[teamFilter].tlId : null;
-      heroCommitAmount = tlId ? (commitMap2[tlId] || 0) : 0;
+      heroCommitAmount     = tlId ? (commitMap2[tlId] || 0) : 0;
+      heroPilotCommitCount = tlId ? (pilotCommitMap2[tlId] || 0) : 0;
     }
+    const bookingsForecastAtt = bookingsTarget > 0 ? Math.round((forecast / bookingsTarget) * 100) : 0;
     const heroCommitAtt       = bookingsTarget > 0 ? Math.round((heroCommitAmount / bookingsTarget) * 100) : 0;
     const heroCommitDeviation = forecast > 0 ? Math.round(((heroCommitAmount - forecast) / forecast) * 100) : 0;
+    const heroPilotCommitAtt  = pilotenTarget > 0 ? Math.round((heroPilotCommitCount / pilotenTarget) * 100) : 0;
     const drrToCommit         = wk.remaining > 0
       ? Math.round(Math.max(0, heroCommitAmount - bookingsARR) / wk.remaining) : 0;
 
@@ -1051,11 +1074,14 @@ export default {
         pilotenNeededDRR,
         onTrack:          pace >= neededDRR,
         isHistorical:     !JS_Config.getActiveQuarter().isCurrent,
+        bookingsForecastAtt,
         commit: {
           amount:     heroCommitAmount,
           attainment: heroCommitAtt,
           deviation:  heroCommitDeviation,
           drrToCommit,
+          pilotCount: heroPilotCommitCount,
+          pilotAtt:   heroPilotCommitAtt,
         },
       },
       // Neue Reps Warnung (falls buildTeamsFromQuery neue Reps erkannt hat)

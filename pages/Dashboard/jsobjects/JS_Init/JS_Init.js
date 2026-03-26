@@ -47,6 +47,8 @@ export default {
       Q_PilotOpps_QTD.run(),
       // eslint-disable-next-line no-undef
       (typeof Q_Forecast_Commit !== 'undefined' ? Q_Forecast_Commit.run() : Promise.resolve()),
+      // eslint-disable-next-line no-undef
+      (typeof Q_Forecast_Commit_Pilots !== 'undefined' ? Q_Forecast_Commit_Pilots.run() : Promise.resolve()),
     ]);
 
     // Phase 4: Auto-Snapshot — immer nach Query-Load speichern (überschreibt vorherigen)
@@ -98,7 +100,8 @@ export default {
         Q_Opps_L30:         JS_Data._r('Q_Opps_L30'),
         Q_Overdue_Pipeline: JS_Data._r('Q_Overdue_Pipeline'),
         Q_Overdue_Accounts: JS_Data._r('Q_Overdue_Accounts'),
-        Q_Forecast_Commit:  JS_Data._r('Q_Forecast_Commit'),
+        Q_Forecast_Commit:        JS_Data._r('Q_Forecast_Commit'),
+        Q_Forecast_Commit_Pilots: JS_Data._r('Q_Forecast_Commit_Pilots'),
       },
     };
 
