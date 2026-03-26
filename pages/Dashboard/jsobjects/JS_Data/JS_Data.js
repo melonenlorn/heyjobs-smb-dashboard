@@ -42,7 +42,9 @@ export default {
       Q_Calls_L30: Q_Calls_L30, Q_QualCalls_L30: Q_QualCalls_L30,
       Q_Emails_L30: Q_Emails_L30, Q_Meetings_L30: Q_Meetings_L30,
       Q_Opps_L30: Q_Opps_L30, Q_Overdue_Pipeline: Q_Overdue_Pipeline,
-      Q_Overdue_Accounts: Q_Overdue_Accounts, Q_Forecast_Commit: Q_Forecast_Commit,
+      Q_Overdue_Accounts: Q_Overdue_Accounts,
+      // eslint-disable-next-line no-undef
+      Q_Forecast_Commit: typeof Q_Forecast_Commit !== 'undefined' ? Q_Forecast_Commit : null,
     };
     const q = liveMap[queryName];
     if (!q) return [];

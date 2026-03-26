@@ -45,7 +45,8 @@ export default {
       Q_Overdue_Pipeline.run(),
       Q_Overdue_Accounts.run(),
       Q_PilotOpps_QTD.run(),
-      Q_Forecast_Commit.run(),
+      // eslint-disable-next-line no-undef
+      (typeof Q_Forecast_Commit !== 'undefined' ? Q_Forecast_Commit.run() : Promise.resolve()),
     ]);
 
     // Phase 4: Auto-Snapshot — immer nach Query-Load speichern (überschreibt vorherigen)
