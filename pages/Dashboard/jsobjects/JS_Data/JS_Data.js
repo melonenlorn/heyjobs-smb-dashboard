@@ -1062,6 +1062,32 @@ export default {
     const drrToCommit         = wk.remaining > 0
       ? Math.round(Math.max(0, heroCommitAmount - bookingsARR) / wk.remaining) : 0;
 
+    // ── Weekly cumulative bookings (für Chart in Hero Card) ───────────────
+    const _isoWk = (dateStr) => {
+      if (!dateStr) return null;
+      const d = new Date(dateStr);
+      const jan4 = new Date(d.getFullYear(), 0, 4);
+      const s1 = new Date(jan4);
+      s1.setDate(jan4.getDate() - ((jan4.getDay() + 6) % 7));
+      return 'KW' + String(Math.max(1, Math.floor((d - s1) / 604800000) + 1)).padStart(2, '0');
+    };
+    const _wkIncr = {};
+    JS_Data._r('Q_Bookings_QTD').forEach(r => {
+      if (!filteredIds.has(r.OwnerId)) return;
+      const wk = _isoWk(r.dateTimestampContractreceived__c);
+      if (wk) _wkIncr[wk] = (_wkIncr[wk] || 0) + (Number(r.Amount) || 0);
+    });
+    JS_Data._r('Q_SelfService_QTD').forEach(r => {
+      if (!filteredIds.has(r.OwnerId)) return;
+      const wk = _isoWk(r.dateTimestampContractreceived__c);
+      if (wk) _wkIncr[wk] = (_wkIncr[wk] || 0) + (Number(r.Amount) || 0);
+    });
+    let _cumBk = 0;
+    const weeklyBkArr = Object.keys(_wkIncr).sort().map(wk => {
+      _cumBk += _wkIncr[wk];
+      return { week: wk, arr: _cumBk };
+    });
+
     return {
       progress,
       context: {
@@ -1092,6 +1118,7 @@ export default {
         attainment:  bookingsAtt,
         forecast,
         forecastAtt,
+        weekly:      weeklyBkArr,
         selfSvcARR,
         selfSvcPct:  bookingsTarget > 0 ? Math.round((selfSvcARR / bookingsTarget) * 100) : 0,
         status:      JS_Scoring.status('compositeAttainment', bookingsAtt),
