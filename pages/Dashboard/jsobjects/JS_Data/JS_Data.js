@@ -458,6 +458,20 @@ export default {
       }));
     });
 
+    // ── Opps created per week (L30) ──
+    const oppWeekMap = {};
+    JS_Data._r('Q_Opps_L30').forEach(r => {
+      const id = r.OwnerId;
+      const wk = isoWeek(r.CreatedDate);
+      if (!oppWeekMap[id]) oppWeekMap[id] = {};
+      if (!oppWeekMap[id][wk]) oppWeekMap[id][wk] = { week: wk, opps: 0 };
+      oppWeekMap[id][wk].opps += 1;
+    });
+    Object.entries(oppWeekMap).forEach(([repId, wks]) => {
+      const rep = ensure(repId);
+      rep.opps = Object.values(wks).sort((a, b) => a.week.localeCompare(b.week));
+    });
+
     return result;
   },
 
@@ -483,7 +497,7 @@ export default {
     const overdueAccMap     = JS_Data.overdueAccountsByRep();
     const l30WorkingDays    = 22;
     const oppL30Map         = {};
-    JS_Data._r('Q_Opps_L30').forEach(r => { oppL30Map[r.OwnerId] = Number(r.oppCount) || 0; });
+    JS_Data._r('Q_Opps_L30').forEach(r => { oppL30Map[r.OwnerId] = (oppL30Map[r.OwnerId] || 0) + 1; });
     const cwDaysElapsed = Math.max(1, [1,1,2,3,4,5,5][new Date().getDay()]);
     const qtdDaysElapsed = Math.max(1, JS_Config.getWerktageContext().done);
     function repTrendArrow(cwVal, l30Val) {
@@ -910,7 +924,7 @@ export default {
       l30MtgSum     += d.meetingsPerDay    || 0;
     });
     const oppL30Map = {};
-    JS_Data._r('Q_Opps_L30').forEach(r => { oppL30Map[r.OwnerId] = Number(r.oppCount) || 0; });
+    JS_Data._r('Q_Opps_L30').forEach(r => { oppL30Map[r.OwnerId] = (oppL30Map[r.OwnerId] || 0) + 1; });
     const l30OppTotal = filtered.reduce((s, r) => s + (oppL30Map[r.id] || 0), 0);
     const avgTouchPerDay   = Math.round(l30TouchSum   / repCount * 10) / 10;
     const avgQualPerDay    = Math.round(l30QualSum    / repCount * 10) / 10;
