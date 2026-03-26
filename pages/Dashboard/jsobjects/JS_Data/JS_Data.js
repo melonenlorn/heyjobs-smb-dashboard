@@ -42,7 +42,7 @@ export default {
       Q_Calls_L30: Q_Calls_L30, Q_QualCalls_L30: Q_QualCalls_L30,
       Q_Emails_L30: Q_Emails_L30, Q_Meetings_L30: Q_Meetings_L30,
       Q_Opps_L30: Q_Opps_L30, Q_Overdue_Pipeline: Q_Overdue_Pipeline,
-      Q_Overdue_Accounts: Q_Overdue_Accounts,
+      Q_Overdue_Accounts: Q_Overdue_Accounts, Q_Forecast_Commit: Q_Forecast_Commit,
     };
     const q = liveMap[queryName];
     if (!q) return [];
@@ -475,6 +475,15 @@ export default {
     return result;
   },
 
+  // ── SF Forecast Commit: OwnerId → ForecastAmount ─────────────────────────
+  forecastCommitMap() {
+    const map = {};
+    JS_Data._r('Q_Forecast_Commit').forEach(r => {
+      map[r.OwnerId] = Number(r.ForecastAmount) || 0;
+    });
+    return map;
+  },
+
   // ── Build full KPI row for every rep ─────────────────────────────────────
   allRepKPIs() {
     const bookings   = JS_Data.bookingsByRep();
@@ -498,6 +507,7 @@ export default {
     const l30WorkingDays    = 22;
     const oppL30Map         = {};
     JS_Data._r('Q_Opps_L30').forEach(r => { oppL30Map[r.OwnerId] = (oppL30Map[r.OwnerId] || 0) + 1; });
+    const commitMap         = JS_Data.forecastCommitMap();
     const cwDaysElapsed = Math.max(1, [1,1,2,3,4,5,5][new Date().getDay()]);
     const qtdDaysElapsed = Math.max(1, JS_Config.getWerktageContext().done);
     function repTrendArrow(cwVal, l30Val) {
@@ -534,9 +544,17 @@ export default {
         wonCount, lostCount, staleCount, totalOpenCount: totalOpen,
       });
 
+      const commitAmount    = commitMap[id] || 0;
+      const commitAtt       = bookingsTarget > 0 ? Math.round((commitAmount / bookingsTarget) * 100) : 0;
+      const commitDeviation = (kpis.forecast || 0) > 0
+        ? Math.round(((commitAmount - (kpis.forecast || 0)) / (kpis.forecast || 0)) * 100) : 0;
+
       return {
         id,
         ...kpis,
+        commitAmount,
+        commitAtt,
+        commitDeviation,
         closedPilots,
         wonCount,    // Bug 1 fix: expose for heroKPIs() sum
         lostCount,   // Bug 1 fix: expose for heroKPIs() sum
@@ -1004,6 +1022,21 @@ export default {
     const pilotenNeededDRR = wk.remaining > 0
       ? Math.round(Math.max(0, pilotenTarget - pilotenCount) / wk.remaining * 10) / 10 : 0;
 
+    // ── SF Forecast Commit (team- / motion-level) ─────────────────────────
+    const commitMap2     = JS_Data.forecastCommitMap();
+    const teamFilter     = JS_Filters.getTeam();
+    let heroCommitAmount = 0;
+    if (teamFilter === 'all') {
+      heroCommitAmount = commitMap2[JS_Config.HEAD_OF_ID] || 0;
+    } else {
+      const tlId = JS_Config.TEAMS[teamFilter] ? JS_Config.TEAMS[teamFilter].tlId : null;
+      heroCommitAmount = tlId ? (commitMap2[tlId] || 0) : 0;
+    }
+    const heroCommitAtt       = bookingsTarget > 0 ? Math.round((heroCommitAmount / bookingsTarget) * 100) : 0;
+    const heroCommitDeviation = forecast > 0 ? Math.round(((heroCommitAmount - forecast) / forecast) * 100) : 0;
+    const drrToCommit         = wk.remaining > 0
+      ? Math.round(Math.max(0, heroCommitAmount - bookingsARR) / wk.remaining) : 0;
+
     return {
       progress,
       context: {
@@ -1016,6 +1049,12 @@ export default {
         pilotenNeededDRR,
         onTrack:          pace >= neededDRR,
         isHistorical:     !JS_Config.getActiveQuarter().isCurrent,
+        commit: {
+          amount:     heroCommitAmount,
+          attainment: heroCommitAtt,
+          deviation:  heroCommitDeviation,
+          drrToCommit,
+        },
       },
       // Neue Reps Warnung (falls buildTeamsFromQuery neue Reps erkannt hat)
       newRepsWarning:   JS_Config._newReps && JS_Config._newReps.length > 0 ? JS_Config._newReps : null,

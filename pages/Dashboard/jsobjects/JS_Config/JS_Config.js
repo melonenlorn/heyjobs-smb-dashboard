@@ -106,6 +106,18 @@ export default {
   // ── Stale definition ─────────────────────────────────────────────────────
   STALE_DAYS: 14,
 
+  // ── Head-of-Motion SF ID (Manager der Manager → Motion-Level Commit) ──────
+  HEAD_OF_ID: '005W700000AXqN3IAL',  // Philipp Bahls
+
+  // ── SF Period IDs je Quartal (für ForecastingItem-Query) ─────────────────
+  // Wird von update_quarter.py automatisch erweitert.
+  QUARTER_PERIOD_IDS: {
+    'Q1 2026': '0261v000000CUONAA4',
+    'Q2 2026': '0261v000000CUOOAA4',
+    'Q3 2026': '0261v000000CUOPAA4',
+    'Q4 2026': '0261v000000CUOQAA4',
+  },
+
   // ── ForecastingQuota type IDs ─────────────────────────────────────────────
   FORECASTING_TYPE_BOOKINGS: '0DbW7000000DaaLKAS',
 

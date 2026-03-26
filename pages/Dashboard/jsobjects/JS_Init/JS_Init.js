@@ -45,6 +45,7 @@ export default {
       Q_Overdue_Pipeline.run(),
       Q_Overdue_Accounts.run(),
       Q_PilotOpps_QTD.run(),
+      Q_Forecast_Commit.run(),
     ]);
 
     // Phase 4: Auto-Snapshot — immer nach Query-Load speichern (überschreibt vorherigen)
@@ -96,6 +97,7 @@ export default {
         Q_Opps_L30:         JS_Data._r('Q_Opps_L30'),
         Q_Overdue_Pipeline: JS_Data._r('Q_Overdue_Pipeline'),
         Q_Overdue_Accounts: JS_Data._r('Q_Overdue_Accounts'),
+        Q_Forecast_Commit:  JS_Data._r('Q_Forecast_Commit'),
       },
     };
 
