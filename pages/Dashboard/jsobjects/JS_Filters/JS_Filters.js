@@ -72,7 +72,6 @@ export default {
       { label: 'Level 3',     value: '3'      },
       { label: 'Level 2',     value: '2'      },
       { label: 'Level 1',     value: '1'      },
-      { label: 'Ramp-up',     value: 'rampup' },
     ];
   },
 

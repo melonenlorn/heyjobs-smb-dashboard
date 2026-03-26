@@ -123,8 +123,9 @@ export default {
 
     return {
       repName,
-      level: JS_Config.REP_LEVELS[repName] || '2',
-      team:  JS_Config.teamForRep(repName),
+      level:    JS_Config.REP_LEVELS[repName] || '2',
+      isRampup: JS_Config.isRampup(repName),
+      team:     JS_Config.teamForRep(repName),
 
       // Attainment
       ...(attainment || {}),

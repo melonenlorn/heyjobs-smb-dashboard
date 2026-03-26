@@ -5,7 +5,7 @@ export default {
     // Ferdinand's / Mareike's team (Wolves)
     'Alina Kühne':          '2',
     'Pierre Byer':          '2',
-    'Jan-Thore Kaulbach':   'rampup',
+    'Jan-Thore Kaulbach':   '1',
     // Jan's team (Titans)
     'Hikmet Canbolat':      '3',
     'Tamina Stange':        '3',
@@ -48,6 +48,10 @@ export default {
   // ── Manuell ausgeschlossene Reps (aktiv in SF, aber nicht im Dashboard) ───
   EXCLUDED_REPS: ['Friederike Wilsenack'],
 
+  // ── Reps in Probezeit (Ramp-up, ~6 Monate): kein Piloten-Target, nur Bookings ──
+  // Ramp-up ist kein Level, sondern ein Flag. Jan-Thore ist L1 + Ramp-up.
+  RAMPUP_REPS: ['Jan-Thore Kaulbach'],
+
   // ── Team-Daten: statische Defaults, werden durch buildTeamsFromQuery() überschrieben ──
   // WICHTIG: Appsmith JSObjects unterstützen keine ES6 Getter → direkte Properties
   TEAMS: {
@@ -77,10 +81,9 @@ export default {
 
   // ── Level config: weights and pilot targets ───────────────────────────────
   LEVEL_CONFIG: {
-    '3':      { bookingsWeight: 0.75, pilotenWeight: 0.25, pilotenTarget: 12 },
-    '2':      { bookingsWeight: 0.50, pilotenWeight: 0.50, pilotenTarget: 16 },
-    '1':      { bookingsWeight: 0.25, pilotenWeight: 0.75, pilotenTarget: 18 },
-    'rampup': { bookingsWeight: 1.00, pilotenWeight: 0.00, pilotenTarget: 0  },
+    '3': { bookingsWeight: 0.75, pilotenWeight: 0.25, pilotenTarget: 12 },
+    '2': { bookingsWeight: 0.50, pilotenWeight: 0.50, pilotenTarget: 16 },
+    '1': { bookingsWeight: 0.25, pilotenWeight: 0.75, pilotenTarget: 18 },
   },
 
   // ── Per-rep overrides (quartals-aware) ────────────────────────────────────
@@ -196,13 +199,22 @@ export default {
     return JS_Config.ALL_REP_IDS.map(function(id) { return "'" + id + "'"; }).join(',');
   },
 
+  // ── Helper: check if rep is in Ramp-up ───────────────────────────────────
+  isRampup(repName) {
+    return JS_Config.RAMPUP_REPS && JS_Config.RAMPUP_REPS.indexOf(repName) !== -1;
+  },
+
   // ── Helper: get level config for a rep (quartals-aware override) ─────────
   levelConfig(repName) {
     const q         = JS_Config.getActiveQuarter().label;
     const overrides = JS_Config.LEVEL_OVERRIDES[repName];
     if (overrides && overrides[q]) return overrides[q];
-    const level = JS_Config.REP_LEVELS[repName] || 'rampup';
-    return JS_Config.LEVEL_CONFIG[level] || JS_Config.LEVEL_CONFIG['rampup'];
+    // Ramp-up: override to bookings-only regardless of actual level
+    if (JS_Config.isRampup(repName)) {
+      return { bookingsWeight: 1.00, pilotenWeight: 0.00, pilotenTarget: 0 };
+    }
+    const level = JS_Config.REP_LEVELS[repName] || '2';
+    return JS_Config.LEVEL_CONFIG[level] || JS_Config.LEVEL_CONFIG['2'];
   },
 
   // ── Helper: get pilot target for a rep ───────────────────────────────────
