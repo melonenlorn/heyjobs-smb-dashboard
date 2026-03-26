@@ -488,11 +488,11 @@ export default {
     return map;
   },
 
-  // ── SF Forecast Commit: OwnerId → ForecastAmount (Piloten) ───────────────
+  // ── SF Forecast Commit: OwnerId → ForecastQuantity (Piloten) ────────────
   forecastCommitPilotsMap() {
     const map = {};
     JS_Data._r('Q_Forecast_Commit_Pilots').forEach(r => {
-      map[r.OwnerId] = Number(r.ForecastAmount) || 0;
+      map[r.OwnerId] = Number(r.ForecastQuantity) || 0;
     });
     return map;
   },
