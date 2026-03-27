@@ -49,6 +49,14 @@ export default {
       (typeof Q_Forecast_Commit !== 'undefined' ? Q_Forecast_Commit.run() : Promise.resolve()),
       // eslint-disable-next-line no-undef
       (typeof Q_Forecast_Commit_Pilots !== 'undefined' ? Q_Forecast_Commit_Pilots.run() : Promise.resolve()),
+      // eslint-disable-next-line no-undef
+      (typeof Q_Tasks_L90 !== 'undefined' ? Q_Tasks_L90.run() : Promise.resolve()),
+      // eslint-disable-next-line no-undef
+      (typeof Q_Events_L90 !== 'undefined' ? Q_Events_L90.run() : Promise.resolve()),
+      // eslint-disable-next-line no-undef
+      (typeof Q_Task_BK_L90 !== 'undefined' ? Q_Task_BK_L90.run() : Promise.resolve()),
+      // eslint-disable-next-line no-undef
+      (typeof Q_Event_BK_L90 !== 'undefined' ? Q_Event_BK_L90.run() : Promise.resolve()),
     ]);
 
     // Phase 4: Auto-Snapshot — immer nach Query-Load speichern (überschreibt vorherigen)
