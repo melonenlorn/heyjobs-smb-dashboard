@@ -1071,21 +1071,26 @@ export default {
       s1.setDate(jan4.getDate() - ((jan4.getDay() + 6) % 7));
       return 'KW' + String(Math.max(1, Math.floor((d - s1) / 604800000) + 1)).padStart(2, '0');
     };
-    const _wkIncr = {};
+    const _wkIncr = {}, _wkPil = {};
     JS_Data._r('Q_Bookings_QTD').forEach(r => {
       if (!filteredIds.has(r.OwnerId)) return;
       const wk = _isoWk(r.dateTimestampContractreceived__c);
-      if (wk) _wkIncr[wk] = (_wkIncr[wk] || 0) + (Number(r.Amount) || 0);
+      if (!wk) return;
+      _wkIncr[wk] = (_wkIncr[wk] || 0) + (Number(r.Amount) || 0);
+      if ((Number(r.Winback_Pilot__c) || 0) > 0) _wkPil[wk] = (_wkPil[wk] || 0) + 1;
     });
     JS_Data._r('Q_SelfService_QTD').forEach(r => {
       if (!filteredIds.has(r.OwnerId)) return;
       const wk = _isoWk(r.dateTimestampContractreceived__c);
-      if (wk) _wkIncr[wk] = (_wkIncr[wk] || 0) + (Number(r.Amount) || 0);
+      if (!wk) return;
+      _wkIncr[wk] = (_wkIncr[wk] || 0) + (Number(r.Amount) || 0);
     });
-    let _cumBk = 0;
-    const weeklyBkArr = Object.keys(_wkIncr).sort().map(wk => {
-      _cumBk += _wkIncr[wk];
-      return { week: wk, arr: _cumBk };
+    let _cumBk = 0, _cumPil = 0;
+    const _allWks = [...new Set([...Object.keys(_wkIncr), ...Object.keys(_wkPil)])].sort();
+    const weeklyBkArr = _allWks.map(wk => {
+      _cumBk  += _wkIncr[wk] || 0;
+      _cumPil += _wkPil[wk]  || 0;
+      return { week: wk, arr: _cumBk, pilots: _cumPil };
     });
 
     return {
