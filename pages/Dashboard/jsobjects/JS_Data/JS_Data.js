@@ -47,6 +47,9 @@ export default {
       Q_Forecast_Commit: typeof Q_Forecast_Commit !== 'undefined' ? Q_Forecast_Commit : null,
       // eslint-disable-next-line no-undef
       Q_Forecast_Commit_Pilots: typeof Q_Forecast_Commit_Pilots !== 'undefined' ? Q_Forecast_Commit_Pilots : null,
+      Q_Tasks_L90: typeof Q_Tasks_L90 !== 'undefined' ? Q_Tasks_L90 : null,
+      Q_Events_L90: typeof Q_Events_L90 !== 'undefined' ? Q_Events_L90 : null,
+      Q_Acct_First_Close: typeof Q_Acct_First_Close !== 'undefined' ? Q_Acct_First_Close : null,
     };
     const q = liveMap[queryName];
     if (!q) return [];
