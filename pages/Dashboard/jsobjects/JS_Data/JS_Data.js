@@ -50,6 +50,8 @@ export default {
       Q_Tasks_L90: typeof Q_Tasks_L90 !== 'undefined' ? Q_Tasks_L90 : null,
       Q_Events_L90: typeof Q_Events_L90 !== 'undefined' ? Q_Events_L90 : null,
       Q_Acct_First_Close: typeof Q_Acct_First_Close !== 'undefined' ? Q_Acct_First_Close : null,
+      Q_Task_BK_L90:  typeof Q_Task_BK_L90  !== 'undefined' ? Q_Task_BK_L90  : null,
+      Q_Event_BK_L90: typeof Q_Event_BK_L90 !== 'undefined' ? Q_Event_BK_L90 : null,
     };
     const q = liveMap[queryName];
     if (!q) return [];
@@ -309,26 +311,18 @@ export default {
 
   // ── Unique accounts touched per rep (L90, prospect/BK split) ──────────────
   uniqueAccountsByRep() {
-    const repMap = {};
-    const ensure = id => {
-      if (!repMap[id]) repMap[id] = { total: new Set(), prospects: new Set(), bks: new Set() };
-      return repMap[id];
-    };
-    const classify = (repId, acctId, bkl12) => {
-      if (!acctId || !repId) return;
-      const r = ensure(repId);
-      r.total.add(acctId);
-      const wasProspect = (Number(bkl12) || 0) === 0;
-      if (wasProspect) r.prospects.add(acctId);
-      else r.bks.add(acctId);
-    };
-
-    JS_Data._r('Q_Tasks_L90').forEach(r => classify(r.OwnerId, r.AccountId, r.bkl12));
-    JS_Data._r('Q_Events_L90').forEach(r => classify(r.OwnerId, r.AccountId, r.bkl12));
+    const taskTot = {}, taskBK = {}, evtTot = {}, evtBK = {};
+    JS_Data._r('Q_Tasks_L90').forEach(r => { taskTot[r.OwnerId] = Number(r.tot) || 0; });
+    JS_Data._r('Q_Task_BK_L90').forEach(r => { taskBK[r.OwnerId] = Number(r.bks) || 0; });
+    JS_Data._r('Q_Events_L90').forEach(r => { evtTot[r.OwnerId] = Number(r.tot) || 0; });
+    JS_Data._r('Q_Event_BK_L90').forEach(r => { evtBK[r.OwnerId] = Number(r.bks) || 0; });
 
     const result = {};
-    Object.entries(repMap).forEach(([id, s]) => {
-      result[id] = { total: s.total.size, prospects: s.prospects.size, bks: s.bks.size };
+    const ids = new Set([...Object.keys(taskTot), ...Object.keys(evtTot)]);
+    ids.forEach(id => {
+      const total = (taskTot[id] || 0) + (evtTot[id] || 0);
+      const bks   = (taskBK[id]  || 0) + (evtBK[id]  || 0);
+      result[id] = { total, bks, prospects: Math.max(0, total - bks) };
     });
     return result;
   },
