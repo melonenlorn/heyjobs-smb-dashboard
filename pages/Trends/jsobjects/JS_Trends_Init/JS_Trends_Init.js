@@ -1,7 +1,7 @@
 export default {
 
   // ── Run on Trends page load ────────────────────────────────────────────────
-  // Mark "initTrends" as "Run on page load" in Appsmith.
+  // WICHTIG: "initTrends" in Appsmith UI als "Run on page load" markieren!
   async initTrends() {
     await Promise.allSettled([
       Q_Trends_Bookings.run(),

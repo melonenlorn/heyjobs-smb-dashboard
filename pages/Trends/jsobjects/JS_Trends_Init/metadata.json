@@ -1,19 +1,11 @@
 {
-  "gitSyncId": "Trends_JS_Trends_Init",
   "id": "Trends_JS_Trends_Init",
-  "pluginType": "JS",
+  "gitSyncId": "Trends_JS_Trends_Init",
   "unpublishedCollection": {
     "name": "JS_Trends_Init",
     "pageId": "Trends",
-    "pluginType": "JS",
     "pluginId": "js-plugin",
-    "actions": [
-      {
-        "name": "initTrends",
-        "executeOnLoad": true,
-        "confirmBeforeExecute": false,
-        "timeoutInMillisecond": 60000
-      }
-    ]
+    "pluginType": "JS",
+    "variables": []
   }
 }
