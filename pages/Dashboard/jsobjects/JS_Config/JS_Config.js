@@ -166,11 +166,11 @@ export default {
   },
 
   // ── Team-Struktur aus Q_Users_Team aufbauen ──────────────────────────────
-  buildTeamsFromQuery() {
+  buildTeamsFromQuery(queryData) {
     const q    = JS_Config.getActiveQuarter().label;
     const mgrs = JS_Config.MANAGERS[q] || JS_Config.MANAGERS[JS_Config.currentQuarter().label] || {};
     let records = [];
-    try { records = Q_Users_Team.data.output.records || []; } catch(e) { records = []; }
+    try { records = (queryData || Q_Users_Team.data).output.records || []; } catch(e) { records = []; }
 
     // Manager.Name → teamKey Mapping (role-based: ICs include Manager.Name in result)
     const mgrNameToKey = {};
