@@ -1084,6 +1084,7 @@ export default {
       const wk = _isoWk(r.dateTimestampContractreceived__c);
       if (!wk) return;
       _wkIncr[wk] = (_wkIncr[wk] || 0) + (Number(r.Amount) || 0);
+      if ((Number(r.Winback_Pilot__c) || 0) > 0) _wkPil[wk] = (_wkPil[wk] || 0) + 1;
     });
     let _cumBk = 0, _cumPil = 0;
     const _allWks = [...new Set([...Object.keys(_wkIncr), ...Object.keys(_wkPil)])].sort();
