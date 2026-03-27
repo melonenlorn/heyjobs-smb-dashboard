@@ -309,33 +309,22 @@ export default {
 
   // ── Unique accounts touched per rep (L90, prospect/BK split) ──────────────
   uniqueAccountsByRep() {
-    const firstCloseMap = {};
-    JS_Data._r('Q_Acct_First_Close').forEach(r => {
-      if (r.AccountId) firstCloseMap[r.AccountId] = r.firstClose;
-    });
-
-    const today = new Date();
-    const cutoff = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 90);
-    const cutoffStr = cutoff.toISOString().slice(0, 10);
-
     const repMap = {};
     const ensure = id => {
       if (!repMap[id]) repMap[id] = { total: new Set(), prospects: new Set(), bks: new Set() };
       return repMap[id];
     };
-    const classify = (repId, acctId) => {
+    const classify = (repId, acctId, bkl12) => {
       if (!acctId || !repId) return;
       const r = ensure(repId);
       r.total.add(acctId);
-      const firstClose = firstCloseMap[acctId];
-      // Prospect: never converted, OR converted within the 90d window (was prospect at some point)
-      const wasProspect = !firstClose || firstClose > cutoffStr;
+      const wasProspect = (Number(bkl12) || 0) === 0;
       if (wasProspect) r.prospects.add(acctId);
       else r.bks.add(acctId);
     };
 
-    JS_Data._r('Q_Tasks_L90').forEach(r => classify(r.OwnerId, r.AccountId));
-    JS_Data._r('Q_Events_L90').forEach(r => classify(r.OwnerId, r.AccountId));
+    JS_Data._r('Q_Tasks_L90').forEach(r => classify(r.OwnerId, r.AccountId, r.bkl12));
+    JS_Data._r('Q_Events_L90').forEach(r => classify(r.OwnerId, r.AccountId, r.bkl12));
 
     const result = {};
     Object.entries(repMap).forEach(([id, s]) => {
