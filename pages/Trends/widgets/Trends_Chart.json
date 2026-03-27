@@ -5,7 +5,7 @@
   "borderWidth": "0",
   "bottomRow": 260,
   "boxShadow": "none",
-  "defaultModel": "{{(function(){var _r=appsmith.store._refreshTs;function rec(q){try{return q.data.output.records||[];}catch(e){return [];}}return {bk:rec(Q_Trends_Bookings),pil:rec(Q_Trends_Pilots),calls:rec(Q_Trends_Calls),qcalls:rec(Q_Trends_QualCalls),emails:rec(Q_Trends_Emails),meetings:rec(Q_Trends_Meetings),wl:rec(Q_Trends_WinLoss),opps:rec(Q_Trends_OppsCreated),};})()}}",
+  "defaultModel": "{{(function(){var _r=appsmith.store._refreshTs;var bk=[];try{bk=Q_Trends_Bookings.data.output.records||[];}catch(e){}var pil=[];try{pil=Q_Trends_Pilots.data.output.records||[];}catch(e){}var calls=[];try{calls=Q_Trends_Calls.data.output.records||[];}catch(e){}var qcalls=[];try{qcalls=Q_Trends_QualCalls.data.output.records||[];}catch(e){}var emails=[];try{emails=Q_Trends_Emails.data.output.records||[];}catch(e){}var meetings=[];try{meetings=Q_Trends_Meetings.data.output.records||[];}catch(e){}var wl=[];try{wl=Q_Trends_WinLoss.data.output.records||[];}catch(e){}var opps=[];try{opps=Q_Trends_OppsCreated.data.output.records||[];}catch(e){}return{bk,pil,calls,qcalls,emails,meetings,wl,opps};})()}}",
   "dynamicBindingPathList": [
     {
       "key": "defaultModel"
