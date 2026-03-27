@@ -304,6 +304,43 @@ export default {
     return result;
   },
 
+  // ── Unique accounts touched per rep (L90, prospect/BK split) ──────────────
+  uniqueAccountsByRep() {
+    const firstCloseMap = {};
+    JS_Data._r('Q_Acct_First_Close').forEach(r => {
+      if (r.AccountId) firstCloseMap[r.AccountId] = r.firstClose;
+    });
+
+    const today = new Date();
+    const cutoff = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 90);
+    const cutoffStr = cutoff.toISOString().slice(0, 10);
+
+    const repMap = {};
+    const ensure = id => {
+      if (!repMap[id]) repMap[id] = { total: new Set(), prospects: new Set(), bks: new Set() };
+      return repMap[id];
+    };
+    const classify = (repId, acctId) => {
+      if (!acctId || !repId) return;
+      const r = ensure(repId);
+      r.total.add(acctId);
+      const firstClose = firstCloseMap[acctId];
+      // Prospect: never converted, OR converted within the 90d window (was prospect at some point)
+      const wasProspect = !firstClose || firstClose > cutoffStr;
+      if (wasProspect) r.prospects.add(acctId);
+      else r.bks.add(acctId);
+    };
+
+    JS_Data._r('Q_Tasks_L90').forEach(r => classify(r.OwnerId, r.AccountId));
+    JS_Data._r('Q_Events_L90').forEach(r => classify(r.OwnerId, r.AccountId));
+
+    const result = {};
+    Object.entries(repMap).forEach(([id, s]) => {
+      result[id] = { total: s.total.size, prospects: s.prospects.size, bks: s.bks.size };
+    });
+    return result;
+  },
+
   // ── Activity weekly per rep (CW or PW) ───────────────────────────────────
   activityWeeklyByRep(period) {
     const map = {};
@@ -514,6 +551,7 @@ export default {
     const demos             = JS_Data.demosByRep();
     const pipelineMovement  = JS_Data.pipelineMovementByRep();
     const l30Map            = JS_Data.activityL30ByRep();
+    const acctMap           = JS_Data.uniqueAccountsByRep();
     const cwMap             = JS_Data.activityWeeklyByRep('CW');
     const overdueMap        = JS_Data.overdueByRep();
     const overdueAccMap     = JS_Data.overdueAccountsByRep();
@@ -610,6 +648,9 @@ export default {
         l30EmailsPerDay:   (l30Map[id] && l30Map[id].emailsPerDay)      || 0,
         l30QualCallsPerDay:(l30Map[id] && l30Map[id].qualCallsPerDay)   || 0,
         l30MeetingsPerDay: (l30Map[id] && l30Map[id].meetingsPerDay)    || 0,
+        l90UniqueAccounts: (acctMap[id] && acctMap[id].total)            || 0,
+        l90UniqueProspects:(acctMap[id] && acctMap[id].prospects)        || 0,
+        l90UniqueBKs:      (acctMap[id] && acctMap[id].bks)              || 0,
         l30OppPerDay:      Math.round((oppL30Map[id] || 0) / l30WorkingDays * 10) / 10,
         l30QualToOpp:      (() => {
           const qual = (l30Map[id] && l30Map[id].qualTouchPerDay) || 0;
@@ -1205,6 +1246,9 @@ export default {
           emailsPerDay:    Math.round(l30EmailsSum / repCount * 10) / 10,
           qualCallsPerDay: Math.round(l30QCSum     / repCount * 10) / 10,
           meetingsPerDay:  Math.round(l30MtgSum    / repCount * 10) / 10,
+          uniqueAccountsAvg:  filtered.length ? Math.round(filtered.reduce((s,r)=>s+(r.l90UniqueAccounts||0),0)/filtered.length*10)/10 : 0,
+          uniqueProspectsAvg: filtered.length ? Math.round(filtered.reduce((s,r)=>s+(r.l90UniqueProspects||0),0)/filtered.length*10)/10 : 0,
+          uniqueBKsAvg:       filtered.length ? Math.round(filtered.reduce((s,r)=>s+(r.l90UniqueBKs||0),0)/filtered.length*10)/10 : 0,
         },
       },
       stale: {
