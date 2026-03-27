@@ -1086,8 +1086,10 @@ export default {
     const heroCommitAtt       = bookingsTarget > 0 ? Math.round((heroCommitAmount / bookingsTarget) * 100) : 0;
     const heroCommitDeviation = forecast > 0 ? Math.round(((heroCommitAmount - forecast) / forecast) * 100) : 0;
     const heroPilotCommitAtt  = pilotenTarget > 0 ? Math.round((heroPilotCommitCount / pilotenTarget) * 100) : 0;
-    const drrToCommit         = wk.remaining > 0
+    const drrToCommit             = wk.remaining > 0
       ? Math.round(Math.max(0, heroCommitAmount - bookingsARR) / wk.remaining) : 0;
+    const pilotenDrrToCommit      = wk.remaining > 0
+      ? Math.round(Math.max(0, heroPilotCommitCount - pilotenCount) / wk.remaining * 10) / 10 : 0;
 
     // ── Weekly cumulative bookings (für Chart in Hero Card) ───────────────
     const _isoWk = (dateStr) => {
@@ -1139,6 +1141,7 @@ export default {
           attainment: heroCommitAtt,
           deviation:  heroCommitDeviation,
           drrToCommit,
+          pilotenDrrToCommit,
           pilotCount: heroPilotCommitCount,
           pilotAtt:   heroPilotCommitAtt,
         },
