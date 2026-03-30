@@ -1,0 +1,1980 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-card:    #ffffff;
+    --bg-header:  rgba(0,0,0,0.03);
+    --bg-hover:   rgba(0,0,0,0.03);
+    --text-1:     #1a1a2e;
+    --text-2:     #4a4a6a;
+    --text-3:     #9090b0;
+    --green:      #58cc02;
+    --green-bg:   rgba(88,204,2,0.10);
+    --amber:      #ff9600;
+    --amber-bg:   rgba(255,150,0,0.10);
+    --red:        #ff4b4b;
+    --red-bg:     rgba(255,75,75,0.10);
+    --blue:       #0078d4;
+    --blue-bg:    rgba(0,120,212,0.10);
+    --border:     rgba(0,0,0,0.08);
+    --radius:     14px;
+    --font:       'Nunito', system-ui, sans-serif;
+  }
+
+  body { background: transparent; font-family: var(--font); color: var(--text-1); padding: 4px; position: relative; }
+
+  /* ── Toolbar ── */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-card);
+    border-radius: var(--radius) var(--radius) 0 0;
+    flex-wrap: wrap;
+  }
+  .toolbar-filters { display: flex; gap: 4px; flex: 1; }
+  .filter-btn {
+    font-family: var(--font);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-3);
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .filter-btn:hover { color: var(--text-2); border-color: rgba(0,0,0,0.18); }
+  .filter-btn.active {
+    background: var(--blue-bg);
+    color: var(--blue);
+    border-color: rgba(0,120,212,0.3);
+  }
+  .refresh-btn {
+    font-family: var(--font);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-3);
+    cursor: pointer;
+    transition: all .15s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+  }
+  .refresh-btn:hover { color: var(--blue); border-color: rgba(0,120,212,0.3); }
+
+  .container {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  thead tr {
+    background: var(--bg-header);
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    padding: 8px 10px;
+    text-align: right;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+  }
+  th:first-child { text-align: left; }
+  th.center      { text-align: center; }
+  th.group-touch { border-left: 2px solid rgba(0,120,212,0.15); }
+  th.group-qt    { border-left: 2px solid rgba(46,158,0,0.15); }
+  th.group-conv  { border-left: 2px solid rgba(201,120,0,0.15); }
+  th.group-result{ border-left: 2px solid rgba(0,0,0,0.08); }
+  th.sort-active { color: var(--blue); }
+  th .sort-arrow { margin-left: 3px; font-size: 9px; }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background .12s;
+    cursor: pointer;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--bg-hover); }
+
+  td {
+    padding: 8px 10px;
+    text-align: right;
+    color: var(--text-2);
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  td:first-child { text-align: left; }
+  td.center      { text-align: center; }
+  td.group-touch { border-left: 2px solid rgba(0,120,212,0.10); }
+  td.group-qt    { border-left: 2px solid rgba(46,158,0,0.10); }
+  td.group-conv  { border-left: 2px solid rgba(201,120,0,0.10); }
+  td.group-result{ border-left: 2px solid rgba(0,0,0,0.05); }
+
+  .rep-cell { display: flex; flex-direction: column; gap: 2px; }
+  .rep-name  { font-size: 12px; font-weight: 800; color: var(--text-1); }
+  .rep-tags  { display: flex; gap: 4px; }
+
+  .tag {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 20px;
+    background: rgba(0,0,0,0.05);
+    color: var(--text-3);
+    letter-spacing: .04em;
+    white-space: nowrap;
+  }
+  .tag.team-ferdinand { background: rgba(0,120,212,0.10); color: var(--blue); }
+  .tag.team-jan       { background: rgba(201,120,0,0.10); color: var(--amber); }
+  .tag.team-philipp   { background: rgba(46,158,0,0.10);  color: var(--green); }
+
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  .badge.green  { background: var(--green-bg);  color: var(--green);  }
+  .badge.amber  { background: var(--amber-bg);  color: var(--amber);  }
+  .badge.red    { background: var(--red-bg);    color: var(--red);    }
+  .badge.blue   { background: var(--blue-bg);   color: var(--blue);   }
+  .badge.neutral{ background: rgba(0,0,0,0.05); color: var(--text-3); }
+
+  .risk-label {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+  .risk-label.sev-3 { background: var(--red-bg);   color: var(--red);   }
+  .risk-label.sev-2 { background: var(--amber-bg); color: var(--amber); }
+  .risk-label.sev-1 { background: rgba(201,120,0,0.06); color: var(--text-2); }
+  .risk-label.sev-0 { color: var(--text-3); }
+
+  .num-red   { color: var(--red);   }
+  .num-amber { color: var(--amber); }
+  .num-green { color: var(--green); }
+
+  .empty { color: var(--text-3); font-size: 13px; text-align: center; padding: 40px; }
+
+  /* ── Modal ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: var(--radius);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    padding: 24px;
+    width: min(98vw, 1200px);
+    max-height: 90vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .modal-name { font-size: 18px; font-weight: 900; color: var(--text-1); }
+  .modal-meta { display: flex; gap: 6px; margin-top: 5px; }
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--text-3);
+    line-height: 1;
+    padding: 2px 4px;
+  }
+  .modal-close:hover { color: var(--text-1); }
+
+  .modal-divider { height: 1px; background: var(--border); }
+
+  .modal-score-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .modal-score-val {
+    font-size: 42px;
+    font-weight: 900;
+    line-height: 1;
+    min-width: 72px;
+  }
+  .modal-score-val.red    { color: var(--red); }
+  .modal-score-val.amber  { color: var(--amber); }
+  .modal-score-val.green  { color: var(--green); }
+  .modal-score-val.neutral{ color: var(--text-3); }
+
+  .modal-progress-group { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+  .modal-progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-3);
+  }
+  .modal-progress-label span:last-child { color: var(--text-2); font-weight: 700; }
+  .progress-track {
+    height: 5px;
+    background: rgba(0,0,0,0.07);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 99px;
+  }
+  .progress-fill.blue   { background: var(--blue); }
+  .progress-fill.red    { background: var(--red); }
+  .progress-fill.amber  { background: var(--amber); }
+  .progress-fill.green  { background: var(--green); }
+
+  /* ── Modal Hero Cards (5-col, KPI_Hero_Cards 1:1) ── */
+  .modal-hero-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+  }
+  /* Slightly compact cards within modal context */
+  .modal-hero-grid .card { padding: 12px; gap: 8px; }
+  .modal-hero-grid .card-value { font-size: 22px; }
+  .modal-hero-grid .sub-row { font-size: 11px; }
+  .modal-hero-grid .progress-labels { font-size: 9px; }
+  .modal-hero-grid .bucket-val { font-size: 13px; }
+
+  /* Card classes (identical to KPI_Hero_Cards) */
+  .card {
+    background: var(--bg-card, #ffffff);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    cursor: default;
+    transition: border-color .2s, background .2s;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .card-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .card-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .card-value {
+    font-size: 28px;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--text-1);
+  }
+  .divider {
+    height: 1px;
+    background: var(--border);
+  }
+  .sub-metrics { display: flex; flex-direction: column; gap: 6px; }
+  .sub-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+  }
+  .sub-label { color: var(--text-3); }
+  .sub-value { color: var(--text-2); font-weight: 700; }
+  .sub-value.green  { color: var(--green); }
+  .sub-value.amber  { color: var(--amber); }
+  .sub-value.red    { color: var(--red);   }
+  .sub-value.blue   { color: var(--blue);  }
+  .progress-wrap { display: flex; flex-direction: column; gap: 4px; }
+  .progress-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--text-3);
+  }
+  .buckets { display: flex; gap: 6px; }
+  .bucket  { flex: 1; background: rgba(0,0,0,0.04); border-radius: 8px; padding: 6px 4px; text-align: center; }
+  .bucket-val   { font-size: 15px; font-weight: 800; }
+  .bucket-label { font-size: 10px; color: var(--text-3); margin-top: 2px; }
+  .bucket.b1 .bucket-val { color: var(--amber); }
+  .bucket.b2 .bucket-val { color: var(--red);   }
+  .bucket.b3 .bucket-val { color: #b02020;      }
+  .wow.green   { color: var(--green); }
+  .wow.red     { color: var(--red); }
+  .wow.neutral { color: var(--text-3); }
+
+  /* Coverage card extras */
+  .section-label { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-3); }
+  .seg-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+  .seg-name { color: var(--text-2); font-weight: 600; }
+  .seg-vals { display: flex; gap: 6px; align-items: center; font-weight: 700; color: var(--text-1); }
+  .seg-count { font-size: 11px; color: var(--text-3); font-weight: 500; }
+  .seg-bar { margin-top: 3px; height: 5px; }
+  .delta-badge { font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 20px; flex-shrink: 0; }
+  .delta-badge.green { background: var(--green-bg); color: var(--green); }
+  .delta-badge.red   { background: var(--red-bg);   color: var(--red);   }
+  .delta-badge.neutral { background: rgba(0,0,0,0.05); color: var(--text-3); }
+  .wow-row { display: flex; gap: 5px; }
+  .wow-row .wow-item { flex: 1; }
+  .wow-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+  .wow-item { font-size: 11px; font-weight: 700; background: rgba(0,0,0,0.03); border-radius: 8px; padding: 5px 7px; display: flex; flex-direction: column; gap: 1px; }
+  .wow-item.green { background: var(--green-bg); color: var(--green); }
+  .wow-item.red   { background: var(--red-bg);   color: var(--red);   }
+  .wow-item.neutral { color: var(--text-2); }
+  .wow-item strong { font-size: 13px; font-weight: 900; }
+  .wow-item span   { font-size: 10px; opacity: .8; font-weight: 500; }
+
+  .modal-section-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 6px;
+  }
+
+  .modal-act-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+  .modal-act-cell {
+    background: rgba(0,0,0,0.04);
+    border-radius: 8px;
+    padding: 6px 4px;
+    text-align: center;
+  }
+  .modal-act-val   { font-size: 16px; font-weight: 800; color: var(--text-2); }
+  .modal-act-label { font-size: 9px; color: var(--text-3); margin-top: 2px; text-transform: uppercase; letter-spacing: .04em; }
+
+  .modal-diagnosis {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: rgba(0,0,0,0.04);
+    color: var(--text-3);
+  }
+  .modal-diagnosis.sev-3 { background: var(--red-bg);   color: var(--red); }
+  .modal-diagnosis.sev-2 { background: var(--amber-bg); color: var(--amber); }
+  .modal-diagnosis.sev-1 { background: rgba(201,120,0,0.06); color: var(--text-2); }
+  .modal-diagnosis::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+  /* Mini funnel (matches KPI_Hero_Cards) */
+  .funnel-rows       { display:flex; flex-direction:column; gap:2px; margin-top:4px; }
+  .funnel-row        { display:grid; grid-template-columns:70px 32px 1fr; align-items:center; gap:4px; }
+  .funnel-label      { font-size:10px; color:#6b7280; white-space:nowrap; }
+  .funnel-value      { font-size:11px; font-weight:600; text-align:right; }
+  .funnel-bar-track  { height:4px; background:#f3f4f6; border-radius:2px; overflow:hidden; }
+  .funnel-bar        { height:4px; border-radius:2px; }
+  .funnel-bar.blue   { background:#3b82f6; }
+  .funnel-cr         { font-size:10px; color:#6b7280; padding-left:74px; }
+
+  /* ── Activity Funnel (Duolingo Style) ── */
+  .act-step            { display: flex; flex-direction: column; gap: 5px; }
+  .act-step-header     { display: flex; align-items: center; gap: 5px; }
+  .act-step-icon       { font-size: 13px; line-height: 1; flex-shrink: 0; }
+  .act-step-label      { font-size: 11px; font-weight: 700; color: var(--text-2); flex: 1; }
+  .act-step-value      { font-size: 15px; font-weight: 900; color: var(--text-1); }
+  .act-bar-track       { height: 8px; background: rgba(0,0,0,0.06); border-radius: 4px; overflow: hidden; }
+  .act-bar             { height: 8px; border-radius: 4px; }
+  .act-bar--blue       { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+  .act-bar--green      { background: linear-gradient(90deg, #10b981, #34d399); }
+  .act-bar--purple     { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+  .act-bar--amber  { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+  .act-bar--red    { background: linear-gradient(90deg, #ef4444, #f87171); }
+  .act-bar--teal   { background: linear-gradient(90deg, #14b8a6, #5eead4); }
+  .act-bar--neutral { background: rgba(0,0,0,0.15); }
+  @keyframes barGrow { from { width: 0; } }
+  .act-bar { animation: barGrow 0.6s ease-out; }
+  .act-breakdown       { display: flex; gap: 5px; flex-wrap: wrap; }
+  .act-chip            { font-size: 10px; color: var(--text-3); background: rgba(0,0,0,0.05); padding: 2px 7px; border-radius: 10px; }
+  .act-conv            { display: flex; align-items: center; gap: 6px; }
+  .act-conv-line       { flex: 1; height: 1px; background: var(--border); }
+  .act-conv-pct        { font-size: 10px; font-weight: 800; color: var(--text-3); white-space: nowrap; }
+
+  /* ── Pipeline Gesundheit sections (modal) ── */
+  .ph-section       { display: flex; flex-direction: column; gap: 5px; }
+  .ph-section-title { font-size: 11px; font-weight: 800; color: var(--text-2); display: flex; align-items: baseline; gap: 5px; }
+  .ph-def           { font-size: 10px; font-weight: 400; color: var(--text-3); }
+  .ph-row           { display: flex; justify-content: space-between; align-items: center; }
+  .ph-label         { font-size: 11px; color: var(--text-3); }
+  .ph-value         { font-size: 12px; font-weight: 700; color: var(--text-1); }
+  .ph-value.red     { color: var(--red); }
+  .ph-value.amber   { color: var(--amber); }
+  .ph-value.green   { color: var(--green); }
+
+  /* ── Group Headers ── */
+  .group-header-row th  { font-size: 10px; font-weight: 800; text-transform: uppercase;
+                          letter-spacing: 0.5px; padding: 4px 6px; color: var(--text-3); }
+  .gh                   { text-align: center; border-bottom: 3px solid transparent; }
+  .gh-blue              { border-bottom-color: #3b82f6; color: #3b82f6; }
+  .gh-green             { border-bottom-color: #10b981; color: #10b981; }
+  .gh-amber             { border-bottom-color: #f59e0b; color: #f59e0b; }
+  .gh-gray              { border-bottom-color: #6b7280; color: #6b7280; }
+  .gh-purple            { border-bottom-color: #8b5cf6; color: #8b5cf6; }
+
+  /* ── Mini Bars ── */
+  .mini-bar-track       { height: 3px; background: rgba(0,0,0,0.06); border-radius: 2px;
+                          margin-top: 2px; overflow: hidden; }
+  .mini-bar             { height: 3px; border-radius: 2px; }
+  .mini-bar--blue       { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+  .mini-bar--green      { background: linear-gradient(90deg, #10b981, #34d399); }
+
+  /* ── Trend Arrows ── */
+  .trend                { font-size: 10px; margin-left: 2px; }
+  .trend.green          { color: var(--green); }
+  .trend.red            { color: var(--red); }
+  .trend.neutral        { color: var(--text-3); }
+
+  /* ── Cell Layout ── */
+  .cell-val             { display: flex; align-items: center; justify-content: flex-end; gap: 2px; }
+  .sub-col              { color: var(--text-3); font-size: 11px; text-align: right; }
+  .td-name              { text-align: left !important; white-space: nowrap; }
+  .th-left              { text-align: left !important; }
+
+  /* ── Star Performer ── */
+  .medal                { font-size: 13px; }
+        .team-tag              { display: inline-block; font-size: 9px; padding: 1px 4px; border-radius: 4px; margin-left: 2px; vertical-align: middle; }
+        .team-tag--wolves      { background: rgba(99,102,241,0.12); }
+        .team-tag--titans      { background: rgba(245,158,11,0.12); }
+        .team-tag--locos       { background: rgba(239,68,68,0.12); }
+        
+
+  /* ── Composite Badge ── */
+  .comp-badge           { display: inline-block; padding: 2px 8px; border-radius: 12px;
+                          font-size: 11px; font-weight: 800; }
+  .comp-badge.cmt-green  { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+  .comp-badge.cmt-amber  { background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; }
+  .comp-badge.cmt-red    { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+  .comp-badge.green, .comp-badge.fc-green  { background: rgba(16,185,129,0.15); color: #059669; }
+  .comp-badge.amber, .comp-badge.fc-amber  { background: rgba(245,158,11,0.15);  color: #d97706; }
+  .comp-badge.red,   .comp-badge.fc-red    { background: rgba(239,68,68,0.15);   color: #dc2626; }
+
+  /* ── Level Tag ── */
+  .level-tag            { font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 8px;
+                          background: rgba(0,0,0,0.06); color: var(--text-3); margin-left: 4px; }
+
+  /* ── Benchmark Coloring ── */
+  .num-green            { color: #059669 !important; font-weight: 700; }
+  .num-amber            { color: #d97706 !important; font-weight: 700; }
+  .num-red              { color: #dc2626 !important; font-weight: 700; }
+
+  /* ── Col header row ── */
+  .col-header-row th    { font-size: 10px; padding: 5px 6px; }
+
+  /* ── Duolingo Animations ── */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-12px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50%       { transform: scale(1.35); opacity: 0.7; }
+  }
+  @keyframes miniBarGrow {
+    from { width: 0 !important; }
+  }
+  @keyframes badgePop {
+    0%   { transform: scale(0.7); opacity: 0; }
+    80%  { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  @keyframes sparkDraw {
+    from { stroke-dashoffset: 1000; }
+    to   { stroke-dashoffset: 0; }
+  }
+
+  /* ── Row Stagger ── */
+  .row-anim { animation: fadeInUp 0.3s ease both; }
+
+  /* ── Hover Transform ── */
+  tbody tr:hover { background: rgba(0,120,212,0.04) !important; transform: translateX(1px); transition: background .12s, transform .12s; }
+
+  /* ── Mini-bar grow ── */
+  .mini-bar { animation: miniBarGrow 0.6s ease both; }
+
+  /* ── Badge pop ── */
+  .comp-badge { animation: badgePop 0.4s ease both; }
+
+  /* ── Cell Drilldown ── */
+  .cell-drilldown {
+    cursor: pointer;
+    text-decoration: underline dotted;
+    text-underline-offset: 2px;
+  }
+  .cell-drilldown:hover { color: var(--blue) !important; }
+
+  /* ── Spark Popup ── */
+  #spark-popup {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    background: rgba(255,255,255,0.97);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.16);
+    padding: 14px 16px;
+    min-width: 320px;
+    max-width: 360px;
+    animation: slideIn 0.2s ease;
+  }
+  #spark-popup.open { display: block; }
+  .spark-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .spark-title { font-size: 12px; font-weight: 800; color: var(--text-1); }
+  .spark-close {
+    background: none; border: none; font-size: 16px;
+    cursor: pointer; color: var(--text-3); line-height: 1; padding: 2px 4px;
+  }
+  .spark-close:hover { color: var(--text-1); }
+  .spark-chart { line-height: 0; }
+
+  /* ── Coaching Card ── */
+  .coaching-card {
+    background: linear-gradient(135deg, rgba(0,120,212,0.06), rgba(88,204,2,0.06));
+    border: 1px solid rgba(0,120,212,0.12);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-top: 4px;
+  }
+  .coaching-card-title {
+    font-size: 11px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: .06em; color: var(--text-3); margin-bottom: 10px;
+  }
+  .coaching-tip {
+    display: flex; gap: 10px; padding: 8px 10px;
+    background: rgba(255,255,255,0.75); border-radius: 8px;
+    margin-bottom: 6px; align-items: flex-start;
+  }
+  .coaching-tip:last-child { margin-bottom: 0; }
+  .coaching-tip-emoji { font-size: 18px; line-height: 1.3; flex-shrink: 0; }
+  .coaching-tip-title { font-size: 12px; font-weight: 800; color: var(--text-1); }
+  .coaching-tip-detail { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+
+  /* ── Sub-note ── */
+  .sub-note { font-size: 10px; color: var(--text-3); margin-top: 2px; }
+
+</style>
+</head>
+<body>
+
+<div class="container" id="container">
+  <div class="toolbar" id="toolbar">
+    <div class="toolbar-filters" id="filter-btns">
+      <button class="filter-btn active" onclick="setFilter('all')">Alle</button>
+      <button class="filter-btn" onclick="setFilter('wolves')">Wolves</button>
+      <button class="filter-btn" onclick="setFilter('titans')">Titans</button>
+      <button class="filter-btn" onclick="setFilter('locos')">Locos</button>
+    </div>
+    <select id="quarter-select" style="margin-left:12px;padding:5px 10px;border-radius:8px;border:1px solid rgba(0,0,0,0.15);font-size:12px;font-weight:700;background:#fff;color:#1a1a2e;cursor:pointer" onchange="setQuarter(this.value)">
+    </select>
+    <button class="refresh-btn" onclick="doRefresh()">↻ Aktualisieren</button>
+  </div>
+  <div id="table-wrap">
+    <div class="empty">Lade Daten…</div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal-content" onclick="event.stopPropagation()"></div>
+</div>
+<div id="rep-chart-overlay" onclick="closeRepChartModal()" style="display:none;position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,.5);align-items:flex-start;justify-content:center;padding-top:16px">
+  <div id="rep-chart-content" onclick="event.stopPropagation()" style="background:#fff;border-radius:14px;padding:14px 16px 16px;width:min(96%,500px);max-height:calc(100% - 32px);overflow-y:auto;position:relative;box-shadow:0 8px 32px rgba(0,0,0,.22)">
+  </div>
+</div>
+<div id="spark-popup">
+  <div class="spark-header">
+    <span class="spark-title"></span>
+    <button class="spark-close" onclick="closeSparkPopup()">✕</button>
+  </div>
+  <div class="spark-chart"></div>
+</div>
+
+<script>
+  var _allReps    = [];
+  var _medals     = {};
+  var _weeklyData = {};
+  var _wk         = {};
+  var _staleList  = [];
+  var _teamFilter = 'all';
+  var _sortCol    = 'composite';
+  var _sortDir    = 'desc';
+  var _weeksElapsed = 1;
+
+  function fmt(n) {
+    if (!n) return '—';
+    const abs = Math.round(Math.abs(n));
+    if (abs >= 1000000) return (abs/1000000).toFixed(1).replace('.',',') + ' Mio.';
+    if (abs >= 1000)    return Math.round(abs/1000) + 'k';
+    return abs.toString();
+  }
+  function fmtFull(n) {
+    if (!n || n === 0) return '€ 0';
+    const abs = Math.round(Math.abs(n));
+    return '€ ' + abs.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  }
+  function fmtN(n) { return (n || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+  function statusLabel(s) {
+    return { green: 'Gesund', amber: 'Warnung', red: 'Kritisch' }[s] || '—';
+  }
+  function col(s) {
+    return { green: 'var(--green)', amber: 'var(--amber)', red: 'var(--red)' }[s] || 'var(--text-2)';
+  }
+  function pct(n) { return (n || 0) + '\u202f%'; }
+    function fmtD(n) { return ((n || 0).toFixed(1)).replace('.', ','); }
+  function clamp(v, mn, mx) { return Math.max(mn, Math.min(mx, v)); }
+
+  function teamClass(team) {
+    return { ferdinand: 'team-ferdinand', jan: 'team-jan', philipp: 'team-philipp' }[team] || '';
+  }
+  function teamEmoji(team) {
+    return { wolves: '🐺', titans: '⚡', locos: '😈' }[team] || '';
+  }
+  function teamLabel(team) {
+    return { wolves: 'Wolves', titans: 'Titans', locos: 'Locos' }[team] || (team || '—');
+  }
+  function levelLabel(level) {
+    return { '3': 'L3', '2': 'L2', '1': 'L1', 'rampup': 'Ramp' }[level] || 'L2';
+  }
+  function statusColor(v, thresholds, inverted) {
+    if (inverted) {
+      if (v <= thresholds[0]) return 'num-green';
+      if (v <= thresholds[1]) return 'num-amber';
+      return 'num-red';
+    }
+    if (v >= thresholds[0]) return 'num-green';
+    if (v >= thresholds[1]) return 'num-amber';
+    return 'num-red';
+  }
+
+  function setFilter(team) {
+    _teamFilter = team;
+    document.querySelectorAll('.filter-btn').forEach(function(b) {
+      b.classList.toggle('active', b.getAttribute('onclick').indexOf("'" + team + "'") !== -1);
+    });
+    renderTable();
+    var evtMap = { all: 'onFilterAll', wolves: 'onFilterWolves', titans: 'onFilterTitans', locos: 'onFilterLocos' };
+    if (typeof appsmith !== 'undefined' && evtMap[team]) {
+      appsmith.triggerEvent(evtMap[team]);
+    }
+  }
+
+  // ── Quartals-Filter ────────────────────────────────────────────────────────
+  var _currentQuarter = null;
+
+  function setQuarter(val) {
+    _currentQuarter = val;
+    appsmith.triggerEvent('onQuarterChange', { quarter: val });
+  }
+
+  function populateQuarterDropdown(model) {
+    var sel = document.getElementById('quarter-select');
+    if (!sel) return;
+    var opts = (model && model.quarterOptions) ? model.quarterOptions : [];
+    var curr = (model && model.selectedQuarter) ? model.selectedQuarter : '';
+    sel.innerHTML = '';
+    if (!opts.length) {
+      var opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = 'Laufendes Quartal';
+      sel.appendChild(opt);
+      return;
+    }
+    opts.forEach(function(o) {
+      var opt = document.createElement('option');
+      opt.value = o.value;
+      opt.textContent = o.label;
+      if (o.value === curr) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
+
+
+  function doRefresh() {
+    if (typeof appsmith !== 'undefined') {
+      appsmith.triggerEvent('onRefresh');
+    }
+  }
+
+  function sortBy(col) {
+    if (_sortCol === col) {
+      _sortDir = _sortDir === 'desc' ? 'asc' : 'desc';
+    } else {
+      _sortCol = col;
+      _sortDir = 'desc';
+    }
+    renderTable();
+  }
+
+  function filteredSortedReps() {
+    var reps = _teamFilter === 'all'
+      ? _allReps.slice()
+      : _allReps.filter(function(r) { return r.team === _teamFilter; });
+
+    var col = _sortCol;
+    var dir = _sortDir === 'desc' ? -1 : 1;
+
+    reps.sort(function(a, b) {
+      var av = 0, bv = 0;
+      if      (col === 'name')     { return dir * (a.repName||'').localeCompare(b.repName||''); }
+      else if (col === 'touch')    { av = a.l30TouchPerDay     || 0; bv = b.l30TouchPerDay     || 0; }
+      else if (col === 'calls')    { av = a.l30DialsPerDay     || 0; bv = b.l30DialsPerDay     || 0; }
+      else if (col === 'mails')    { av = a.l30EmailsPerDay    || 0; bv = b.l30EmailsPerDay    || 0; }
+      else if (col === 'qt')       { av = a.l30QualPerDay      || 0; bv = b.l30QualPerDay      || 0; }
+      else if (col === 'qc')       { av = a.l30QualCallsPerDay || 0; bv = b.l30QualCallsPerDay || 0; }
+      else if (col === 'mtg')      { av = a.l30MeetingsPerDay  || 0; bv = b.l30MeetingsPerDay  || 0; }
+      else if (col === 'accts')     { av = a.l90UniqueAccounts  || 0; bv = b.l90UniqueAccounts  || 0; }
+      else if (col === 'tToQt')    { av = a.l30TouchToQual     || 0; bv = b.l30TouchToQual     || 0; }
+      else if (col === 'qtToO')    { av = a.l30QualToOpp       || 0; bv = b.l30QualToOpp       || 0; }
+      else if (col === 'oppPerDay') { av = a.l30OppPerDay       || 0; bv = b.l30OppPerDay       || 0; }
+      else if (col === 'cov')      { av = a.coverageVal        || 0; bv = b.coverageVal        || 0; }
+      else if (col === 'stale')    { av = 100-(a.staleRateVal||0); bv = 100-(b.staleRateVal||0); }
+      else if (col === 'ovd')      { av = a.overdueCount       || 0; bv = b.overdueCount       || 0; }
+      else if (col === 'pilots')   { av = a.pilotenCount       || 0; bv = b.pilotenCount       || 0; }
+      else if (col === 'bookings') { av = a.bookingsARR        || 0; bv = b.bookingsARR        || 0; }
+      else if (col === 'wr')       { av = a.winRateVal         || 0; bv = b.winRateVal         || 0; }
+      else if (col === 'composite'){ av = a.composite          || 0; bv = b.composite          || 0; }
+      else if (col === 'fc')       { av = a.forecastAtt        || 0; bv = b.forecastAtt        || 0; }
+      else if (col === 'cmt')      { av = a.commitAtt          || 0; bv = b.commitAtt          || 0; }
+      else if (col === 'dev')      { av = a.commitDeviation    || 0; bv = b.commitDeviation    || 0; }
+      return (av - bv) * dir;
+    });
+    return reps;
+  }
+
+  function arrowHtml(col) {
+    if (_sortCol !== col) return '<span class="sort-arrow" style="opacity:.3">↕</span>';
+    return '<span class="sort-arrow">' + (_sortDir === 'desc' ? '↓' : '↑') + '</span>';
+  }
+
+  function thClass(col, extra) {
+    var cls = extra || '';
+    if (_sortCol === col) cls += ' sort-active';
+    return cls;
+  }
+
+  function pctOf(val, max) { return max > 0 ? Math.round((val || 0) / max * 100) : 0; }
+  function fcStatus(v)      { return (v||0) >= 80 ? 'green' : (v||0) >= 60 ? 'amber' : 'red'; }
+  function deviationCls(v)   { return (v||0) >= 0 ? 'green' : (v||0) >= -10 ? 'amber' : 'red'; }
+  function pilotStatus(r) {
+    if (!r.pilotenTarget) return '';
+    var p = (r.pilotenCount || 0) / r.pilotenTarget * 100;
+    return p >= 100 ? 'num-green' : p >= 60 ? 'num-amber' : 'num-red';
+  }
+
+  function renderTable() {
+    var reps = filteredSortedReps();
+    var c = document.getElementById('table-wrap');
+
+    if (!reps.length) {
+      c.innerHTML = '<div class="empty">Keine Daten</div>';
+      return;
+    }
+
+    // Pre-pass: maxima for mini-bars + medal map (top 3 by composite, all reps)
+    var maxTouch = 0, maxQT = 0;
+    reps.forEach(function(r) {
+      var t = r.l30TouchPerDay || 0;
+      var q = r.l30QualPerDay  || 0;
+      if (t > maxTouch) maxTouch = t;
+      if (q > maxQT)    maxQT    = q;
+    });
+
+    // Medals: top 3 by composite across ALL reps (global ranking)
+    var _medalsSorted = _allReps.slice().sort(function(a,b){ return (b.composite||0)-(a.composite||0); });
+    _medals = {};
+    if (_medalsSorted[0]) _medals[_medalsSorted[0].id] = '🥇';
+    if (_medalsSorted[1]) _medals[_medalsSorted[1].id] = '🥈';
+    if (_medalsSorted[2]) _medals[_medalsSorted[2].id] = '🥉';
+
+    // Group header row
+    var groupRow =
+      '<tr class="group-header-row">' +
+        '<th></th>' +
+        '<th colspan="7" class="gh gh-blue">📞 Aktivität (L30/Tag)</th>' +
+        '<th colspan="3" class="gh gh-green">🎯 Conversion</th>' +
+        '<th colspan="3" class="gh gh-amber">📊 Pipeline</th>' +
+        '<th colspan="3" class="gh gh-gray">🏆 Results</th>' +
+        '<th colspan="1" class="gh gh-gray" style="border-left:2px solid rgba(0,0,0,.08)">📊 Comp</th>' +
+        '<th colspan="5" class="gh gh-purple" onclick="toggleForecast()" style="cursor:pointer" id="fc-gh">🔮 <span id="fc-toggle">＋</span></th>' +
+      '</tr>';
+
+    // Column header row
+    var colRow =
+      '<tr class="col-header-row">' +
+        th2('name', 'Rep', 'left', 'Rep-Name, Level und Team') +
+        th2('touch',    'Touch',  null, 'Touchpoints/Tag: Calls + Emails (Meetings zählen nicht, Ø letzte 30 Arbeitstage)') +
+        th2('calls',    'Calls',  null, 'Anrufe pro Arbeitstag (Ø L30)') +
+        th2('mails',    'Mails',  null, 'E-Mails pro Arbeitstag (Ø L30)') +
+        th2('qt',       'QT',     null, 'Qualifizierte Touchpoints pro Arbeitstag (Ø L30)') +
+        th2('qc',       'QC',     null, 'Qualifizierte Anrufe pro Arbeitstag (Ø L30)') +
+        th2('mtg',      'Mtg',    null, 'Meetings pro Arbeitstag (Ø L30)') +
+        th2('accts',    'Accts',  null, 'Unique Accounts kontaktiert (L90). Tooltip: Prospect/BK-Split') +
+        th2('tToQt',    'T→QT',   null, 'Touch-zu-Qual-Rate: Anteil qualifizierter Touchpoints (L30)') +
+        th2('qtToO',    'QT→O',   null, 'Qual-zu-Opp-Rate: Anteil qualifizierter Touchpoints die zu Opps werden (L30)') +
+        th2('oppPerDay','O/D',    null, 'Neu erstellte Opps pro Arbeitstag (Ø L30). Pfeil = Trend CW vs. L30-Schnitt') +
+        th2('cov',      'Cov',    null, 'Pipeline Coverage: offene Pipeline ÷ verbleibende Quota. Ziel: ≥ 2,5×') +
+        th2('stale',    'Pipe%',  null, 'Pipeline-Gesundheit: Anteil offener Opps MIT Aktivität. 100 % = keine Stale Opps. Ziel: ≥ 85 %') +
+        th2('ovd',      'Ovd',    null, 'Überfällige Opps: CloseDate liegt in der Vergangenheit und Opp ist noch offen') +
+        th2('pilots',   'Pilots', null, 'Pilot-Deals QTD vs. Quartalsziel') +
+        th2('bookings', 'Book.',  null, 'Gebuchter ARR QTD (rep-getrieben, ohne Self-Service)') +
+        th2('wr',       'WR%',    null, 'Win Rate: gewonnene ÷ (gewonnene + verlorene) Opps, letzte 90 Tage. Ziel: ≥ 30 %') +
+        th2('composite','Comp',   null, 'Composite TA: gewichteter Zielerreichungsgrad (Bookings + Piloten je nach Level)') +
+        th2fc('cmt',      'BK Cmt',   null, 'Bookings Commit: SF Forecast Commit als % vom BK-Target') +
+        th2fc('pilcmt',   'PIL Cmt',  null, 'Piloten Commit: SF Forecast Commit als % vom Piloten-Target') +
+        th2fc('fc',       'BK Prog.', null, 'Bookings-Prognose bei aktuellem Tempo') +
+        th2fc('pilfc',    'PIL Prog.',null, 'Piloten-Prognose bei aktuellem Tempo') +
+        th2fc('dev',      'Δ%',     null, 'Abweichung: BK Commit vs. BK Prognose') +
+      '</tr>';
+
+    function th2(col, label, align, tip) {
+      var cls = (_sortCol === col) ? 'sort-active' : '';
+      if (align === 'left') cls += ' th-left';
+      var arrow = (_sortCol === col)
+        ? '<span class="sort-arrow">' + (_sortDir === 'desc' ? '↓' : '↑') + '</span>'
+        : '<span class="sort-arrow" style="opacity:.3">↕</span>';
+      var t = tip ? ' title="' + tip + '"' : '';
+      return '<th onclick="sortBy(\'' + col + '\')" class="' + cls.trim() + '"' + t + '>' + label + arrow + '</th>';
+    }
+    function th2fc(col, label, align, tip) {
+      return th2(col, label, align, tip).replace('class="', 'class="fc-col ');
+    }
+
+    function fmtD(v) { return v != null ? v.toFixed(1).replace('.', ',') : '—'; }
+    function pct2(v) { return v != null ? Math.round(v) + '%' : '—'; }
+    function fmt2(v) {
+      if (v == null) return '—';
+      if (v >= 1000000) return (v/1000000).toFixed(1).replace('.',',') + 'M';
+      if (v >= 1000)    return Math.round(v/1000) + 'k';
+      return Math.round(v) + '';
+    }
+    function sc(val, thresholds, inverted) {
+      var v = val || 0;
+      if (!inverted) {
+        return v >= thresholds.green ? 'num-green' : v >= thresholds.amber ? 'num-amber' : 'num-red';
+      } else {
+        return v <= thresholds.green ? 'num-green' : v <= thresholds.amber ? 'num-amber' : 'num-red';
+      }
+    }
+
+    var rows = '';
+    reps.forEach(function(r, i) {
+      var tT = r.l30TrendTouch || { arrow: '→', cls: 'neutral' };
+      var tQ = r.l30TrendQual  || { arrow: '→', cls: 'neutral' };
+
+      var touchPct = pctOf(r.l30TouchPerDay, maxTouch);
+      var qtPct    = pctOf(r.l30QualPerDay, maxQT);
+
+      var pilotsStr = r.pilotenTarget > 0
+        ? (r.pilotenCount || 0) + '/' + r.pilotenTarget
+        : (r.pilotenCount || 0) + '';
+
+      var ovdCls = (r.overdueCount||0) > 5 ? 'num-red' : (r.overdueCount||0) > 0 ? 'num-amber' : '';
+      var fcCls  = fcStatus(r.forecastAtt);
+      var cmpCls = r.overallStatus || fcStatus(r.composite);
+
+      var _sbc = r.overallStatus === 'green' ? '#58cc02' : r.overallStatus === 'red' ? '#ff4b4b' : '#ff9600';
+      rows +=
+        '<tr onclick="openModal(\'' + r.id + '\')" class="row-anim" style="border-left: 3px solid ' + _sbc + '; animation-delay: ' + (i * 0.03).toFixed(2) + 's">' +
+        // Rep name + medal + level tag + team tag
+        '<td class="td-name">' +
+          (_medals[r.id] ? '<span class="medal">' + _medals[r.id] + '</span> ' : '') +
+          (r.repName || '—') +
+          ' <span class="level-tag">' + levelLabel(r.level) + (r.isRampup ? ' <span class="ramp-tag" title="Ramp-up (Probezeit)">🌱</span>' : '') + '</span>' +
+          ' <span class="team-tag team-tag--' + (r.team||'') + '" title="' + teamLabel(r.team) + '">' + teamEmoji(r.team) + '</span>' +
+        '</td>' +
+        // Touch/Tag with mini-bar + trend
+        '<td class="' + sc(r.l30TouchPerDay, {green:30, amber:20}) + '">' +
+          '<div class="cell-val"><span class="cell-drilldown" onclick="event.stopPropagation();openSparkPopup(event,\'' + r.id + '\',\'touch\')">' + fmtD(r.l30TouchPerDay) + '</span>' +
+            ' <span class="trend ' + tT.cls + '">' + tT.arrow + '</span>' +
+          '</div>' +
+          '<div class="mini-bar-track"><div class="mini-bar mini-bar--blue" style="width:' + touchPct + '%"></div></div>' +
+        '</td>' +
+        // Calls
+        '<td class="sub-col"><span class="cell-drilldown" onclick="event.stopPropagation();openSparkPopup(event,\'' + r.id + '\',\'calls\')">' + fmtD(r.l30DialsPerDay) + '</span></td>' +
+        // Mails
+        '<td class="sub-col"><span class="cell-drilldown" onclick="event.stopPropagation();openSparkPopup(event,\'' + r.id + '\',\'mails\')">' + fmtD(r.l30EmailsPerDay) + '</span></td>' +
+        // QT with mini-bar + trend
+        '<td class="' + sc(r.l30QualPerDay, {green:5, amber:3}) + '">' +
+          '<div class="cell-val"><span class="cell-drilldown" onclick="event.stopPropagation();openSparkPopup(event,\'' + r.id + '\',\'qt\')">' + fmtD(r.l30QualPerDay) + '</span>' +
+            ' <span class="trend ' + tQ.cls + '">' + tQ.arrow + '</span>' +
+          '</div>' +
+          '<div class="mini-bar-track"><div class="mini-bar mini-bar--green" style="width:' + qtPct + '%"></div></div>' +
+        '</td>' +
+        // QC
+        '<td class="sub-col"><span class="cell-drilldown" onclick="event.stopPropagation();openSparkPopup(event,\'' + r.id + '\',\'qc\')">' + fmtD(r.l30QualCallsPerDay) + '</span></td>' +
+        // Meetings
+        '<td class="sub-col"><span class="cell-drilldown" onclick="event.stopPropagation();openSparkPopup(event,\'' + r.id + '\',\'mtg\')">' + fmtD(r.l30MeetingsPerDay) + '</span></td>' +
+        // Unique Accounts L90
+        '<td class="num" title="' + (r.l90UniqueProspects||0) + ' Prospects · ' + (r.l90UniqueBKs||0) + ' BKs" style="cursor:default">' + (r.l90UniqueAccounts||0) + '</td>' +
+        // T→QT %
+        '<td class="' + sc(r.l30TouchToQual, {green:15, amber:10}) + '"><span class="cell-drilldown" onclick="event.stopPropagation();openSparkPopup(event,\'' + r.id + '\',\'tToQt\')">' + pct2(r.l30TouchToQual) + '</span></td>' +
+        // QT→Opp %
+        '<td class="' + sc(r.l30QualToOpp, {green:8, amber:5}) + '">' + pct2(r.l30QualToOpp) + '</td>' +
+        // Opps/Day (L30) + trend
+        '<td class="' + sc(r.l30OppPerDay, {green:0.5, amber:0.3}) + '">' +
+          '<div class="cell-val"><span class="cell-drilldown" onclick="event.stopPropagation();openSparkPopup(event,\'' + r.id + '\',\'oppPerDay\')">' +
+            (r.l30OppPerDay != null ? fmtD(r.l30OppPerDay) : '—') + '</span>' +
+          ' <span class="trend ' + (r.l30TrendOpp ? r.l30TrendOpp.cls : 'neutral') + '">' + (r.l30TrendOpp ? r.l30TrendOpp.arrow : '→') + '</span>' +
+          '</div>' +
+        '</td>' +
+        // Coverage
+        '<td class="' + sc(r.coverageVal, {green:2.5, amber:1.5}) + '">' + fmtD(r.coverageVal) + 'x</td>' +
+        // Pipeline health (= 100 - staleRate, higher is better)
+        '<td class="' + sc(100-(r.staleRateVal||0), {green:85, amber:70}) + '" style="cursor:pointer" onclick="event.stopPropagation();openDrilldown(\'' + r.id + '\',\'stale\')">' + pct2(100-(r.staleRateVal||0)) + '</td>' +
+        // Overdue count
+        '<td class="' + ovdCls + '" style="cursor:pointer" onclick="event.stopPropagation();openDrilldown(\'' + r.id + '\',\'overdue\')">' + (r.overdueCount || 0) + '</td>' +
+        // Pilots count/target
+        '<td class="' + pilotStatus(r) + '"><span class="cell-drilldown" onclick="event.stopPropagation();openSparkPopup(event,\'' + r.id + '\',\'pilots\')">' + pilotsStr + '</span></td>' +
+        // Bookings ARR
+        '<td><span class="cell-drilldown" onclick="event.stopPropagation();openSparkPopup(event,\'' + r.id + '\',\'bookings\')">' + fmt2(r.bookingsARR) + '</span></td>' +
+        // Win Rate %
+        '<td class="' + sc(r.winRateVal, {green:30, amber:20}) + '" style="cursor:pointer" onclick="event.stopPropagation();openDrilldown(\'' + r.id + '\',\'won\')">' + pct2(r.winRateVal) + '</td>' +
+        // ── Composite Progress Bars ──────────────────────────────────────────
+        '<td style="padding:4px 6px;min-width:96px">' +
+          '<div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">' +
+            '<div style="flex:1;height:7px;background:rgba(0,0,0,.08);border-radius:4px;overflow:hidden">' +
+              '<div style="height:7px;border-radius:4px;background:' + scHex(r.composite||0) + ';width:0%;transition:width .8s cubic-bezier(.4,0,.2,1)" data-bar="' + Math.min(100,Math.max(0,Math.round(r.composite||0))) + '%"></div>' +
+            '</div>' +
+            '<span style="font-size:11px;font-weight:900;color:' + scHex(r.composite||0) + ';min-width:28px;text-align:right">' + Math.round(r.composite||0) + '%</span>' +
+          '</div>' +
+          '<div style="display:flex;align-items:center;gap:4px;margin-bottom:1px">' +
+            '<div style="flex:1;height:4px;background:rgba(0,0,0,.07);border-radius:2px;overflow:hidden">' +
+              '<div style="height:4px;border-radius:2px;background:' + scHex(r.bookingsAtt||0) + ';width:0%;transition:width .8s .08s cubic-bezier(.4,0,.2,1)" data-bar="' + Math.min(100,Math.max(0,Math.round(r.bookingsAtt||0))) + '%"></div>' +
+            '</div>' +
+            '<span style="font-size:9px;font-weight:700;color:' + scHex(r.bookingsAtt||0) + ';min-width:38px;text-align:right">BK ' + Math.round(r.bookingsAtt||0) + '%</span>' +
+          '</div>' +
+          '<div style="display:flex;align-items:center;gap:4px">' +
+            '<div style="flex:1;height:4px;background:rgba(0,0,0,.07);border-radius:2px;overflow:hidden">' +
+              '<div style="height:4px;border-radius:2px;background:' + scHex(r.pilotenAtt||0) + ';width:0%;transition:width .8s .16s cubic-bezier(.4,0,.2,1)" data-bar="' + Math.min(100,Math.max(0,Math.round(r.pilotenAtt||0))) + '%"></div>' +
+            '</div>' +
+            '<span style="font-size:9px;font-weight:700;color:' + scHex(r.pilotenAtt||0) + ';min-width:38px;text-align:right">PIL ' + Math.round(r.pilotenAtt||0) + '%</span>' +
+          '</div>' +
+        '</td>' +
+        // BK Commit
+        '<td class="fc-col"><span class="comp-badge cmt-' + fcStatus(r.commitAtt) + '">' + Math.round(r.commitAtt || 0) + '%</span></td>' +
+        // PIL Commit
+        '<td class="fc-col">' + ((r.pilotCommitAtt||0) > 0 ? '<span class="comp-badge cmt-' + fcStatus(r.pilotCommitAtt) + '">' + Math.round(r.pilotCommitAtt) + '%</span>' : '<span style="color:var(--text-3)">—</span>') + '</td>' +
+        // BK Prognose
+        '<td class="fc-col"><span class="comp-badge fc-' + fcCls + '">' + Math.round(r.forecastAtt || 0) + '%</span></td>' +
+        // PIL Prognose
+        '<td class="fc-col">' + ((r.pilotenForecastAtt||0) > 0 ? '<span class="comp-badge fc-' + fcStatus(r.pilotenForecastAtt) + '">' + Math.round(r.pilotenForecastAtt) + '%</span>' : '<span style="color:var(--text-3)">—</span>') + '</td>' +
+        // Δ% Deviation
+        '<td class="fc-col ' + deviationCls(r.commitDeviation) + '" title="Commit vs. Hochrechnung">' +
+          (r.commitDeviation !== undefined ? (r.commitDeviation >= 0 ? '+' : '') + r.commitDeviation + '%' : '—') +
+        '</td>' +
+        '</tr>';
+    });
+
+    c.innerHTML = '<table><thead>' + groupRow + colRow + '</thead><tbody>' + rows + '</tbody></table>';
+    requestAnimationFrame(animateBars);
+  }
+
+  function openModal(repId) {
+    var r = _allReps.find(function(x) { return x.id === repId; });
+    if (!r) return;
+    var status    = r.overallStatus || 'neutral';
+    var composite = r.composite != null ? r.composite : 0;
+    var bAtt      = r.bookingsAtt || 0;
+    var pAtt      = r.pilotenAtt  || 0;
+    var pW        = r.pilotenWeight != null ? r.pilotenWeight : 0;
+    var diag      = r.rootCause || { cause: '—', severity: 0 };
+    var diagCls   = diag.severity >= 3 ? 'sev-3' : diag.severity >= 2 ? 'sev-2' : diag.severity >= 1 ? 'sev-1' : '';
+    var bFill     = clamp(bAtt, 0, 100);
+    var bClr      = bAtt >= 80 ? 'green' : bAtt >= 60 ? 'amber' : 'red';
+    var pFill     = clamp(pAtt, 0, 100);
+    var pClr      = pAtt >= 80 ? 'green' : pAtt >= 60 ? 'amber' : 'red';
+
+    // Attainment forecast
+    var compFore    = r.compositeForecast   || 0;
+    var badgeCls    = compFore >= 100 ? 'green' : compFore >= 80 ? 'amber' : 'red';
+    var compUplift  = (r.bookingsTarget || 0) > 0 ? Math.round((r.wonCWArr || 0) / r.bookingsTarget * 100 * (r.bookingsWeight || 0.75)) : 0;
+    var compUpliftCls  = compUplift > 0 ? 'green' : (compUplift < 0 ? 'red' : 'neutral');
+    var compUpliftSign = compUplift > 0 ? '+' : '';
+    var bForeAtt    = r.forecastAtt         || 0;
+    var pilotenCnt  = r.pilotenCount        || 0;
+    var pilotenTgt  = r.pilotenTarget       || 0;
+    var pilotenForeN = r.pilotenForecast    || 0;
+    var pilotenForeA = r.pilotenForecastAtt || 0;
+
+    // Bookings card
+    var bkAtt     = r.bookingsAtt || 0;
+    var bkStatus  = bkAtt >= 80 ? 'green' : bkAtt >= 60 ? 'amber' : 'red';
+    var forecast  = r.forecast || 0;
+
+    // Coverage card
+    var covNum    = r.coverageVal || 0;
+    var covVal    = covNum.toFixed(1).replace('.',',');
+    var covStatus = r.coverageStatus || 'neutral';
+    var forecastPct = r.bookingsTarget > 0 ? Math.round((forecast / r.bookingsTarget) * 100) : 0;
+    var selfSvcPct  = r.bookingsTarget > 0 ? Math.round(((r.selfSvcARR || 0) / r.bookingsTarget) * 100) : 0;
+    var covTotalPipe  = r.pipelineARR || 0;
+    var covPilotArr   = r.pilotPipeArr || 0;
+    var covPilotOpps  = r.pilotPipeOpps || 0;
+    var covBestArr    = r.bestandArr || 0;
+    var covBestOpps   = r.bestandOpps || 0;
+    var covPilotPct   = covTotalPipe > 0 ? clamp(Math.round(covPilotArr / covTotalPipe * 100), 0, 100) : 0;
+    var covBestPct    = covTotalPipe > 0 ? clamp(Math.round(covBestArr / covTotalPipe * 100), 0, 100) : 0;
+    var covNewArr     = r.newPipeArr || 0;
+    var covNewOpps    = r.newPipeOpps || 0;
+    var covWonCW      = r.wonCW || 0;
+    var covWonCWArr   = r.wonCWArr || 0;
+    var covLostCW     = r.lostCW || 0;
+    var covLostCWArr  = r.lostCWArr || 0;
+    var covNetWow     = covNewArr - covLostCWArr;
+    var covNetSign    = covNetWow >= 0 ? '+' : '';
+    var covNetCls     = covNetWow >= 0 ? 'green' : 'red';
+
+    // Win Rate card
+    var wrVal      = r.winRateVal || 0;
+    var wrStatus   = r.winRateStatus || 'neutral';
+    var wonCount   = r.wonCount || 0;
+    var lostCount  = r.lostCount || 0;
+    var repDemos      = r.demos || 0;
+    var repPilotOpps  = r.pilotOpps || 0;
+    var repPiloten    = r.closedPilots || 0;
+    var repD2PO       = r.demoToPilotOpp || 0;
+    var repPO2Pil     = r.pilotToOpp || 0;
+
+    // Activity card
+    var qualTotal = (r.qualCalls || 0) + (r.meetings || 0);
+    var qtConv    = qualTotal > 0 ? Math.round(((r.oppCreated || 0) / qualTotal) * 100) : 0;
+    var cr        = (r.dials || 0) > 0 ? Math.round((qualTotal / r.dials) * 100) : 0;
+
+    // Stale card
+    var staleVal    = r.staleRateVal || 0;
+    var staleStatus = r.staleRateStatus || 'neutral';
+    var staleCount  = r.staleCount || 0;
+    var totalOpen   = r.totalOpenCount || 0;
+    var overdueCount = r.overdueCount || 0;
+    var overdueArr   = r.overdueArr || 0;
+    var repStale    = _staleList.filter(function(s) { return s.ownerId === r.id; });
+    var staleBuckets = { '14–21d': 0, '21–30d': 0, '30d+': 0 };
+    repStale.forEach(function(s) { staleBuckets[s.ageBucket] = (staleBuckets[s.ageBucket] || 0) + 1; });
+
+    document.getElementById('modal-content').innerHTML =
+      '<div class="modal-header">' +
+        '<div>' +
+          '<div class="modal-name">' + (_medals[r.id] ? _medals[r.id] + ' ' : '') + (r.repName || '—') + '</div>' +
+          '<div class="modal-meta">' +
+            '<span class="tag">' + levelLabel(r.level) + '</span>' +
+            '<span class="tag ' + teamClass(r.team) + '">' + teamLabel(r.team) + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<button class="modal-close" onclick="closeModal()">✕</button>' +
+      '</div>' +
+
+      '<div class="modal-divider"></div>' +
+
+      '<div class="modal-hero-grid">' +
+
+        // Card 1: Attainment (Duolingo style)
+        '<div class="card" style="gap:8px">' +
+          '<div>' +
+            '<span class="card-label" title="Gewichteter Zielerreichungsgrad: 75 % Bookings + 25 % Piloten (QTD)">🏅 Attainment</span>' +
+          '</div>' +
+          '<div style="text-align:center;padding:4px 0 4px">' +
+            '<div style="display:inline-flex;align-items:flex-start;gap:6px;justify-content:center">' +
+              '<div style="font-size:52px;font-weight:900;line-height:1;color:' + col(status) + '" title="Aktuelle Composite-Zielerreichung im laufenden Quartal">' + composite + '<span style="font-size:26px;font-weight:700;opacity:.6"> %</span></div>' +
+              '<span class="delta-badge ' + compUpliftCls + '" style="margin-top:8px" title="Veränderung der Composite-% durch Deals die diese Woche gewonnen wurden">' + compUpliftSign + compUplift + ' pp</span>' +
+            '</div>' +
+            '<div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.09em;margin-top:4px">CA</div>' +
+          '</div>' +
+          '<div style="display:flex;flex-direction:column;gap:7px;padding-bottom:4px">' +
+            // CA thick bar
+            '<div>' +
+              '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">' +
+                '<span style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--text-2)">Total Target Att.</span>' +
+                '<span style="font-size:10px;color:var(--text-3)">' + (compFore ? 'H\u202f' + pct(compFore) : '') + '</span>' +
+              '</div>' +
+              '<div style="display:flex;align-items:center;gap:5px">' +
+                '<div style="flex:1;height:8px;background:rgba(0,0,0,.08);border-radius:4px;overflow:hidden">' +
+                  '<div style="height:8px;border-radius:4px;background:' + col(status) + ';width:0%;transition:width .8s cubic-bezier(.4,0,.2,1)" data-bar="' + Math.min(100,composite) + '%"></div>' +
+                '</div>' +
+                '<span style="font-size:12px;font-weight:900;color:' + col(status) + ';min-width:30px;text-align:right">' + pct(composite) + '</span>' +
+              '</div>' +
+            '</div>' +
+            // Bookings thin bar
+            '<div>' +
+              '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px">' +
+                '<span style="font-size:10px;font-weight:700;color:var(--text-2)">🎯 Bookings\u2002' + fmtFull(r.bookingsARR) + '\u2009/\u2009' + fmtFull(r.bookingsTarget) + '</span>' +
+                '<span style="font-size:10px;color:var(--text-3);white-space:nowrap">' + (r.commitAtt ? 'C\u202f' + pct(r.commitAtt) + '\u2009\u00b7\u2009' : '') + 'H\u202f' + pct(bForeAtt) + '</span>' +
+              '</div>' +
+              '<div style="display:flex;align-items:center;gap:5px">' +
+                '<div style="flex:1;height:4px;background:rgba(0,0,0,.07);border-radius:2px;overflow:hidden">' +
+                  '<div style="height:4px;border-radius:2px;background:' + col(bClr) + ';width:0%;transition:width .8s .1s cubic-bezier(.4,0,.2,1)" data-bar="' + clamp(bAtt,0,100) + '%"></div>' +
+                '</div>' +
+                '<span style="font-size:10px;font-weight:900;color:' + col(bClr) + ';min-width:30px;text-align:right">' + pct(bAtt) + '</span>' +
+              '</div>' +
+            '</div>' +
+            // Piloten thin bar
+            (pW > 0 ?
+            '<div>' +
+              '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px">' +
+                '<span style="font-size:10px;font-weight:700;color:var(--text-2)">🚀 Piloten\u2002' + fmtN(pilotenCnt) + '\u2009/\u2009' + fmtN(pilotenTgt) + '</span>' +
+                '<span style="font-size:10px;color:var(--text-3);white-space:nowrap">' + (r.pilotCommitAtt ? 'C\u202f' + pct(r.pilotCommitAtt) + '\u2009\u00b7\u2009' : '') + 'H\u202f' + pct(pilotenForeA) + '</span>' +
+              '</div>' +
+              '<div style="display:flex;align-items:center;gap:5px">' +
+                '<div style="flex:1;height:4px;background:rgba(0,0,0,.07);border-radius:2px;overflow:hidden">' +
+                  '<div style="height:4px;border-radius:2px;background:' + col(pClr) + ';width:0%;transition:width .8s .2s cubic-bezier(.4,0,.2,1)" data-bar="' + clamp(pAtt,0,100) + '%"></div>' +
+                '</div>' +
+                '<span style="font-size:10px;font-weight:900;color:' + col(pClr) + ';min-width:30px;text-align:right">' + pct(pAtt) + '</span>' +
+              '</div>' +
+            '</div>'
+            : '') +
+          '</div>' +
+          // ── Mini-Chart (identisch zu Hero Card) ──────────────────────────
+          (function() {
+            var bookData = (_weeklyData[repId] && _weeklyData[repId].bookings) || [];
+            if (!bookData.length) return '';
+            var bTgt2 = r.bookingsTarget || 1;
+            var pTgt2 = r.pilotenTarget  || 1;
+            var W2=240, H2=110, pX2=4, pT2=8, pB2=18;
+            var inn2 = H2-pT2-pB2;
+            var nW2  = 13;
+            var wkN2 = function(s){ return parseInt(s.replace('KW',''),10); };
+            var sw2  = wkN2(bookData[0].week);
+            var mxBk = Math.max(bTgt2*1.08, bookData[bookData.length-1].cumArr||1);
+            var mxPl = Math.max(pTgt2*1.08, bookData[bookData.length-1].cumPilots||1);
+            var sx2  = function(i){ return pX2+i*(W2-pX2*2)/(nW2-1); };
+            var syBk2= function(v){ return pT2+inn2-(v/mxBk)*inn2; };
+            var syPl2= function(v){ return pT2+inn2-(v/mxPl)*inn2; };
+            var cBk2 = bAtt>=80?'#58cc02':bAtt>=60?'#ff9600':'#ff4b4b';
+            var cPl2 = pAtt>=80?'#58cc02':pAtt>=60?'#ff9600':'#ff4b4b';
+            var bkPts2 = bookData.map(function(d){ return sx2(wkN2(d.week)-sw2)+','+syBk2(d.cumArr); }).join(' ');
+            var plPts2 = bookData.map(function(d){ return sx2(wkN2(d.week)-sw2)+','+syPl2(d.cumPilots||0); }).join(' ');
+            var lastI2 = wkN2(bookData[bookData.length-1].week)-sw2;
+            var bot2   = pT2+inn2;
+            var area2  = 'M'+pX2+','+bot2+' L'+bkPts2.split(' ').join(' L')+' L'+sx2(lastI2)+','+bot2+' Z';
+            var txEnd2 = sx2(nW2-1);
+            var lbl2   = bookData[0].week;
+            return '<div style="position:relative;margin-top:8px;cursor:pointer" onclick="openRepChartModal(\'' + repId + '\')">'
+              +'<svg width="100%" viewBox="0 0 '+W2+' '+H2+'" style="display:block;overflow:visible">'
+              +'<path d="'+area2+'" fill="'+cBk2+'" fill-opacity=".13"/>'
+              +'<polyline points="'+bkPts2+'" fill="none" stroke="'+cBk2+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'
+              +'<line x1="'+pX2+'" y1="'+syBk2(0)+'" x2="'+txEnd2+'" y2="'+syBk2(bTgt2)+'" stroke="rgba(0,0,0,.15)" stroke-width="1" stroke-dasharray="3 2"/>'
+              +'<polyline points="'+plPts2+'" fill="none" stroke="'+cPl2+'" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4 2"/>'
+              +'<line x1="'+pX2+'" y1="'+syPl2(0)+'" x2="'+txEnd2+'" y2="'+syPl2(pTgt2)+'" stroke="rgba(0,0,0,.1)" stroke-width="1" stroke-dasharray="3 2"/>'
+              +bookData.map(function(d){ return '<circle cx="'+sx2(wkN2(d.week)-sw2)+'" cy="'+syBk2(d.cumArr)+'" r="2.5" fill="'+cBk2+'"/>';}).join('')
+              +bookData.map(function(d){ return '<circle cx="'+sx2(wkN2(d.week)-sw2)+'" cy="'+syPl2(d.cumPilots||0)+'" r="2" fill="'+cPl2+'" stroke="white" stroke-width="1"/>';}).join('')
+              +'<text x="'+pX2+'" y="'+(H2-4)+'" font-size="8" fill="rgba(0,0,0,.3)">'+lbl2+'</text>'
+              +'<text x="'+txEnd2+'" y="'+(H2-4)+'" font-size="8" fill="rgba(0,0,0,.3)" text-anchor="end">KW'+(parseInt(lbl2.replace('KW',''))+nW2-1)+'</text>'
+              +'</svg>'
+              +'<div style="position:absolute;bottom:2px;right:4px;font-size:9px;color:rgba(0,0,0,.22);pointer-events:none">⤢</div>'
+              +'</div>';
+          })() +
+        '</div>' +
+
+        // Card 2: Pipeline Coverage
+        '<div class="card">' +
+          '<div class="card-label" title="Offene Pipeline ÷ verbleibendes Bookings-Target. Zeigt, wie viel Pipeline vorhanden ist, um die Lücke zum Ziel zu schließen (aktuell)">📊 Pipeline Coverage</div>' +
+          '<div class="card-main">' +
+            '<div class="card-value" title="Coverage-Faktor: z. B. 2,5x = Pipeline ist 2,5-mal so groß wie das verbleibende Target">' + covVal + 'x</div>' +
+            '<span class="delta-badge ' + covNetCls + '" title="Netto-Pipeline-Veränderung diese Woche: Neuzugänge minus Lost-Deals (ARR)">' + covNetSign + fmt(covNetWow) + '</span>' +
+            '<div class="badge ' + covStatus + '" title="Bewertung: Gesund ≥ 2,5x · Warnung 1,5–2,5x · Kritisch < 1,5x">' + statusLabel(covStatus) + '</div>' +
+          '</div>' +
+          '<div class="progress-wrap">' +
+            '<div class="progress-track"><div class="progress-fill ' + covStatus + '" style="width:' + clamp((covNum/3)*100,0,100) + '%"></div></div>' +
+            '<div class="progress-labels" title="Skala der Pipeline Coverage: Zielwert ist 2,5x"><span>0x</span><span>Ziel 2,5x</span><span>3x</span></div>' +
+          '</div>' +
+          '<div class="divider"></div>' +
+          '<div class="section-label">Zusammensetzung</div>' +
+          '<div class="seg-row"><span class="seg-name" title="Pipeline-Anteil aus Neugeschäft und Pilot-Accounts (ohne bisherige Buchungen in den letzten 12 Monaten)">Neugesch./Piloten</span><span class="seg-vals">' + fmt(covPilotArr) + '<span class="seg-count" title="Anzahl offener Opportunities in diesem Segment">' + fmtN(covPilotOpps) + ' Deals</span></span></div>' +
+          '<div class="progress-track seg-bar"><div class="progress-fill blue" style="width:' + covPilotPct + '%"></div></div>' +
+          '<div class="seg-row" style="margin-top:5px"><span class="seg-name" title="Pipeline-Anteil aus Accounts mit Buchungen in den letzten 12 Monaten">Bestandskunden</span><span class="seg-vals">' + fmt(covBestArr) + '<span class="seg-count" title="Anzahl offener Opportunities in diesem Segment">' + fmtN(covBestOpps) + ' Deals</span></span></div>' +
+          '<div class="progress-track seg-bar"><div class="progress-fill amber" style="width:' + covBestPct + '%"></div></div>' +
+          '<div class="divider"></div>' +
+          '<div class="section-label">Diese Woche</div>' +
+          '<div class="wow-row">' +
+            '<div class="wow-item green" title="Neue Opportunities, die diese Woche erstellt wurden (ARR + Anzahl)">↑ Neu<strong>+' + fmt(covNewArr) + '</strong><span>' + fmtN(covNewOpps) + ' Deals</span></div>' +
+            '<div class="wow-item green" title="Diese Woche gewonnene Deals — Rep-driven, exkl. Self-Service (ARR + Anzahl)">✓ Won<strong>+' + fmt(covWonCWArr) + '</strong><span>' + fmtN(covWonCW) + ' Deals</span></div>' +
+            '<div class="wow-item red" title="Diese Woche verlorene Deals (ARR + Anzahl)">✗ Lost<strong>−' + fmt(covLostCWArr) + '</strong><span>' + fmtN(covLostCW) + ' Deals</span></div>' +
+          '</div>' +
+        '</div>' +
+
+        // Card 3: Win Rate (excl. Self-Service) + Demo→Opp
+        '<div class="card">' +
+          '<div class="card-label" title="Gewonnene ÷ (Gewonnene + Verlorene) Deals der letzten 90 Tage. Nur Rep-driven, ohne Self-Service (90 Tage)">🏆 Win Rate (Rep-driven, 90d)</div>' +
+          '<div class="card-main">' +
+            '<div class="card-value" title="Win Rate in Prozent">' + pct(wrVal) + '</div>' +
+            '<div class="badge ' + wrStatus + '" title="Bewertung: Gesund ≥ 30 % · Warnung 20–30 % · Kritisch < 20 %">' + statusLabel(wrStatus) + '</div>' +
+          '</div>' +
+          '<div class="progress-wrap">' +
+            '<div class="progress-labels"><span>0%</span><span>Ziel: 30%</span></div>' +
+            '<div class="progress-track"><div class="progress-fill ' + wrStatus + '" style="width:' + clamp(wrVal,0,100) + '%"></div></div>' +
+          '</div>' +
+          '<div class="divider"></div>' +
+          '<div class="sub-metrics">' +
+            '<div class="sub-row"><span class="sub-label" title="Anzahl gewonnener Deals (Rep-driven, exkl. Self-Service, letzte 90 Tage)">✓ Gewonnen</span><span class="sub-value green">' + fmtN(wonCount) + '</span></div>' +
+            '<div class="sub-row"><span class="sub-label" title="Anzahl verlorener Deals (letzte 90 Tage)">✗ Verloren</span><span class="sub-value red">' + fmtN(lostCount) + '</span></div>' +
+            '<div class="sub-row"><span class="sub-label" title="Gesamtzahl entschiedener Deals: Gewonnen + Verloren. SS = Self-Service (automatische Buchungen ohne Rep)">Gesamt (90d, excl. SS)</span><span class="sub-value">' + fmtN(wonCount + lostCount) + '</span></div>' +
+          '</div>' +
+          '<div class="divider"></div>' +
+          '<div class="section-label" title="Konversionstrichter: Demos → Pilot-Opportunities → abgeschlossene Piloten im laufenden Quartal (ohne Self-Service)">Demo → Pilot Funnel (QTD, excl. SS)</div>' +
+          '<div class="funnel-rows">' +
+            '<div class="funnel-row">' +
+              '<span class="funnel-label" title="Durchgeführte Demos im laufenden Quartal">Demos</span>' +
+              '<span class="funnel-value">' + fmtN(repDemos) + '</span>' +
+              '<div class="funnel-bar-track"><div class="funnel-bar blue" style="width:100%"></div></div>' +
+            '</div>' +
+            '<div class="funnel-cr" title="Konversionsrate: Anteil der Demos, die zu einer Pilot-Opportunity geführt haben">↓ ' + pct(repD2PO) + '</div>' +
+            '<div class="funnel-row">' +
+              '<span class="funnel-label" title="Erstellte Pilot-Opportunities (Accounts ohne Buchungen in 12 Mon.) im laufenden Quartal">Pilot Opps</span>' +
+              '<span class="funnel-value">' + fmtN(repPilotOpps) + '</span>' +
+              '<div class="funnel-bar-track"><div class="funnel-bar blue" style="width:' + (repDemos > 0 ? Math.round((repPilotOpps/repDemos)*100) : 0) + '%"></div></div>' +
+            '</div>' +
+            '<div class="funnel-cr" title="Konversionsrate: Anteil der Pilot-Opps, die zu einem abgeschlossenen Piloten geführt haben">↓ ' + pct(repPO2Pil) + '</div>' +
+            '<div class="funnel-row">' +
+              '<span class="funnel-label" title="Abgeschlossene Piloten-Deals im laufenden Quartal">Piloten</span>' +
+              '<span class="funnel-value">' + fmtN(repPiloten) + '</span>' +
+              '<div class="funnel-bar-track"><div class="funnel-bar blue" style="width:' + (repDemos > 0 ? Math.round((repPiloten/repDemos)*100) : 0) + '%"></div></div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+
+                // Card 4: Aktivität (Duolingo-Style Funnel, per-rep)
+        '<div class="card">' +
+          '<div class="card-label" title="Aktivität pro Arbeitstag, letzte 30 Tage. Tage ohne nennenswerte Aktivität werden ausgeschlossen.">⚡ Aktivität (Ø/Tag, letzte 30 Tage)</div>' +
+          '<div class="card-main">' +
+            '<div class="card-value" title="QualTouch-zu-Opportunity-Rate: Anteil der QualTouches, die zu einer neuen Opp führen (L30)">' + pct(r.l30QualToOpp || 0) + '</div>' +
+            '<div class="badge blue" title="Qualified-Touch zu Opportunity Konversionsrate">QT→Opp</div>' +
+          '</div>' +
+          '<div class="divider"></div>' +
+
+          '<div class="act-step">' +
+            '<div class="act-step-header">' +
+              '<span class="act-step-icon">📞</span>' +
+              '<span class="act-step-label" title="Touches pro Arbeitstag = Anwählversuche + E-Mails (letzte 30 Tage)">Touch/Tag</span>' +
+              '<span class="act-step-value">' + fmtD(r.l30TouchPerDay || 0) + '</span>' +
+              '<span class="wow ' + ((r.l30TrendTouch||{}).cls||'neutral') + '" title="Trend: Vergleich aktuelle Woche vs. 30-Tage-Durchschnitt. ↑ > +5 % · ↓ < −5 % · → stabil">' + ((r.l30TrendTouch||{}).arrow||'→') + '</span>' +
+            '</div>' +
+            '<div class="act-bar-track"><div class="act-bar act-bar--blue" style="width:100%"></div></div>' +
+            '<div class="act-breakdown">' +
+              '<span class="act-chip" title="Anwählversuche (Dials) pro Arbeitstag (L30)">📞 ' + fmtD(r.l30DialsPerDay || 0) + ' Calls</span>' +
+              '<span class="act-chip" title="Versendete E-Mails pro Arbeitstag (L30)">✉️ ' + fmtD(r.l30EmailsPerDay || 0) + ' Mails</span>' +
+            '</div>' +
+          '</div>' +
+
+          '<div class="act-conv">' +
+            '<div class="act-conv-line"></div>' +
+            '<span class="act-conv-pct" title="Konversionsrate Touch→QualTouch: Anteil der Touches, die zu einem qualifizierten Kontakt (QualCall oder Meeting) führen">↓ ' + pct(r.l30TouchToQual || 0) + ' Touch→QT</span>' +
+            '<div class="act-conv-line"></div>' +
+          '</div>' +
+
+          '<div class="act-step">' +
+            '<div class="act-step-header">' +
+              '<span class="act-step-icon">🎯</span>' +
+              '<span class="act-step-label" title="Qualifizierte Kontakte pro Arbeitstag = QualCalls + Meetings (L30)">QualTouch/Tag</span>' +
+              '<span class="act-step-value">' + fmtD(r.l30QualPerDay || 0) + '</span>' +
+              '<span class="wow ' + ((r.l30TrendQual||{}).cls||'neutral') + '" title="Trend: Vergleich aktuelle Woche vs. 30-Tage-Durchschnitt. ↑ > +5 % · ↓ < −5 % · → stabil">' + ((r.l30TrendQual||{}).arrow||'→') + '</span>' +
+            '</div>' +
+            '<div class="act-bar-track"><div class="act-bar act-bar--green" style="width:' + Math.min(100, r.l30TouchToQual || 0) + '%"></div></div>' +
+            '<div class="act-breakdown">' +
+              '<span class="act-chip" title="Qualifizierte Telefonate (Gespräch mit Entscheider) pro Arbeitstag (L30)">☎️ ' + fmtD(r.l30QualCallsPerDay || 0) + ' QualCalls</span>' +
+              '<span class="act-chip" title="Durchgeführte Meetings pro Arbeitstag (L30)">👥 ' + fmtD(r.l30MeetingsPerDay || 0) + ' Meetings</span>' +
+            '</div>' +
+          '</div>' +
+
+          '<div class="act-conv">' +
+            '<div class="act-conv-line"></div>' +
+            '<span class="act-conv-pct" title="Konversionsrate QualTouch→Opportunity: Anteil der qualifizierten Kontakte, die zu einer neuen Opportunity führen">↓ ' + pct(r.l30QualToOpp || 0) + ' QT→Opp</span>' +
+            '<div class="act-conv-line"></div>' +
+          '</div>' +
+
+          '<div class="act-step">' +
+            '<div class="act-step-header">' +
+              '<span class="act-step-icon">🏆</span>' +
+              '<span class="act-step-label" title="Neu erstellte Opportunities pro Arbeitstag (L30)">Opps/Tag</span>' +
+              '<span class="act-step-value">' + fmtD(r.l30OppPerDay || 0) + '</span>' +
+              '<span class="wow ' + ((r.l30TrendOpp||{}).cls||'neutral') + '" title="Trend: Vergleich aktuelle Woche vs. 30-Tage-Durchschnitt. ↑ > +5 % · ↓ < −5 % · → stabil">' + ((r.l30TrendOpp||{}).arrow||'→') + '</span>' +
+            '</div>' +
+            '<div class="act-bar-track"><div class="act-bar act-bar--purple" style="width:' + Math.min(100, r.l30QualToOpp || 0) + '%"></div></div>' +
+          '</div>' +
+
+          '<div class="sub-note" title="Telefonie-Zeit in Minuten pro Arbeitstag (L30)">⏱ Calltime Ø: ' + fmtD(r.l30CallMinPerDay || 0) + ' min/Tag</div>' +
+        '</div>' +
+
+        // Card 5: Pipeline Gesundheit
+        '<div class="card">' +
+          '<div class="card-label" title="Übersicht über problematische Opportunities in der Pipeline (aktuell)">🏥 Pipeline Gesundheit</div>' +
+          '<div class="card-main">' +
+            '<div class="card-value" title="Pipeline-Gesundheit: Anteil der Opps mit aktueller Aktivität">' + pct(100-staleVal) + '</div>' +
+            '<div class="badge ' + staleStatus + '" title="Bewertung: Gesund ≥ 80 % · Warnung 65–79 % · Kritisch < 65 %">' + statusLabel(staleStatus) + '</div>' +
+          '</div>' +
+          '<div class="divider"></div>' +
+
+          '<div class="ph-section">' +
+            '<div class="ph-section-title" title="Opportunities ohne jegliche Aktivität (Call, Mail, Meeting) seit mindestens 14 Tagen">\uD83D\uDD70 Stale <span class="ph-def" title="Definition: Kein Task/Event auf der Opportunity seit ≥ 14 Tagen">keine Aktivit\u00E4t \u226514 Tage</span></div>' +
+            '<div class="ph-row">' +
+              '<span class="ph-label">Stale Opps</span>' +
+              '<span class="ph-value ' + staleStatus + '" title="Stale Opportunities / Gesamt offene Opportunities">' + fmtN(staleCount) + ' von ' + fmtN(totalOpen) + '</span>' +
+            '</div>' +
+            '<div class="buckets">' +
+              '<div class="bucket b1" title="Stale-Buckets: Gruppierung nach Tagen seit letzter Aktivität"><div class="bucket-val">' + (staleBuckets['14\u201321d'] || 0) + '</div><div class="bucket-label">14\u201321d</div></div>' +
+              '<div class="bucket b2" title="Stale-Buckets: Gruppierung nach Tagen seit letzter Aktivität"><div class="bucket-val">' + (staleBuckets['21\u201330d'] || 0) + '</div><div class="bucket-label">21\u201330d</div></div>' +
+              '<div class="bucket b3" title="Stale-Buckets: Gruppierung nach Tagen seit letzter Aktivität"><div class="bucket-val">' + (staleBuckets['30d+'] || 0) + '</div><div class="bucket-label">30d+</div></div>' +
+            '</div>' +
+          '</div>' +
+
+          '<div class="divider"></div>' +
+
+          '<div class="ph-section">' +
+            '<div class="ph-section-title" title="Opportunities, deren CloseDate in der Vergangenheit liegt (noch offen)">\uD83D\uDCC5 Overdue <span class="ph-def">CloseDate \u00FCberschritten</span></div>' +
+            '<div class="ph-row">' +
+              '<span class="ph-label" title="Anzahl offener Opportunities mit überschrittenem CloseDate">Overdue Opps</span>' +
+              '<span class="ph-value red">' + fmtN(overdueCount) + '</span>' +
+            '</div>' +
+            '<div class="ph-row">' +
+              '<span class="ph-label" title="Gesamter ARR der überfälligen Opportunities">Overdue ARR</span>' +
+              '<span class="ph-value red">' + fmt(overdueArr) + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<div class="divider"></div>' +
+          '<div class="ph-section">' +
+            '<div class="ph-section-title" title="Accounts, deren Follow-up-Datum überschritten ist, gruppiert nach Stage">\uD83D\uDCC5 \u00DCberf\u00E4llige Follow-ups <span class="ph-def">Follow-up Date \u00FCberschritten</span></div>' +
+            (function(){
+              var bs = r.overdueAccByStage || {};
+              var order = ['Prospect','Pilot','Retention','Acquisition','Outbound'];
+              var rows = order.filter(function(s){ return bs[s] > 0; })
+                .map(function(s){ return '<div class="ph-row"><span class="ph-label" title="Anzahl Accounts in dieser Stage mit überfälligem Follow-up-Datum">' + s + '</span><span class="ph-value amber">' + fmtN(bs[s]) + '</span></div>'; });
+              return rows.length ? rows.join('') : '<div class="ph-row"><span class="ph-label">—</span></div>';
+            })() +
+          '</div>' +
+        '</div>' +
+
+      '</div>' +
+
+      coachingCard(r);
+
+    document.getElementById('modal-overlay').classList.add('open');
+    requestAnimationFrame(animateBars);
+  }
+
+  function fmtFull2(v) {
+    if (v >= 1000000) return (v/1000000).toFixed(2).replace('.',',')+' M €';
+    if (v >= 1000) return (v/1000).toFixed(0)+' k €';
+    return Math.round(v)+' €';
+  }
+  function openRepChartModal(repId) {
+    var r = _allReps.find(function(x){ return x.id === repId; });
+    if (!r) return;
+    var wd = (_weeklyData && _weeklyData[repId]) || {};
+    var bookData = wd.bookings || [];
+    if (!bookData.length) return;
+    var bTgt = r.bookingsTarget || 1;
+    var pTgt = r.pilotenTarget || 1;
+    var bAtt = r.bookingsAtt || 0;
+    var pAtt = r.pilotenAtt || 0;
+    var clrBk = bAtt>=80?'#58cc02':bAtt>=60?'#ff9600':'#ff4b4b';
+    var clrPl = pAtt>=80?'#58cc02':pAtt>=60?'#ff9600':'#ff4b4b';
+    var MW=460,MH=140,mPX=26,mPT=10,mPB=16;
+    var mInner=MH-mPT-mPB,mBottom=mPT+mInner,mTxEnd=MW-mPX;
+    var nWks=bookData.length;
+    var wkN=function(s){return parseInt(s.replace('KW',''),10);};
+    var sw=wkN(bookData[0].week);
+    var mStep=(mTxEnd-mPX)/Math.max(nWks-1,1);
+    var mMaxBk=Math.max(bTgt*1.05,bookData[bookData.length-1].cumArr||1);
+    var mMaxPl=Math.max(pTgt*1.05,bookData[bookData.length-1].cumPilots||1);
+    var msyBk=function(v){return mPT+mInner*(1-v/mMaxBk);};
+    var msyPl=function(v){return mPT+mInner*(1-v/mMaxPl);};
+    var msx=function(i){return mPX+i*mStep;};
+    var mbkPts=bookData.map(function(d){return msx(wkN(d.week)-sw)+','+msyBk(d.cumArr);}).join(' ');
+    var mplPts=bookData.map(function(d){return msx(wkN(d.week)-sw)+','+msyPl(d.cumPilots||0);}).join(' ');
+    var mfX=msx(0),mlX=msx(nWks-1);
+    var mArea='M'+mfX+','+mBottom+' L'+mbkPts.split(' ').join(' L')+' L'+mlX+','+mBottom+' Z';
+    var rows=bookData.map(function(d,i){
+      var pb=i>0?bookData[i-1].cumArr:0;
+      var pp=i>0?(bookData[i-1].cumPilots||0):0;
+      var dA=d.cumArr-pb,dP=(d.cumPilots||0)-pp,isl=i===bookData.length-1;
+      var dAFmt=dA>=1000000?(dA/1000000).toFixed(2)+'M':dA>=1000?(dA/1000).toFixed(0)+'k':Math.round(dA)+'';
+      return '<tr style="border-bottom:1px solid rgba(0,0,0,.05)'+(isl?';font-weight:700':'')+'">'+'<td style="padding:3px 6px">'+d.week+'</td>'+'<td style="text-align:right;padding:3px 6px">'+fmtFull2(d.cumArr)+'</td>'+'<td style="text-align:right;padding:3px 6px;color:rgba(0,0,0,.4)">+'+dAFmt+'</td>'+'<td style="text-align:right;padding:3px 6px">'+(d.cumPilots||0)+'</td>'+'<td style="text-align:right;padding:3px 6px;color:rgba(0,0,0,.4)">+'+Math.max(0,Math.round(dP))+'</td>'+'</tr>';
+    }).join('');
+    var mcirc=bookData.map(function(d){
+      var tip=d.week+': '+fmtFull2(d.cumArr)+' · '+Math.round(d.cumArr/bTgt*100)+'% vom Ziel';
+      return '<circle cx="'+msx(wkN(d.week)-sw)+'" cy="'+msyBk(d.cumArr)+'" r="6" fill="'+clrBk+'" stroke="white" stroke-width="2" class="mcir" data-tip="'+tip+'" style="cursor:pointer" onclick="showMcTip2(event)"/>';
+    }).join('');
+    var mcirc2=bookData.map(function(d){
+      var tip=d.week+': '+(d.cumPilots||0)+' Piloten · '+Math.round((d.cumPilots||0)/pTgt*100)+'% vom Ziel';
+      return '<circle cx="'+msx(wkN(d.week)-sw)+'" cy="'+msyPl(d.cumPilots||0)+'" r="5" fill="'+clrPl+'" stroke="white" stroke-width="2" class="mcir" data-tip="'+tip+'" style="cursor:pointer" onclick="showMcTip2(event)"/>';
+    }).join('');
+    var h='<button onclick="event.stopPropagation();closeRepChartModal()" style="position:absolute;top:8px;right:10px;background:rgba(0,0,0,.07);border:none;font-size:16px;line-height:1;cursor:pointer;color:#666;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center">×</button>'
+      +'<div style="background:'+clrBk+'18;border-radius:8px;padding:8px 12px;margin-bottom:10px;display:flex;align-items:center;gap:8px">'
+      +'<span style="font-size:14px;font-weight:900;color:#1a1a2e;flex:1">'+r.repName+'</span>'
+      +'<span style="background:'+clrBk+';color:#fff;border-radius:20px;padding:1px 9px;font-size:11px;font-weight:700">BK '+Math.round(bAtt)+'%</span>'
+      +'<span style="background:'+clrPl+';color:#fff;border-radius:20px;padding:1px 9px;font-size:11px;font-weight:700">PIL '+Math.round(pAtt)+'%</span>'
+      +'</div>'
+      +'<div id="rep-mchart-tip" style="display:none;position:fixed;background:rgba(20,20,20,.88);color:#fff;font-size:11px;font-weight:600;padding:6px 11px;border-radius:8px;white-space:nowrap;pointer-events:none;z-index:10002;box-shadow:0 4px 16px rgba(0,0,0,.3)"></div>'
+      +'<svg width="100%" viewBox="0 0 '+MW+' '+MH+'" style="display:block;overflow:visible">'
+      +'<path d="'+mArea+'" fill="'+clrBk+'" fill-opacity=".12"/>'
+      +'<polyline points="'+mbkPts+'" fill="none" stroke="'+clrBk+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'
+      +'<line x1="'+mPX+'" y1="'+msyBk(0)+'" x2="'+mTxEnd+'" y2="'+msyBk(bTgt)+'" stroke="rgba(0,0,0,.15)" stroke-width="1" stroke-dasharray="4 3"/>'
+      +'<polyline points="'+mplPts+'" fill="none" stroke="'+clrPl+'" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4 2"/>'
+      +'<line x1="'+mPX+'" y1="'+msyPl(0)+'" x2="'+mTxEnd+'" y2="'+msyPl(pTgt)+'" stroke="rgba(0,0,0,.1)" stroke-width="1" stroke-dasharray="3 2"/>'
+      +mcirc+mcirc2
+      +'<text x="'+mPX+'" y="'+(MH-3)+'" font-size="10" fill="rgba(0,0,0,.3)">'+bookData[0].week+'</text>'
+      +'<text x="'+mTxEnd+'" y="'+(MH-3)+'" font-size="10" fill="rgba(0,0,0,.3)" text-anchor="end">'+bookData[bookData.length-1].week+'</text>'
+      +'</svg>'
+      +'<div style="max-height:140px;overflow-y:auto;margin-top:8px">'
+      +'<table style="width:100%;border-collapse:collapse;font-size:10px">'
+      +'<tr style="border-bottom:2px solid rgba(0,0,0,.1)">'
+      +'<th style="text-align:left;padding:4px 6px;color:#999;font-weight:600">KW</th>'
+      +'<th style="text-align:right;padding:4px 6px;color:#999;font-weight:600">BK kum.</th>'
+      +'<th style="text-align:right;padding:4px 6px;color:#999;font-weight:600">Δ BK</th>'
+      +'<th style="text-align:right;padding:4px 6px;color:#999;font-weight:600">PIL kum.</th>'
+      +'<th style="text-align:right;padding:4px 6px;color:#999;font-weight:600">Δ PIL</th>'
+      +'</tr>'
+      +rows
+      +'</table></div>';
+    document.getElementById('rep-chart-content').innerHTML = h;
+    document.getElementById('rep-chart-overlay').style.display = 'flex';
+  }
+  function closeRepChartModal() {
+    document.getElementById('rep-chart-overlay').style.display = 'none';
+    var tip=document.getElementById('rep-mchart-tip');
+    if(tip)tip.style.display='none';
+  }
+  function showMcTip2(e) {
+    e.stopPropagation();
+    var tip=document.getElementById('rep-mchart-tip');
+    if(!tip)return;
+    var text=e.target.getAttribute('data-tip');
+    if(tip.style.display==='block'&&tip._src===e.target){tip.style.display='none';tip._src=null;return;}
+    tip.textContent=text;tip.style.display='block';tip._src=e.target;
+    tip.style.left=e.clientX+'px';tip.style.top=(e.clientY-44)+'px';tip.style.transform='translateX(-50%)';
+    requestAnimationFrame(function(){
+      var tw=tip.offsetWidth,vw=window.innerWidth,cx=e.clientX-tw/2;
+      if(cx<4)cx=4;if(cx+tw>vw-4)cx=vw-tw-4;
+      tip.style.left=cx+'px';tip.style.transform='none';
+    });
+  }
+
+  function closeModal(e) {
+    if (!e || e.target === document.getElementById('modal-overlay')) {
+      document.getElementById('modal-overlay').classList.remove('open');
+    }
+  }
+
+
+  function coachingTips(r) {
+  var tips = [];
+  var qp     = (_wk && _wk.total > 0) ? (_wk.done / _wk.total) : 0.5;
+  var isEndQ = qp > 0.85;
+
+  // Dynamic team benchmarks
+  var bm = (function() {
+    var reps = (_allReps || []).filter(function(x){ return (x.l30TouchPerDay||0) > 0; });
+    function med(arr) {
+      var s = arr.filter(function(v){ return v > 0; }).sort(function(a,b){ return a-b; });
+      return s.length ? s[Math.floor(s.length/2)] : 0;
+    }
+    return {
+      touch: med(reps.map(function(x){ return x.l30TouchPerDay||0; })),
+      tToQT: med(reps.map(function(x){ return x.l30TouchToQual||0; })),
+      qtToO: med(reps.map(function(x){ return x.l30QualToOpp||0; })),
+      mtg:   med(reps.map(function(x){ return x.l30MeetingsPerDay||0; })),
+      wr:    med(reps.map(function(x){ return x.winRateVal||0; })),
+      d2po:  med(reps.map(function(x){ return x.demoToPilotOpp||0; })),
+      p2pil: med(reps.map(function(x){ return x.pilotToOpp||0; })),
+    };
+  })();
+
+  // Shortcuts
+  var touch   = r.l30TouchPerDay    || 0;
+  var tToQT   = r.l30TouchToQual    || 0;
+  var qtToOpp = r.l30QualToOpp      || 0;
+  var mtg     = r.l30MeetingsPerDay || 0;
+  var wr      = r.winRateVal        || 0;
+  var bkARR   = r.bookingsARR       || 0;
+  var bkTgt   = r.bookingsTarget    || 0;
+  var bkAtt   = bkTgt > 0 ? (bkARR / bkTgt * 100) : 0;
+  var pipe    = r.pipelineARR       || 0;
+  var stale   = r.staleCount        || 0;
+  var totalOp = r.totalOpenCount    || 0;
+  var pilCnt  = r.pilotenCount      || 0;
+  var pilTgt  = r.pilotenTarget     || 0;
+  var pilWt   = r.pilotenWeight     || 0;
+  var pilPipe = r.pilotPipeOpps     || 0;
+  var d2po    = r.demoToPilotOpp    || 0;
+  var p2pil   = r.pilotToOpp        || 0;
+  var demos   = r.demos             || 0;
+  var overdue = r.overdueCount      || 0;
+  var forecast= r.compositeForecast || 0;
+  var staleHeavy = totalOp > 0 && (stale / totalOp) > 0.35;
+
+  // PILOT CHAIN
+  if (pilWt > 0 && pilTgt > 0) {
+    var pilGap = pilTgt - pilCnt;
+    if (pilGap > 0 && qp > 0.2) {
+      var repP2pil = p2pil > 0 ? p2pil : (bm.p2pil || 50);
+      var expectedClose = pilPipe * (repP2pil / 100);
+      if (pilPipe > 0 && expectedClose >= pilGap) {
+        tips.push({ prio: 1, emoji: '🔒',
+          title: 'Pilot-Pipeline schließen: ' + pilCnt + '/' + pilTgt,
+          detail: pilPipe + ' Opps in Pilot-Pipeline \u2192 ' + Math.round(expectedClose * 10) / 10 + ' erwartet. Jede Opp auf n\u00e4chsten Schritt pushen \u2014 Close-Date-Review mit TL.'
+        });
+      } else if (bm.d2po > 0 && d2po > 0 && d2po < bm.d2po * 0.7) {
+        tips.push({ prio: 1, emoji: '🔄',
+          title: 'Demo\u2192Pilot-Opp: ' + Math.round(d2po) + '% (Team: ' + Math.round(bm.d2po) + '%)',
+          detail: 'Demos werden zu selten zu Pilot-Opps. Discovery im Demo: Pilot-Scope direkt adressieren. Nicht nur pr\u00e4sentieren \u2014 Fit und n\u00e4chsten Schritt kl\u00e4ren.'
+        });
+      } else if (bm.mtg > 0 && mtg < bm.mtg * 0.75) {
+        tips.push({ prio: 1, emoji: '📅',
+          title: 'Meeting-Rate: ' + fmtD(mtg) + '/Tag (Team: ' + fmtD(bm.mtg) + ')',
+          detail: 'Zu wenig Meetings um Pilot-Funnel zu f\u00fcllen. Kalendertermin direkt im QualCall setzen \u2014 nicht per Mail nachfassen.'
+        });
+      } else if (demos < 3) {
+        tips.push({ prio: 1, emoji: '🎯',
+          title: 'Demo-Pipeline aufbauen: nur ' + demos + ' Demos Q-t-D',
+          detail: 'Pilot-Funnel beginnt beim Demo. QT-Calls auf Demo-Booking optimieren: Wert klar machen, Termin sofort im Call buchen.'
+        });
+      } else {
+        tips.push({ prio: 1, emoji: '🚀',
+          title: 'Piloten: ' + pilCnt + '/' + pilTgt + ' \u2014 ' + pilPipe + ' Opps in Pipeline',
+          detail: 'Noch ' + pilGap + ' Pilot(en) ben\u00f6tigt. Pipeline: ' + pilPipe + ' Opps. Pilot-Scope in jedem Discovery-Call aktiv einbringen.'
+        });
+      }
+    } else if (pilGap <= 0 && bm.p2pil > 0 && p2pil > bm.p2pil * 1.2) {
+      tips.push({ prio: 0, emoji: '⭐',
+        title: 'Pilot-Excellence: ' + pilCnt + '/' + pilTgt,
+        detail: 'Ziel erreicht, Conversion ' + Math.round(p2pil) + '% vs. Team ' + Math.round(bm.p2pil) + '%. Methodik im Team-Meeting teilen.'
+      });
+    }
+  }
+
+  // BOOKING CHAIN
+  var bkGap = Math.max(0, bkTgt - bkARR);
+  if (bkGap > 0 && bkTgt > 0 && qp > 0.15) {
+    var covRatio = pipe / bkGap;
+    var gapK = Math.round(bkGap / 1000);
+    if (isEndQ && covRatio < 1.5) {
+      tips.push({ prio: 1, emoji: '⚡',
+        title: 'Endspurt: ' + Math.round(bkAtt) + '% \u2014 Coverage ' + fmtD(covRatio) + 'x',
+        detail: '1-2 Deals mit h\u00f6chster Close-Wahrscheinlichkeit identifizieren, 100% Fokus. Rest \u2192 Q2.'
+      });
+    } else if (covRatio >= 2.5) {
+      if (bm.wr > 0 && wr < bm.wr * 0.75) {
+        tips.push({ prio: 1, emoji: '📉',
+          title: 'Win Rate ' + Math.round(wr) + '% (Team: ' + Math.round(bm.wr) + '%)',
+          detail: 'Pipeline ausreichend (' + fmtD(covRatio) + 'x). Hebel ist Win Rate. In welcher Stage verlierst du? Deal-Review + die letzten 2 Lost Deals mit TL anh\u00f6ren.'
+        });
+      } else if (staleHeavy) {
+        tips.push({ prio: 2, emoji: '🧹',
+          title: stale + ' Stale Opps \u2014 Pipeline bereinigen',
+          detail: 'Genug Volumen, aber ' + Math.round(stale/totalOp*100) + '% stale. Bereinigen gibt realistisches Coverage-Bild. Heute ' + Math.min(stale,5) + ' Deals reaktivieren/schlie\u00dfen.'
+        });
+      }
+    } else {
+      if (bm.qtToO > 0 && qtToOpp > 0 && qtToOpp < bm.qtToO * 0.65) {
+        tips.push({ prio: 1, emoji: '🔄',
+          title: 'QT\u2192Opp: ' + Math.round(qtToOpp) + '% (Team: ' + Math.round(bm.qtToO) + '%)',
+          detail: 'Pipeline-Gap ' + gapK + 'k. QT\u2192Opp unter Team-Median. Next-Steps im QT-Call direkt committen: Pilot-Scope + Datum sofort setzen.'
+        });
+      } else if (bm.tToQT > 0 && tToQT > 0 && tToQT < bm.tToQT * 0.65) {
+        tips.push({ prio: 1, emoji: '🎯',
+          title: 'T\u2192QT: ' + Math.round(tToQT) + '% (Team: ' + Math.round(bm.tToQT) + '%)',
+          detail: 'Pipeline-Gap ' + gapK + 'k. Qualifizierungsrate unter Team-Median. Pitch-Review: Wird der Schmerzpunkt klar adressiert? Call-Recordings mit TL.'
+        });
+      } else if (bm.touch > 0 && touch < bm.touch * 0.75) {
+        tips.push({ prio: 1, emoji: '📞',
+          title: 'Aktivit\u00e4t: ' + fmtD(touch) + '/Tag (Team: ' + fmtD(bm.touch) + ')',
+          detail: 'Pipeline-Gap ' + gapK + 'k. Hebel: +' + Math.round(bm.touch - touch) + ' Touches/Tag. Blockierzeit im Kalender reservieren.'
+        });
+      } else {
+        tips.push({ prio: 1, emoji: '🚨',
+          title: 'Coverage ' + fmtD(covRatio) + 'x \u2014 Ziel 2,5x',
+          detail: 'Pipeline-Gap ' + gapK + 'k ARR. T\u00e4glich mind. 1 neue Opp er\u00f6ffnen. Fokus auf QT-Calls \u2192 direktes Opp-Opening.'
+        });
+      }
+    }
+  } else if (bkGap <= 0 && bm.wr > 0 && wr > bm.wr * 1.2) {
+    tips.push({ prio: 0, emoji: '🏆',
+      title: 'BK-Ziel erreicht + Win Rate ' + Math.round(wr) + '%',
+      detail: 'Team-Median: ' + Math.round(bm.wr) + '%. Peer-Coaching: welcher Kollege k\u00e4mpft mit Win Rate?'
+    });
+  }
+
+  // SEKUNDÄRE HYGIENE
+  if (stale > 3 && !tips.find(function(t){ return t.emoji === '🧹'; })) {
+    tips.push({ prio: 2, emoji: '🧹',
+      title: stale + ' Opps ohne Follow-up (>14d)',
+      detail: 'Heute ' + Math.min(stale,5) + ' Deals reaktivieren oder schlie\u00dfen. Stale Opps verzerren Coverage + Forecast.'
+    });
+  }
+  if (overdue > 4 && tips.length < 3) {
+    tips.push({ prio: 2, emoji: '⏰',
+      title: overdue + ' \u00fcberf\u00e4llige Deals',
+      detail: 'CloseDate \u00fcberschritten. F\u00fcr jeden: Datum verschieben (+ warum), pushen oder verlieren. Keine Zombie-Deals.'
+    });
+  }
+
+  // EXCELLENCE (kein Prio-1-Gap)
+  if (!tips.find(function(t){ return t.prio === 1; })) {
+    if (bm.touch > 0 && touch > bm.touch * 1.3 && bm.tToQT > 0 && tToQT > bm.tToQT * 1.2) {
+      tips.push({ prio: 0, emoji: '⭐',
+        title: 'Top-Aktivit\u00e4t + Top-Qualifizierung',
+        detail: fmtD(touch) + ' Touch/Tag, T\u2192QT ' + Math.round(tToQT) + '% \u2014 beides deutlich \u00fcber Team. Methodik im Team-Meeting teilen.'
+      });
+    }
+    if (bm.wr > 0 && wr > bm.wr * 1.3) {
+      tips.push({ prio: 0, emoji: '🏆',
+        title: 'Beste Win Rate: ' + Math.round(wr) + '% (Team: ' + Math.round(bm.wr) + '%)',
+        detail: 'Was machst du anders in der Closing-Stage? Peer-Coaching anbieten.'
+      });
+    }
+  }
+
+  // END-Q URGENZ
+  if (isEndQ && forecast < 80) {
+    var p1 = tips.find(function(t){ return t.prio === 1; });
+    if (p1) p1.detail = '\u26a1 ' + p1.detail;
+  }
+
+  tips.sort(function(a,b){ return a.prio - b.prio; });
+  tips = tips.slice(0, 3);
+  if (!tips.length) {
+    tips.push({ prio: 0, emoji: '✅', title: 'Auf Kurs!',
+      detail: 'Alle KPIs im gr\u00fcnen Bereich. Peer-Coaching: hilf einem Kollegen mit der gr\u00f6\u00dften L\u00fccke.'
+    });
+  }
+  return tips;
+}
+
+  function coachingCard(r) {
+    var tips = coachingTips(r);
+    var h = '<div class="coaching-card"><div class="coaching-card-title">💡 Coaching-Empfehlungen</div>';
+    tips.forEach(function(tip) {
+      h += '<div class="coaching-tip">' +
+        '<div class="coaching-tip-emoji">' + tip.emoji + '</div>' +
+        '<div><div class="coaching-tip-title">' + tip.title + '</div>' +
+        '<div class="coaching-tip-detail">' + tip.detail + '</div></div></div>';
+    });
+    h += '</div>';
+    return h;
+  }
+
+  function svgSparkline(points, opts) {
+    opts = opts || {};
+    var W = 280, H = 130, pL = 28, pR = 14, pT = 12, pB = 24;
+    var iW = W - pL - pR, iH = H - pT - pB;
+    if (!points || points.length < 2) {
+      return '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:' + H + 'px"><text x="' + (W/2) + '" y="' + (H/2+4) + '" text-anchor="middle" fill="#9090b0" font-size="12" font-family="system-ui">Keine Daten</text></svg>';
+    }
+    var vals = points.map(function(p) { return p.value || 0; });
+    var maxV = opts.yMax != null ? opts.yMax : Math.max.apply(null, vals.concat([0.01]));
+    function xp(i) { return pL + (points.length > 1 ? (i / (points.length - 1)) * iW : iW / 2); }
+    function yp(v) { return pT + iH - (v / (maxV || 1)) * iH; }
+    var path = points.map(function(p, i) { return (i === 0 ? 'M' : 'L') + xp(i).toFixed(1) + ',' + yp(p.value || 0).toFixed(1); }).join(' ');
+    var fill = path + ' L' + xp(points.length-1).toFixed(1) + ',' + (pT+iH) + ' L' + pL + ',' + (pT+iH) + ' Z';
+    var gid = 'g' + Math.random().toString(36).substr(2, 5);
+    var c = opts.color || '#0078d4';
+    var pl = iW * 1.6;
+    var refHtml = '';
+    if (opts.refValue != null) {
+      var ry = yp(Math.min(opts.refValue, maxV * 1.05)).toFixed(1);
+      refHtml = '<line x1="' + pL + '" y1="' + ry + '" x2="' + (pL+iW) + '" y2="' + ry + '" stroke="#9090b0" stroke-width="1" stroke-dasharray="4,3" opacity="0.6"/><text x="' + (pL+iW+2) + '" y="' + (Number(ry)+4) + '" font-size="9" fill="#9090b0">BM</text>';
+    }
+    var line2Html = '';
+    if (opts.line2 && opts.line2.length >= 2) {
+      var p2 = opts.line2;
+      var maxV2 = opts.yMax != null ? opts.yMax : Math.max(maxV, Math.max.apply(null, p2.map(function(p) { return p.value || 0; })));
+      function yp2(v) { return pT + iH - (v / (maxV2 || 1)) * iH; }
+      var path2 = p2.map(function(p, i) { return (i===0?'M':'L') + xp(i).toFixed(1) + ',' + yp2(p.value||0).toFixed(1); }).join(' ');
+      line2Html = '<path d="' + path2 + '" fill="none" stroke="#9090b0" stroke-width="1.5" stroke-dasharray="5,3" opacity="0.7"/>';
+    }
+    var xLabels = '';
+    points.forEach(function(p, i) {
+      if (i === 0 || i === points.length-1 || points.length <= 6) {
+        xLabels += '<text x="' + xp(i).toFixed(1) + '" y="' + (H-5) + '" text-anchor="middle" font-size="9" fill="#9090b0" font-family="system-ui">' + (p.label||'') + '</text>';
+      }
+    });
+    var dots = points.map(function(p, i) {
+      return '<circle cx="' + xp(i).toFixed(1) + '" cy="' + yp(p.value||0).toFixed(1) + '" r="3" fill="' + c + '" opacity="0.9"><title>' + (p.label||'') + ': ' + (p.value||0) + '</title></circle>';
+    }).join('');
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:' + H + 'px" font-family="system-ui">' +
+      '<defs><linearGradient id="' + gid + '" x1="0" y1="0" x2="0" y2="1">' +
+        '<stop offset="0%" stop-color="' + c + '" stop-opacity="0.2"/>' +
+        '<stop offset="100%" stop-color="' + c + '" stop-opacity="0.01"/>' +
+      '</linearGradient></defs>' +
+      '<path d="' + fill + '" fill="url(#' + gid + ')"/>' +
+      refHtml + line2Html +
+      '<path d="' + path + '" fill="none" stroke="' + c + '" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="' + pl + '" stroke-dashoffset="' + pl + '" style="animation:sparkDraw 0.8s ease forwards"/>' +
+      '<text x="' + (pL-2) + '" y="' + (pT+5) + '" text-anchor="end" font-size="9" fill="#9090b0">' + Math.round(maxV) + '</text>' +
+      '<text x="' + (pL-2) + '" y="' + (pT+iH) + '" text-anchor="end" font-size="9" fill="#9090b0">0</text>' +
+      xLabels + dots + '</svg>';
+  }
+
+  function openSparkPopup(evt, repId, metric) {
+    var popup = document.getElementById('spark-popup');
+    if (!popup) return;
+    var wd = (_weeklyData && _weeklyData[repId]) || {};
+    var actData = wd.activity || [];
+    var bookData = wd.bookings || [];
+    var wlData = wd.winLoss || [];
+    var titles = {
+      touch:'Touch/Woche', calls:'Calls/Woche', mails:'Mails/Woche', oppPerDay:'Opps/Woche (L30)',
+      qt:'QualTouch/Woche', qc:'QualCalls/Woche', mtg:'Meetings/Woche',
+      tToQt:'Touch→QT % (Wochen)', qtToO:'QT→Opp % (Wochen)',
+      pilots:'Piloten (kumulativ)', bookings:'Bookings ARR (kumulativ)', wr:'Win Rate % (Wochen)'
+    };
+    var colors = {
+      touch:'#0078d4', calls:'#0078d4', mails:'#60a5fa', oppPerDay:'#f59e0b',
+      qt:'#10b981', qc:'#10b981', mtg:'#34d399',
+      tToQt:'#f59e0b', qtToO:'#f59e0b',
+      pilots:'#8b5cf6', bookings:'#059669', wr:'#dc2626'
+    };
+    var points = [], opts = { color: colors[metric] || '#0078d4' };
+    if (metric === 'touch') {
+      points = actData.map(function(w) { return { label: w.week, value: w.touch }; });
+    } else if (metric === 'calls') {
+      points = actData.map(function(w) { return { label: w.week, value: w.dials }; });
+    } else if (metric === 'mails') {
+      points = actData.map(function(w) { return { label: w.week, value: w.emails }; });
+    } else if (metric === 'qt') {
+      points = actData.map(function(w) { return { label: w.week, value: w.qual }; });
+    } else if (metric === 'qc') {
+      points = actData.map(function(w) { return { label: w.week, value: w.qualCalls }; });
+    } else if (metric === 'mtg') {
+      points = actData.map(function(w) { return { label: w.week, value: w.meetings }; });
+    } else if (metric === 'tToQt') {
+      points = actData.map(function(w) { return { label: w.week, value: w.touch > 0 ? Math.round(w.qual / w.touch * 100) : 0 }; });
+    } else if (metric === 'bookings') {
+      points = bookData.map(function(w) { return { label: w.week, value: w.cumArr }; });
+      var rr = _allReps.find(function(x) { return x.id === repId; }) || {};
+      if ((rr.bookingsTarget || 0) > 0 && bookData.length > 0) {
+        var tgt = rr.bookingsTarget;
+        opts.line2 = bookData.map(function(w, ii) { return { label: w.week, value: Math.round(tgt * (ii+1) / bookData.length) }; });
+      }
+    } else if (metric === 'pilots') {
+      points = bookData.map(function(w) { return { label: w.week, value: w.cumPilots }; });
+      var rr2 = _allReps.find(function(x) { return x.id === repId; }) || {};
+      if ((rr2.pilotenTarget || 0) > 0 && bookData.length > 0) {
+        var ptgt = rr2.pilotenTarget;
+        opts.line2 = bookData.map(function(w, ii) { return { label: w.week, value: Math.round(ptgt * (ii+1) / bookData.length) }; });
+      }
+    } else if (metric === 'oppPerDay') {
+      var od = wd.opps || [];
+      points = od.map(function(w) { return { label: w.week, value: w.opps }; });
+    } else if (metric === 'wr') {
+      points = wlData.map(function(w) { return { label: w.week, value: w.wr }; });
+      opts.refValue = 30;
+      opts.yMax = 100;
+    }
+    popup.querySelector('.spark-title').textContent = (titles[metric] || metric);
+    popup.querySelector('.spark-chart').innerHTML = svgSparkline(points, opts);
+    var el = evt.target.closest ? evt.target.closest('td') : evt.target;
+    var rect = el.getBoundingClientRect();
+    var pW = 340, left = Math.min(rect.left, window.innerWidth - pW - 10), top = rect.bottom + 6;
+    if (top + 165 > window.innerHeight) top = rect.top - 170;
+    popup.style.left = left + 'px';
+    popup.style.top  = top  + 'px';
+    // Trigger drilldown list update
+  var _DRILL_MAP = { touch:'touch', calls:'calls', mails:'mails', qt:'qt', qc:'qc', mtg:'mtg',
+    tToQt:'touch', bookings:'bookings', pilots:'pilots', wr:null, qtToO:null };
+  var _METRIC_TITLES = { touch:'Touch/Tag (L30)', calls:'Calls/Tag (L30)', mails:'Mails/Tag (L30)',
+    qt:'QualTouch/Tag (L30)', qc:'QualCalls/Tag (L30)', mtg:'Meetings/Tag (L30)',
+    bookings:'Bookings QTD', pilots:'Offene Piloten' };
+  var drillMetric = _DRILL_MAP.hasOwnProperty(metric) ? _DRILL_MAP[metric] : undefined;
+  if (drillMetric !== undefined) {
+    var repData = (_allReps || []).find(function(x) { return x.id === repId; }) || {};
+    if (typeof appsmith !== 'undefined') {
+      appsmith.updateModel({ __pendingDrilldown: {
+        metric: drillMetric,
+        repId: repId,
+        repName: repData.repName || repData.name || repId,
+        title: _METRIC_TITLES[drillMetric] || drillMetric,
+      }});
+      appsmith.triggerEvent('onDrilldown');
+    }
+  }
+  // Trigger drilldown list update
+  var _DRILL_MAP = { touch:'touch', calls:'calls', mails:'mails', qt:'qt', qc:'qc', mtg:'mtg',
+    tToQt:'touch', bookings:'bookings', pilots:'pilots', wr:null, qtToO:null };
+  var _METRIC_TITLES = { touch:'Touch/Tag (L30)', calls:'Calls/Tag (L30)', mails:'Mails/Tag (L30)',
+    qt:'QualTouch/Tag (L30)', qc:'QualCalls/Tag (L30)', mtg:'Meetings/Tag (L30)',
+    bookings:'Bookings QTD', pilots:'Offene Piloten' };
+  var drillMetric = _DRILL_MAP.hasOwnProperty(metric) ? _DRILL_MAP[metric] : undefined;
+  if (drillMetric !== undefined) {
+    var repData = (_allReps || []).find(function(x) { return x.id === repId; }) || {};
+    if (typeof appsmith !== 'undefined') {
+      appsmith.updateModel({ __pendingDrilldown: {
+        metric: drillMetric,
+        repId: repId,
+        repName: repData.repName || repData.name || repId,
+        title: _METRIC_TITLES[drillMetric] || drillMetric,
+      }});
+      appsmith.triggerEvent('onDrilldown');
+    }
+  }
+  popup.classList.add('open');
+    setTimeout(function() { document.addEventListener('click', _closeSparkOut, { once: true }); }, 20);
+  }
+
+  function _closeSparkOut(e) {
+    var p = document.getElementById('spark-popup');
+    if (p && !p.contains(e.target)) p.classList.remove('open');
+  }
+
+function closeSparkPopup() {
+    var p = document.getElementById('spark-popup');
+    if (p) p.classList.remove('open');
+  }
+
+  var _DRILLDOWN_TITLES = {
+    bookings:'Bookings QTD', pipeline:'Open Pipeline', stale:'Stale Pipeline',
+    overdue:'Überfällige Opps', won:'Gewonnene Deals', lost:'Verlorene Deals',
+    pilots:'Offene Piloten', selfservice:'Self-Service QTD',
+    touch:'Touch/Tag', calls:'Calls/Tag', mails:'Mails/Tag',
+    qt:'QualTouch/Tag', qc:'QualCalls/Tag', mtg:'Meetings/Tag',
+  };
+  function openDrilldown(repId, metric) {
+    var repData = (_allReps || []).find(function(x) { return x.id === repId; }) || {};
+    if (typeof appsmith !== 'undefined') {
+      appsmith.updateModel({ __pendingDrilldown: {
+        metric: metric,
+        repId: repId,
+        repName: repData.repName || repData.name || repId,
+        title: _DRILLDOWN_TITLES[metric] || metric,
+      }});
+      appsmith.triggerEvent('onDrilldown');
+    }
+  }
+
+  function render(model) {
+    populateQuarterDropdown(model);
+    var reps = model.reps || [];
+    _weeksElapsed = Math.max(1, model.weeksElapsed || 1);
+    _allReps = reps;
+    _staleList = model.staleList || [];
+    _wk = model.wk || {};
+    _weeklyData = model.weeklyData || {};
+    renderTable();
+    setTimeout(animateBars, 50);
+  }
+
+  function extract(m) {
+    if (!m) return { reps: [], weeksElapsed: 1, staleList: [], weeklyData: {} };
+    return {
+      reps:         Array.isArray(m) ? m : (m.reps || []),
+      weeksElapsed: m.weeksElapsed || 1,
+      staleList:    m.staleList || [],
+      wk:           m.wk || {},
+      weeklyData:   m.weeklyData || {},
+    };
+  }
+
+  function modelKey(m) {
+    return (m && m.reps || []).reduce(function(s,r){ return s+(r.bookingsTarget||0); }, 0);
+  }
+
+  // ── Progress Bar Helpers ──────────────────────────────────────────────────
+  function scHex(v) { return v>=80?'#58cc02':v>=60?'#ff9600':'#ff4b4b'; }
+  function animateBars() {
+    document.querySelectorAll('[data-bar]').forEach(function(el) {
+      el.style.width = el.getAttribute('data-bar');
+    });
+  }
+  var _fcOpen = false;
+  function toggleForecast() {
+    _fcOpen = !_fcOpen;
+    document.querySelectorAll('.fc-col').forEach(function(el) {
+      el.style.display = _fcOpen ? 'table-cell' : 'none';
+    });
+    var btn = document.getElementById('fc-toggle');
+    if (btn) btn.textContent = _fcOpen ? '－' : '＋';
+  }
+  (function() {
+    if (!document.getElementById('fc-style')) {
+      var s = document.createElement('style');
+      s.id = 'fc-style';
+      s.textContent = '.fc-col{display:none}';
+      document.head.appendChild(s);
+    }
+  })();
+
+  var _lastKey = null;
+  function poll() {
+    if (typeof appsmith !== 'undefined' && appsmith.model) {
+      var key = modelKey(appsmith.model);
+      if (key !== _lastKey) { _lastKey = key; render(extract(appsmith.model)); }
+    }
+    setTimeout(poll, 300);
+  }
+
+  if (typeof appsmith !== 'undefined') {
+    appsmith.onReady(function() { render(extract(appsmith.model)); poll(); });
+    appsmith.onModelChange(function(m) { render(extract(m)); });
+  } else {
+    render({ reps: [], weeksElapsed: 1, staleList: [] });
+  }
+</script>
+</body>
+</html>
