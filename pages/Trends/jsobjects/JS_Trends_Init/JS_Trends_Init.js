@@ -12,6 +12,11 @@ export default {
       Q_Trends_Meetings.run(),
       Q_Trends_WinLoss.run(),
       Q_Trends_OppsCreated.run(),
+      Q_Trends_Calls_Daily.run(),
+      Q_Trends_QualCalls_Daily.run(),
+      Q_Trends_Emails_Daily.run(),
+      Q_Trends_Meetings_Daily.run(),
+      Q_Trends_Opps_Daily.run(),
     ]);
     // Signal: zwingt Trends-Widget defaultModel zur Re-Evaluierung
     await storeValue('_trendsTs', Date.now());
