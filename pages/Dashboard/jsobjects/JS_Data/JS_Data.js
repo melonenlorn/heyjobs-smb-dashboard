@@ -127,6 +127,7 @@ export default {
         const ts = r.dateTimestampContractreceived__c || r.CloseDate;
         if (isThisWeek(ts)) { map[id].wonCW += 1; map[id].wonCWArr += arr; }
       } else {
+        if (r.RecordType && r.RecordType.Name === 'Second Purchase') return;
         if (isThisWeek(r.CloseDate)) { map[id].lostCW += 1; map[id].lostCWArr += arr; }
       }
     });
