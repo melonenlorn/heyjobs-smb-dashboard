@@ -115,14 +115,15 @@ export default {
   // ── Pipeline WoW movement per rep (won/lost this week from Q_WinLoss) ────
   pipelineMovementByRep() {
     const now = new Date();
-    const isThisWeek = (ts) => ts && Math.floor((now - new Date(ts)) / 86400000) < 7;
+    const _dow = (now.getDay() + 6) % 7; // 0=Mon, 6=Sun
+    const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - _dow);
+    const isThisWeek = (ts) => ts && new Date(ts) >= startOfWeek;
     const map = {};
     JS_Data._r('Q_WinLoss').forEach(r => {
       const id  = r.OwnerId;
       const arr = Number(r.Amount) || 0;
       if (!map[id]) map[id] = { wonCW: 0, wonCWArr: 0, lostCW: 0, lostCWArr: 0 };
       if (r.IsWon) {
-        if (r.RecordType && r.RecordType.Name === 'Customer Self Service') return;
         const ts = r.dateTimestampContractreceived__c || r.CloseDate;
         if (isThisWeek(ts)) { map[id].wonCW += 1; map[id].wonCWArr += arr; }
       } else {
