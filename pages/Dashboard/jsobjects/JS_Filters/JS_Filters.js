@@ -90,6 +90,15 @@ export default {
     const seen = {};
     seen[curr.label] = true;
 
+    // Vorheriges Quartal immer anzeigen (EoQ View)
+    try {
+      const prev = JS_Config.previousQuarterLabel();
+      if (prev && !seen[prev]) {
+        opts.push({ label: prev + ' · EoQ', value: prev });
+        seen[prev] = true;
+      }
+    } catch(e) {}
+
     // Aus git-committed JS_Snapshots
     try {
       const snapKeys = Object.keys(JS_Snapshots.data || {});
@@ -101,14 +110,14 @@ export default {
       }
     } catch(e) {}
 
-    // Aus Appsmith Store (auto-snapshots)
+    // Aus Appsmith Store (auto-snapshots) — ältere Quartale die nicht als EoQ gelistet sind
     try {
       const storeKeys = Object.keys(appsmith.store || {});
       for (var j = 0; j < storeKeys.length; j++) {
         if (storeKeys[j].startsWith('snap_')) {
           const label = storeKeys[j].replace('snap_', '').replace('_', ' ');
           if (!seen[label]) {
-            opts.push({ label: label, value: label });
+            opts.push({ label: label + ' · EoQ', value: label });
             seen[label] = true;
           }
         }
