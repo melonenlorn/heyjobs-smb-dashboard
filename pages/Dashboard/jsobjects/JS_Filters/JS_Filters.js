@@ -90,27 +90,21 @@ export default {
     const seen = {};
     seen[curr.label] = true;
 
-    // Vorheriges Quartal immer anzeigen (EoQ View)
+    // Vergangene Quartale aus QUARTER_PERIOD_IDS (statisch, immer verfügbar)
+    // Sortiert absteigend, nur Quartale vor dem aktuellen
     try {
-      const prev = JS_Config.previousQuarterLabel();
-      if (prev && !seen[prev]) {
-        opts.push({ label: prev + ' · EoQ', value: prev });
-        seen[prev] = true;
-      }
-    } catch(e) {}
-
-    // Aus git-committed JS_Snapshots
-    try {
-      const snapKeys = Object.keys(JS_Snapshots.data || {});
-      for (var i = 0; i < snapKeys.length; i++) {
-        if (!seen[snapKeys[i]]) {
-          opts.push({ label: snapKeys[i], value: snapKeys[i] });
-          seen[snapKeys[i]] = true;
+      const knownQs = Object.keys(JS_Config.QUARTER_PERIOD_IDS || {});
+      knownQs.sort().reverse();
+      for (var k = 0; k < knownQs.length; k++) {
+        const ql = knownQs[k];
+        if (!seen[ql] && ql < curr.label) {
+          opts.push({ label: ql + ' · EoQ', value: ql });
+          seen[ql] = true;
         }
       }
     } catch(e) {}
 
-    // Aus Appsmith Store (auto-snapshots) — ältere Quartale die nicht als EoQ gelistet sind
+    // Aus Appsmith Store (auto-snapshots) — Quartale die nicht in QUARTER_PERIOD_IDS sind
     try {
       const storeKeys = Object.keys(appsmith.store || {});
       for (var j = 0; j < storeKeys.length; j++) {
