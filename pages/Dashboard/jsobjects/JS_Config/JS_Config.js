@@ -23,16 +23,19 @@ export default {
   },
 
   // ── Manager-Registry je Quartal ───────────────────────────────────────────
+  // tlId: SF User ID des Team Leads (primäres Match-Kriterium in buildTeamsFromQuery)
+  // tlIdFallback: vorheriger Manager-ID für Übergangszeitraum (ICs noch nicht in SF umpgezogen)
   MANAGERS: {
     'Q1 2026': {
-      wolves: { label: 'Wolves', emoji: '🐺', tlName: 'Ferdinand Bärenfänger' },
-      titans: { label: 'Titans', emoji: '⚡', tlName: 'Jan Hinrichsen' },
-      locos:  { label: 'Locos',  emoji: '🔥', tlName: 'Philipp Bahls' },
+      wolves: { label: 'Wolves', emoji: '🐺', tlName: 'Ferdinand Bärenfänger', tlId: '005W7000006FAIDIA4' },
+      titans: { label: 'Titans', emoji: '⚡', tlName: 'Jan Hinrichsen',         tlId: '005W7000004kT37IAE' },
+      locos:  { label: 'Locos',  emoji: '🔥', tlName: 'Philipp Bahls',          tlId: '005W700000AXqN3IAL' },
     },
     'Q2 2026': {
-      wolves: { label: 'Wolves', emoji: '🐺', tlName: 'Mareike Schliesser' },
-      titans: { label: 'Titans', emoji: '⚡', tlName: 'Jan Hinrichsen' },
-      locos:  { label: 'Locos',  emoji: '🔥', tlName: 'Raven Schulz' },
+      wolves: { label: 'Wolves', emoji: '🐺', tlName: 'Mareike Schliesser',     tlId: '005W7000006FAIDIA4' },
+      titans: { label: 'Titans', emoji: '⚡', tlName: 'Jan Hinrichsen',         tlId: '005W7000004kT37IAE' },
+      // tlIdFallback: Locos ICs berichten in SF noch an Philipp bis zum SF-Umbau
+      locos:  { label: 'Locos',  emoji: '🔥', tlName: 'Raven Schulz',           tlId: '0059L000000IlsvQAC', tlIdFallback: '005W700000AXqN3IAL' },
     },
   },
 
@@ -171,16 +174,19 @@ export default {
     let records = [];
     try { records = queryData.output.records || []; } catch(e) { records = []; }
 
-    // Manager.Name → teamKey Mapping (role-based: ICs include Manager.Name in result)
+    // ManagerId → teamKey (primär: tlId + tlIdFallback; sekundär: tlName-Fallback)
+    const mgrIdToKey   = {};
     const mgrNameToKey = {};
     for (const [key, m] of Object.entries(mgrs)) {
+      if (m.tlId)         mgrIdToKey[m.tlId]         = key;
+      if (m.tlIdFallback) mgrIdToKey[m.tlIdFallback] = key;
       mgrNameToKey[m.tlName] = key;
     }
 
     // Teams initialisieren
     const teams = {};
     for (const [key, m] of Object.entries(mgrs)) {
-      teams[key] = { label: m.label, emoji: m.emoji || '', tlId: null, reps: [] };
+      teams[key] = { label: m.label, emoji: m.emoji || '', tlId: m.tlId || null, reps: [] };
     }
 
     const allIds = [], idToName = {}, newReps = [];
@@ -189,10 +195,10 @@ export default {
       // EXCLUDED_REPS überspringen
       if (JS_Config.EXCLUDED_REPS && JS_Config.EXCLUDED_REPS.indexOf(r.Name) !== -1) continue;
 
+      // ManagerId zuerst, dann Manager.Name als Fallback
       const mgrName = r.Manager ? r.Manager.Name : null;
-      const teamKey = mgrNameToKey[mgrName];
+      const teamKey = mgrIdToKey[r.ManagerId] || mgrNameToKey[mgrName];
       if (teamKey) {
-        teams[teamKey].tlId = r.ManagerId;
         teams[teamKey].reps.push(r.Name);
         allIds.push(r.Id);
         idToName[r.Id] = r.Name;
