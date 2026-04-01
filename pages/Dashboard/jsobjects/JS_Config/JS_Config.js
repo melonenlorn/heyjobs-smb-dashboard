@@ -13,8 +13,7 @@ export default {
     'Florian Dalis':        '2',
     'Robert Eismann':       '2',
     'Michael Wahl':         '1',
-    // Philipp's / Raven's team (Locos)
-    'Raven Schulz':         '3',
+    // Raven's team (Locos) — Raven selbst ist ab Q2 2026 Manager, kein IC mehr
     'Ebru Kizilkaya':       '3',
     'Marius Buga':          '3',
     'Marlies Konrad':       '3',
@@ -210,6 +209,22 @@ export default {
   // ── SOQL IN-Clause für Rep-IDs ────────────────────────────────────────────
   repIdInClause() {
     return JS_Config.ALL_REP_IDS.map(function(id) { return "'" + id + "'"; }).join(',');
+  },
+
+  // ── SOQL IN-Clause für Rep-IDs + Manager-IDs (für Forecast-Queries) ──────
+  repIdInClauseWithManagers() {
+    const managerIds = Object.values(JS_Config.TEAMS || {})
+      .map(function(t) { return t.tlId; }).filter(Boolean);
+    const allIds = (JS_Config.ALL_REP_IDS || []).concat(
+      managerIds.filter(function(id) { return (JS_Config.ALL_REP_IDS || []).indexOf(id) === -1; })
+    );
+    return allIds.map(function(id) { return "'" + id + "'"; }).join(',');
+  },
+
+  // ── SF ForecastingPeriod ID für aktives Quartal ───────────────────────────
+  getForecastPeriodId() {
+    const q = JS_Config.getActiveQuarter().label;
+    return JS_Config.QUARTER_PERIOD_IDS[q] || '';
   },
 
   // ── Helper: check if rep is in Ramp-up ───────────────────────────────────

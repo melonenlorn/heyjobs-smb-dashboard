@@ -18,10 +18,10 @@
                     "params": [
                         {
                             "key": "q",
-                            "value": "SELECT QuotaOwnerId, QuotaOwner.Name, QuotaAmount, StartDate FROM ForecastingQuota WHERE ForecastingTypeId = '0DbW7000000DaaLKAS' AND StartDate = 2026-04-01 AND QuotaOwnerId IN ('0059L000000JKG9QAO','005W7000000zmHSIAY','005W7000009NCmTIAW','0051v00000BjKXAAA3','0059L000000JKFlQAO','005W7000005SzP3IAK','005W7000005SxQTIA0','005W7000004vQt7IAE','005W7000005WNTFIA4','0059L000000IlsvQAC','0059L000000JKGDQA4','005W7000002HR5tIAG','005W70000048JRNIA2','005W7000003UovJIAS','0059L000000JKGOQA4','005W7000004vQptIAE')"
+                            "value": "SELECT QuotaOwnerId, QuotaOwner.Name, QuotaAmount, StartDate FROM ForecastingQuota WHERE ForecastingTypeId = '0DbW7000000DaaLKAS' AND StartDate = THIS_QUARTER AND QuotaOwnerId IN ({{JS_Config.repIdInClause()}})"
                         }
                     ],
-                    "path": "query/?q=SELECT QuotaOwnerId, QuotaOwner.Name, QuotaAmount, StartDate FROM ForecastingQuota WHERE ForecastingTypeId = '0DbW7000000DaaLKAS' AND StartDate = 2026-04-01 AND QuotaOwnerId IN ('0059L000000JKG9QAO','005W7000000zmHSIAY','005W7000009NCmTIAW','0051v00000BjKXAAA3','0059L000000JKFlQAO','005W7000005SzP3IAK','005W7000005SxQTIA0','005W7000004vQt7IAE','005W7000005WNTFIA4','0059L000000IlsvQAC','0059L000000JKGDQA4','005W7000002HR5tIAG','005W70000048JRNIA2','005W7000003UovJIAS','0059L000000JKGOQA4','005W7000004vQptIAE')"
+                    "path": "query/?q=SELECT QuotaOwnerId, QuotaOwner.Name, QuotaAmount, StartDate FROM ForecastingQuota WHERE ForecastingTypeId = '0DbW7000000DaaLKAS' AND StartDate = THIS_QUARTER AND QuotaOwnerId IN ({{JS_Config.repIdInClause()}})"
                 },
                 "command": "CUSTOM_ACTION"
             },
@@ -35,10 +35,17 @@
             "name": "SalesforceAPI",
             "pluginId": "salesforce"
         },
-        "dynamicBindingPathList": [],
+        "dynamicBindingPathList": [
+            {
+                "key": "actionConfiguration.formData.CUSTOM_ACTION.params[0].value"
+            },
+            {
+                "key": "actionConfiguration.formData.CUSTOM_ACTION.path"
+            }
+        ],
         "name": "Q_Quotas",
         "pageId": "Dashboard",
         "runBehaviour": "ON_PAGE_LOAD",
-        "userSetOnLoad": true
+        "userSetOnLoad": false
     }
 }
