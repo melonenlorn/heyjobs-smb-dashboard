@@ -252,6 +252,41 @@ export default {
 
   // ── 30-day rolling activity per rep (with off-day filtering) ────────────
   activityL30ByRep() {
+    // Pre-aggregated detection: Git-Snapshots (update_quarter.py) store L30 queries already
+    // summed per rep with no ActivityDate. Live queries and appsmith.store snaps have per-day
+    // records with ActivityDate. Handle both formats.
+    const callsData = JS_Data._r('Q_Calls_L30');
+    if (callsData.length > 0 && callsData[0].ActivityDate === undefined) {
+      // Pre-aggregated format: field "dialCount" (not "dials"), no ActivityDate.
+      // Q_Meetings_L30 has individual meeting records (each row = 1 meeting).
+      // Use fixed 22-workday denominator instead of active-day detection.
+      const L30_DAYS = 22;
+      const totals = {};
+      const init = id => { if (!totals[id]) totals[id] = { dials: 0, qc: 0, emails: 0, mtg: 0 }; return totals[id]; };
+      callsData.forEach(r                       => { init(r.OwnerId).dials  += Number(r.dialCount)  || 0; });
+      JS_Data._r('Q_QualCalls_L30').forEach(r  => { init(r.OwnerId).qc     += Number(r.qualCount)  || 0; });
+      JS_Data._r('Q_Emails_L30').forEach(r     => { init(r.OwnerId).emails += Number(r.emailCount) || 0; });
+      JS_Data._r('Q_Meetings_L30').forEach(r   => { init(r.OwnerId).mtg    += 1; });
+      const result = {};
+      Object.entries(totals).forEach(([id, d]) => {
+        const n = L30_DAYS;
+        const touch   = d.dials + d.emails;
+        const qualTch = d.qc + d.mtg;
+        result[id] = {
+          activeDays:        n,
+          touchPerDay:       Math.round(touch   / n * 10) / 10,
+          qualTouchPerDay:   Math.round(qualTch / n * 10) / 10,
+          dialsPerDay:       Math.round(d.dials  / n * 10) / 10,
+          emailsPerDay:      Math.round(d.emails / n * 10) / 10,
+          qualCallsPerDay:   Math.round(d.qc     / n * 10) / 10,
+          meetingsPerDay:    Math.round(d.mtg    / n * 10) / 10,
+          callTimeMinPerDay: 0,
+          touchToQual: touch > 0 ? Math.round((qualTch / touch) * 100) : 0,
+        };
+      });
+      return result;
+    }
+
     const dayMap = {};
     const ensure = (id, date) => {
       if (!dayMap[id]) dayMap[id] = {};
