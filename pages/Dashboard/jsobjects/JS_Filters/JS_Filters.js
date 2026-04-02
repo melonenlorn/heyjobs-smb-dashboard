@@ -90,29 +90,22 @@ export default {
     const seen = {};
     seen[curr.label] = true;
 
-    // Vergangene Quartale aus QUARTER_PERIOD_IDS (statisch, immer verfügbar)
-    // Sortiert absteigend, nur Quartale vor dem aktuellen
-    try {
-      const knownQs = Object.keys(JS_Config.QUARTER_PERIOD_IDS || {});
-      knownQs.sort().reverse();
-      for (var k = 0; k < knownQs.length; k++) {
-        const ql = knownQs[k];
-        if (!seen[ql] && ql < curr.label) {
-          opts.push({ label: ql + ' · EoQ', value: ql });
-          seen[ql] = true;
-        }
-      }
-    } catch(e) {}
+    // Vorheriges Quartal direkt aus curr berechnen — keine JS_Config-Abhängigkeit
+    var pq = curr.q - 1, py = curr.year;
+    if (pq < 1) { pq = 4; py -= 1; }
+    var prevLabel = 'Q' + pq + ' ' + py;
+    opts.push({ label: prevLabel + ' · EoQ', value: prevLabel });
+    seen[prevLabel] = true;
 
-    // Aus Appsmith Store (auto-snapshots) — Quartale die nicht in QUARTER_PERIOD_IDS sind
+    // Aus Appsmith Store (auto-snapshots) — ältere Quartale
     try {
-      const storeKeys = Object.keys(appsmith.store || {});
+      var storeKeys = Object.keys(appsmith.store || {});
       for (var j = 0; j < storeKeys.length; j++) {
         if (storeKeys[j].startsWith('snap_')) {
-          const label = storeKeys[j].replace('snap_', '').replace('_', ' ');
-          if (!seen[label]) {
-            opts.push({ label: label + ' · EoQ', value: label });
-            seen[label] = true;
+          var lbl = storeKeys[j].replace('snap_', '').replace('_', ' ');
+          if (!seen[lbl]) {
+            opts.push({ label: lbl + ' · EoQ', value: lbl });
+            seen[lbl] = true;
           }
         }
       }
