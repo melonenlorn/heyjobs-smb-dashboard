@@ -300,9 +300,8 @@ export default {
     const today   = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const start   = JS_Config._parseLocal(aq.start);
     const end     = JS_Config._parseLocal(aq.end);
-    const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
     const total   = JS_Config.werktage(start, end);
-    const done    = today <= start ? 0 : Math.min(JS_Config.werktage(start, yesterday), total);
+    const done    = today < start ? 0 : Math.min(JS_Config.werktage(start, today), total);
     const remaining = total - done;
     const daysToEnd = Math.ceil(Math.max(0, end - today) / 86400000);
     return { total, done, remaining, daysToEnd };
