@@ -581,6 +581,17 @@ export default {
     const l30WorkingDays    = 22;
     const oppL30Map         = {};
     JS_Data._r('Q_Opps_L30').forEach(r => { oppL30Map[r.OwnerId] = (oppL30Map[r.OwnerId] || 0) + 1; });
+    // Fallback für historische Quartale: Q_Opps_L30 ist leer → QTD-Daten verwenden.
+    // QT→O = total_opps / total_qt (Nenner kürzt sich raus, ist exakt).
+    // O/D  = total_opps / QTD-Arbeitstage.
+    const oppL30Empty = Object.keys(oppL30Map).length === 0;
+    const qtdOppMap = {}, qtdQtMap = {};
+    if (oppL30Empty) {
+      JS_Data._r('Q_Opps_Created_QTD').forEach(r => { qtdOppMap[r.CreatedById] = Number(r.oppCount) || 0; });
+      JS_Data._r('Q_QualCalls_QTD').forEach(r => { qtdQtMap[r.OwnerId] = (qtdQtMap[r.OwnerId] || 0) + (Number(r.qualCount) || 0); });
+      JS_Data._r('Q_Meetings_QTD').forEach(r => { qtdQtMap[r.OwnerId] = (qtdQtMap[r.OwnerId] || 0) + 1; });
+    }
+    const oppDenominator = oppL30Empty ? Math.max(1, JS_Config.getWerktageContext().total) : l30WorkingDays;
     const commitMap         = JS_Data.forecastCommitMap();
     const pilotCommitMap    = JS_Data.forecastCommitPilotsMap();
     const cwDaysElapsed = Math.max(1, [1,1,2,3,4,5,5][new Date().getDay()]);
@@ -674,8 +685,16 @@ export default {
         l90UniqueAccounts: (acctMap[id] && acctMap[id].total)            || 0,
         l90UniqueProspects:(acctMap[id] && acctMap[id].prospects)        || 0,
         l90UniqueBKs:      (acctMap[id] && acctMap[id].bks)              || 0,
-        l30OppPerDay:      Math.round((oppL30Map[id] || 0) / l30WorkingDays * 10) / 10,
+        l30OppPerDay:      (() => {
+          const opps = oppL30Empty ? (qtdOppMap[id] || 0) : (oppL30Map[id] || 0);
+          return Math.round(opps / oppDenominator * 10) / 10;
+        })(),
         l30QualToOpp:      (() => {
+          if (oppL30Empty) {
+            const totalOpps = qtdOppMap[id] || 0;
+            const totalQt   = qtdQtMap[id]  || 0;
+            return totalQt > 0 ? Math.round((totalOpps / totalQt) * 100) : 0;
+          }
           const qual = (l30Map[id] && l30Map[id].qualTouchPerDay) || 0;
           const opp  = Math.round((oppL30Map[id] || 0) / l30WorkingDays * 10) / 10;
           return qual > 0 ? Math.round((opp / qual) * 100) : 0;
