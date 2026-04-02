@@ -5,7 +5,7 @@
   "borderWidth": "1",
   "bottomRow": 115,
   "boxShadow": "{{appsmith.theme.boxShadow.appBoxShadow}}",
-  "defaultModel": "{{(function(){var _r=appsmith.store._refreshTs;var t=appsmith.store.filterTeam;return {reps: JS_Data.dashboardReps(), weeksElapsed: Math.max(1, Math.round(JS_Config.getQuarterProgress() * 13)), staleList: JS_Data.staleList(), wk: JS_Config.getWerktageContext(), weeklyData: (function(){try{return JS_Data.weeklyBuckets();}catch(e){return {};}})(), quarterOptions: JS_Filters.quarterOptions(), selectedQuarter: JS_Filters.getQuarter(), isHistorical: !JS_Config.getActiveQuarter().isCurrent, quarterLabel: JS_Config.getActiveQuarter().label};})()}}",
+  "defaultModel": "{{(function(){var _r=appsmith.store._refreshTs;var t=appsmith.store.filterTeam;return {reps: JS_Data.dashboardReps(), weeksElapsed: Math.max(1, Math.round(JS_Config.getQuarterProgress() * 13)), staleList: JS_Data.staleList(), wk: JS_Config.getWerktageContext(), weeklyData: (function(){try{return JS_Data.weeklyBuckets();}catch(e){return {};}})(), quarterOptions: JS_Filters.quarterOptions(), selectedQuarter: JS_Filters.getQuarter(), isHistorical: !JS_Config.getActiveQuarter().isCurrent, quarterLabel: JS_Config.getActiveQuarter().label, pendingQuarter: null};})()}}",
   "dynamicBindingPathList": [
     {
       "key": "theme"
