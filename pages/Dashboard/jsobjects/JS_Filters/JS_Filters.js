@@ -85,19 +85,28 @@ export default {
   },
 
   quarterOptions() {
-    const curr = JS_Config.currentQuarter();
-    const opts = [{ label: 'Laufendes Quartal (' + curr.label + ')', value: curr.label }];
-    const seen = {};
-    seen[curr.label] = true;
+    // Aktuelles Quartal direkt aus Datum berechnen — kein JS_Config nötig
+    var now = new Date();
+    var q   = Math.floor(now.getMonth() / 3) + 1;
+    var y   = now.getFullYear();
+    var currLabel = 'Q' + q + ' ' + y;
 
-    // Vorheriges Quartal direkt aus curr berechnen — keine JS_Config-Abhängigkeit
-    var pq = curr.q - 1, py = curr.year;
+    // Label aus JS_Config wenn verfügbar (für Konsistenz), sonst eigene Berechnung
+    try { var cl = JS_Config.currentQuarter().label; if (cl) currLabel = cl; } catch(e) {}
+
+    var opts = [{ label: 'Laufendes Quartal (' + currLabel + ')', value: currLabel }];
+    var seen = {}; seen[currLabel] = true;
+
+    // Vorheriges Quartal aus new Date() — kein JS_Config Proxy-Problem
+    var pq = q - 1, py = y;
     if (pq < 1) { pq = 4; py -= 1; }
     var prevLabel = 'Q' + pq + ' ' + py;
-    opts.push({ label: prevLabel + ' · EoQ', value: prevLabel });
-    seen[prevLabel] = true;
+    if (!seen[prevLabel]) {
+      opts.push({ label: prevLabel + ' · EoQ', value: prevLabel });
+      seen[prevLabel] = true;
+    }
 
-    // Aus Appsmith Store (auto-snapshots) — ältere Quartale
+    // Aus Appsmith Store (weitere historische Quartale)
     try {
       var storeKeys = Object.keys(appsmith.store || {});
       for (var j = 0; j < storeKeys.length; j++) {
