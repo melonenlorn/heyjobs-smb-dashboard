@@ -85,42 +85,48 @@ export default {
   },
 
   quarterOptions() {
-    // Aktuelles Quartal direkt aus Datum berechnen — kein JS_Config nötig
-    var now = new Date();
-    var q   = Math.floor(now.getMonth() / 3) + 1;
-    var y   = now.getFullYear();
-    var currLabel = 'Q' + q + ' ' + y;
+  const now = new Date();
+  const currentQuarter = Math.floor(now.getMonth() / 3) + 1;
+  const currentYear = now.getFullYear();
 
-    // Label aus JS_Config wenn verfügbar (für Konsistenz), sonst eigene Berechnung
-    try { var cl = JS_Config.currentQuarter().label; if (cl) currLabel = cl; } catch(e) {}
+  // Determine current quarter label (prefer JS_Config if available)
+  let currentLabel = `Q${currentQuarter} ${currentYear}`;
+  try {
+    const configLabel = JS_Config.currentQuarter().label;
+    if (configLabel) currentLabel = configLabel;
+  } catch (e) {}
 
-    var opts = [{ label: 'Laufendes Quartal (' + currLabel + ')', value: currLabel }];
-    var seen = {}; seen[currLabel] = true;
+  // Initialize options with the current quarter
+  const opts = [{ label: `Laufendes Quartal (${currentLabel})`, value: currentLabel }];
+  const seen = { [currentLabel]: true };
 
-    // Vorheriges Quartal aus new Date() — kein JS_Config Proxy-Problem
-    var pq = q - 1, py = y;
-    if (pq < 1) { pq = 4; py -= 1; }
-    var prevLabel = 'Q' + pq + ' ' + py;
-    if (!seen[prevLabel]) {
-      opts.push({ label: prevLabel + ' · EoQ', value: prevLabel });
-      seen[prevLabel] = true;
-    }
+  // Add previous quarter
+  const prevQuarter = currentQuarter - 1 < 1 ? 4 : currentQuarter - 1;
+  const prevYear = currentQuarter - 1 < 1 ? currentYear - 1 : currentYear;
+  const prevLabel = `Q${prevQuarter} ${prevYear}`;
 
-    // Aus Appsmith Store (weitere historische Quartale)
-    try {
-      var storeKeys = Object.keys(appsmith.store || {});
-      for (var j = 0; j < storeKeys.length; j++) {
-        if (storeKeys[j].startsWith('snap_')) {
-          var lbl = storeKeys[j].replace('snap_', '').replace('_', ' ');
-          if (!seen[lbl]) {
-            opts.push({ label: lbl + ' · EoQ', value: lbl });
-            seen[lbl] = true;
-          }
+  if (!seen[prevLabel]) {
+    opts.push({ label: `${prevLabel} · EoQ`, value: prevLabel });
+    seen[prevLabel] = true;
+  }
+
+  // Add any stored snapshots as additional quarter options
+  try {
+    const storeKeys = Object.keys(appsmith.store || {});
+
+    for (const key of storeKeys) {
+      if (key.startsWith('snap_')) {
+        const label = key.replace('snap_', '').replace('_', ' ');
+
+        if (!seen[label]) {
+          opts.push({ label: `${label} · EoQ`, value: label });
+          seen[label] = true;
         }
       }
-    } catch(e) {}
+    }
+  } catch (e) {}
 
-    return opts;
-  },
+  return opts;
+},
 
 }
