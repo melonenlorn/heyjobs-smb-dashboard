@@ -3,12 +3,16 @@ export default {
   // ── Run dashboard init on page load ──────────────────────────────────────
   // Mark this function as "Run on page load" in Appsmith.
   async initDashboard() {
-    // Phase 1: Team-Struktur dynamisch aus Salesforce laden (blockierend)
-    const teamQueryData = await Q_Users_Team.run();
-    JS_Config.buildTeamsFromQuery(teamQueryData);
+    // Phase 1: Team-Struktur aus Salesforce laden — nur für laufendes Quartal nötig.
+    // Für historische Quartale: statische Defaults (JS_Config.TEAMS/ALL_REP_IDS/ID_TO_NAME) verwenden,
+    // weil historische Manager-IDs nicht mehr mit aktuellen SF-Daten übereinstimmen.
+    const aq = JS_Config.getActiveQuarter();
+    if (aq.isCurrent) {
+      const teamQueryData = await Q_Users_Team.run();
+      JS_Config.buildTeamsFromQuery(teamQueryData);
+    }
 
     // Phase 2: Historisches Quartal → Daten kommen aus Snapshot (kein Query nötig)
-    const aq = JS_Config.getActiveQuarter();
     if (!aq.isCurrent) {
       await storeValue('_refreshTs', Date.now());
       return;
