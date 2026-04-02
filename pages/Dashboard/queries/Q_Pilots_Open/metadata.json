@@ -45,7 +45,7 @@
         ],
         "name": "Q_Pilots_Open",
         "pageId": "Dashboard",
-        "runBehaviour": "ON_PAGE_LOAD",
+        "runBehaviour": "MANUAL",
         "userSetOnLoad": false
     }
 }

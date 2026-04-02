@@ -3,7 +3,7 @@ export default {
   // ── Run dashboard init on page load ──────────────────────────────────────
   // Mark this function as "Run on page load" in Appsmith.
   async initDashboard() {
-    // Phase 1: Team-Struktur dynamisch aus Salesforce laden
+    // Phase 1: Team-Struktur dynamisch aus Salesforce laden (blockierend)
     const teamQueryData = await Q_Users_Team.run();
     JS_Config.buildTeamsFromQuery(teamQueryData);
 
@@ -14,7 +14,7 @@ export default {
       return;
     }
 
-    // Phase 3: Laufendes Quartal → alle Daten-Queries parallel
+    // Phase 3a: Kritische Queries parallel — alle Daten für die Hauptkarten
     await Promise.allSettled([
       Q_Bookings_QTD.run(),
       Q_SelfService_QTD.run(),
@@ -26,8 +26,23 @@ export default {
       Q_QualCalls_QTD.run(),
       Q_Emails_QTD.run(),
       Q_Meetings_QTD.run(),
+      Q_Demos_QTD.run(),
       Q_Quotas.run(),
       Q_Opps_Created_QTD.run(),
+      Q_PilotOpps_QTD.run(),
+      Q_Overdue_Pipeline.run(),
+      Q_Overdue_Accounts.run(),
+      // eslint-disable-next-line no-undef
+      (typeof Q_Forecast_Commit !== 'undefined' ? Q_Forecast_Commit.run() : Promise.resolve()),
+      // eslint-disable-next-line no-undef
+      (typeof Q_Forecast_Commit_Pilots !== 'undefined' ? Q_Forecast_Commit_Pilots.run() : Promise.resolve()),
+    ]);
+
+    // Sofort rendern — Hauptkarten jetzt sichtbar
+    await storeValue('_refreshTs', Date.now());
+
+    // Phase 3b: Trend-Queries im Hintergrund (CW/PW/L30/L90 — nicht für Hauptkarten nötig)
+    await Promise.allSettled([
       Q_Calls_CW.run(),
       Q_Calls_PW.run(),
       Q_QualCalls_CW.run(),
@@ -36,19 +51,11 @@ export default {
       Q_Emails_PW.run(),
       Q_Meetings_CW.run(),
       Q_Meetings_PW.run(),
-      Q_Demos_QTD.run(),
       Q_Calls_L30.run(),
       Q_QualCalls_L30.run(),
       Q_Emails_L30.run(),
       Q_Meetings_L30.run(),
       Q_Opps_L30.run(),
-      Q_Overdue_Pipeline.run(),
-      Q_Overdue_Accounts.run(),
-      Q_PilotOpps_QTD.run(),
-      // eslint-disable-next-line no-undef
-      (typeof Q_Forecast_Commit !== 'undefined' ? Q_Forecast_Commit.run() : Promise.resolve()),
-      // eslint-disable-next-line no-undef
-      (typeof Q_Forecast_Commit_Pilots !== 'undefined' ? Q_Forecast_Commit_Pilots.run() : Promise.resolve()),
       // eslint-disable-next-line no-undef
       (typeof Q_Tasks_L90 !== 'undefined' ? Q_Tasks_L90.run() : Promise.resolve()),
       // eslint-disable-next-line no-undef
@@ -59,24 +66,29 @@ export default {
       (typeof Q_Event_BK_L90 !== 'undefined' ? Q_Event_BK_L90.run() : Promise.resolve()),
     ]);
 
-    // Phase 4: Auto-Snapshot — immer nach Query-Load speichern (überschreibt vorherigen)
-    // → beim letzten Öffnen im Quartal ist der Snapshot immer aktuell gespeichert
+    // Phase 4: Auto-Snapshot + finales Re-Render (jetzt auch Trenddaten sichtbar)
     await JS_Init.saveSnapshot();
-
-    // Refresh-Signal: zwingt Appsmith defaultModel-Bindings zur Re-Evaluierung
     await storeValue('_refreshTs', Date.now());
   },
 
   // ── Snapshot für aktuelles Quartal speichern ──────────────────────────────
   // Wird automatisch nach jedem Query-Load aufgerufen — kein manueller Button nötig.
   // Speichert Rohdaten aller Queries persistent im Appsmith Store (localStorage).
+  // Wird übersprungen wenn der letzte Snapshot < 30 Min alt ist (schnellere Folge-Loads).
   async saveSnapshot() {
     const aq  = JS_Config.getActiveQuarter();
     const key = 'snap_' + aq.label.replace(' ', '_');
 
+    // Cache: Skip wenn Snapshot < 30 Min alt
+    const existing = appsmith.store[key];
+    if (existing && existing.savedAt && (Date.now() - existing.savedAt) < 30 * 60 * 1000) {
+      return;
+    }
+
     const snapshot = {
       quarter:      aq.label,
       snapshotDate: JS_Config._localStr(new Date()),
+      savedAt:      Date.now(),
       version:      2,
       queries: {
         Q_Bookings_QTD:     JS_Data._r('Q_Bookings_QTD'),

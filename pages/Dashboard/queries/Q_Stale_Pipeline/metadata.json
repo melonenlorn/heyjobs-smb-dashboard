@@ -45,7 +45,7 @@
         ],
         "name": "Q_Stale_Pipeline",
         "pageId": "Dashboard",
-        "runBehaviour": "ON_PAGE_LOAD",
+        "runBehaviour": "MANUAL",
         "userSetOnLoad": false
     }
 }
