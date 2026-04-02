@@ -12,7 +12,7 @@ export default {
       // 1. Git-committed snapshot (update_quarter.py)
       try {
         const snap = JS_Snapshots.data[aq.label];
-        if (snap && snap.queries && snap.queries[queryName]) {
+        if (snap && snap.queries && snap.queries[queryName] && snap.queries[queryName].length > 0) {
           return snap.queries[queryName];
         }
       } catch(e) {}
@@ -20,7 +20,7 @@ export default {
       try {
         const snapKey = 'snap_' + aq.label.replace(' ', '_');
         const snap = appsmith.store[snapKey];
-        if (snap && snap.queries && snap.queries[queryName]) {
+        if (snap && snap.queries && snap.queries[queryName] && snap.queries[queryName].length > 0) {
           return snap.queries[queryName];
         }
       } catch(e) {}
