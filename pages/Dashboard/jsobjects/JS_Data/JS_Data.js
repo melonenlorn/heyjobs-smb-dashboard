@@ -579,19 +579,28 @@ export default {
     const overdueMap        = JS_Data.overdueByRep();
     const overdueAccMap     = JS_Data.overdueAccountsByRep();
     const l30WorkingDays    = 22;
-    const oppL30Map         = {};
-    JS_Data._r('Q_Opps_L30').forEach(r => { oppL30Map[r.OwnerId] = (oppL30Map[r.OwnerId] || 0) + 1; });
+    // oppL30Map: total opps per rep; oppDaysMap: unique opp-creation dates per rep (live mode)
+    const oppL30Map  = {};
+    const oppDaysMap = {};
+    JS_Data._r('Q_Opps_L30').forEach(r => {
+      oppL30Map[r.OwnerId] = (oppL30Map[r.OwnerId] || 0) + 1;
+      if (!oppDaysMap[r.OwnerId]) oppDaysMap[r.OwnerId] = new Set();
+      oppDaysMap[r.OwnerId].add((r.CreatedDate || '').substring(0, 10));
+    });
     // Fallback für historische Quartale: Q_Opps_L30 ist leer → QTD-Daten verwenden.
+    // O/D  = QTD-Opps / unique Meeting-Tage (bester verfügbarer Proxy für aktive Verkaufstage).
     // QT→O = total_opps / total_qt (Nenner kürzt sich raus, ist exakt).
-    // O/D  = total_opps / QTD-Arbeitstage.
     const oppL30Empty = Object.keys(oppL30Map).length === 0;
-    const qtdOppMap = {}, qtdQtMap = {};
+    const qtdOppMap = {}, qtdQtMap = {}, mtgDaysMap = {};
     if (oppL30Empty) {
       JS_Data._r('Q_Opps_Created_QTD').forEach(r => { qtdOppMap[r.CreatedById] = Number(r.oppCount) || 0; });
       JS_Data._r('Q_QualCalls_QTD').forEach(r => { qtdQtMap[r.OwnerId] = (qtdQtMap[r.OwnerId] || 0) + (Number(r.qualCount) || 0); });
-      JS_Data._r('Q_Meetings_QTD').forEach(r => { qtdQtMap[r.OwnerId] = (qtdQtMap[r.OwnerId] || 0) + 1; });
+      JS_Data._r('Q_Meetings_QTD').forEach(r => {
+        qtdQtMap[r.OwnerId] = (qtdQtMap[r.OwnerId] || 0) + 1;
+        if (!mtgDaysMap[r.OwnerId]) mtgDaysMap[r.OwnerId] = new Set();
+        if (r.ActivityDate) mtgDaysMap[r.OwnerId].add(r.ActivityDate);
+      });
     }
-    const oppDenominator = oppL30Empty ? Math.max(1, JS_Config.getWerktageContext().total) : l30WorkingDays;
     const commitMap         = JS_Data.forecastCommitMap();
     const pilotCommitMap    = JS_Data.forecastCommitPilotsMap();
     const cwDaysElapsed = Math.max(1, [1,1,2,3,4,5,5][new Date().getDay()]);
@@ -686,8 +695,19 @@ export default {
         l90UniqueProspects:(acctMap[id] && acctMap[id].prospects)        || 0,
         l90UniqueBKs:      (acctMap[id] && acctMap[id].bks)              || 0,
         l30OppPerDay:      (() => {
-          const opps = oppL30Empty ? (qtdOppMap[id] || 0) : (oppL30Map[id] || 0);
-          return Math.round(opps / oppDenominator * 10) / 10;
+          if (oppL30Empty) {
+            // Historisch: QTD-Opps / unique Meeting-Tage (Proxy für aktive Verkaufstage).
+            // Fallback auf QTD-Arbeitstage wenn keine Meeting-Daten.
+            const opps = qtdOppMap[id] || 0;
+            const days = mtgDaysMap[id] && mtgDaysMap[id].size > 0
+              ? mtgDaysMap[id].size
+              : Math.max(1, JS_Config.getWerktageContext().total);
+            return Math.round(opps / days * 10) / 10;
+          }
+          // Live: Opps / unique Opp-Erstellungstage
+          const opps = oppL30Map[id] || 0;
+          const days = oppDaysMap[id] && oppDaysMap[id].size > 0 ? oppDaysMap[id].size : l30WorkingDays;
+          return Math.round(opps / days * 10) / 10;
         })(),
         l30QualToOpp:      (() => {
           if (oppL30Empty) {
