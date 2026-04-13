@@ -3,7 +3,7 @@
   "borderColor": "#E0DEDE",
   "borderRadius": "{{appsmith.theme.borderRadius.appBorderRadius}}",
   "borderWidth": "1",
-  "bottomRow": 115,
+  "bottomRow": 139,
   "boxShadow": "{{appsmith.theme.boxShadow.appBoxShadow}}",
   "defaultModel": "{{(function(){var _r=appsmith.store._refreshTs;var t=appsmith.store.filterTeam;return {reps: JS_Data.dashboardReps(), weeksElapsed: Math.max(1, Math.round(JS_Config.getQuarterProgress() * 13)), staleList: JS_Data.staleList(), wk: JS_Config.getWerktageContext(), weeklyData: (function(){try{return JS_Data.weeklyBuckets();}catch(e){return {};}})(), quarterOptions: JS_Filters.quarterOptions(), selectedQuarter: JS_Filters.getQuarter(), isHistorical: !JS_Config.getActiveQuarter().isCurrent, quarterLabel: JS_Config.getActiveQuarter().label, pendingQuarter: null};})()}}",
   "dynamicBindingPathList": [
@@ -77,6 +77,10 @@
   "onFilterWolves": "{{JS_Filters.setTeam('wolves');}}",
   "onRefresh": "{{JS_Init.initDashboard();}}",
   "onResetClick": "{{showAlert('Successfully reset!!', '');}}",
+  "onSelectQ1_2026": "{{JS_Filters.setQuarter('Q1 2026')}}",
+  "onSelectQ2_2026": "{{JS_Filters.setQuarter('Q2 2026')}}",
+  "onSelectQ3_2026": "{{JS_Filters.setQuarter('Q3 2026')}}",
+  "onSelectQ4_2026": "{{JS_Filters.setQuarter('Q4 2026')}}",
   "parentColumnSpace": 13.1875,
   "parentId": "0",
   "parentRowSpace": 10,
@@ -88,7 +92,7 @@
     "js": "appsmith.onReady(() => {\n  if (typeof poll === 'function') {\n    poll();\n  }\n});\n(function () {\n  var tip = document.createElement('div');\n  tip.className = 'ctip';\n  document.body.appendChild(tip);\n  document.body.addEventListener('mouseenter', function (e) {\n    var el = e.target.closest('[title]');\n    if (!el) return;\n    el.dataset.tip = el.getAttribute('title');\n    el.removeAttribute('title');\n    tip.textContent = el.dataset.tip;\n    tip.classList.add('show');\n  }, true);\n  document.body.addEventListener('mousemove', function (e) {\n    if (!tip.classList.contains('show')) return;\n    var x = e.clientX + 12,\n      y = e.clientY + 12;\n    if (x + tip.offsetWidth > window.innerWidth) x = e.clientX - tip.offsetWidth - 8;\n    if (y + tip.offsetHeight > window.innerHeight) y = e.clientY - tip.offsetHeight - 8;\n    tip.style.left = x + 'px';\n    tip.style.top = y + 'px';\n  }, true);\n  document.body.addEventListener('mouseleave', function (e) {\n    var el = e.target;\n    if (!el.dataset || !el.dataset.tip) return;\n    el.setAttribute('title', el.dataset.tip);\n    delete el.dataset.tip;\n    tip.classList.remove('show');\n  }, true);\n})();"
   },
   "theme": "{{appsmith.theme}}",
-  "topRow": 50,
+  "topRow": 74,
   "type": "CUSTOM_WIDGET",
   "uncompiledSrcDoc": {
     "css": ".app {\n  height: calc(var(--appsmith-ui-height) * 1px);\n  width: calc(var(--appsmith-ui-width) * 1px);\n  justify-content: center;\n  border-radius: var(--appsmith-theme-borderRadius);\n  box-shadow: var(--appsmith-theme-boxShadow);\n  padding: 29px 25px;\n  box-sizing: border-box;\n  font-family: system-ui;\n  background: #fff;\n}\n\n.tip-container {\n  margin-bottom: 20px;\n  font-size: 14px;\n  line-height: 1.571429;\n}\n\n.tip-container h2 {\n  margin-bottom: 20px;\n  font-size: 16px;\n  font-weight: 700;\n}\n\n.tip-header {\n  display: flex;\n  justify-content: space-between;\n  align-items: baseline;\n  margin-bottom: 9px;\n}\n\n.tip-header div {\n  color: #999;\n}\n\n.content {\n  white-space: pre-wrap;\n  word-break: break-word;\n  font-size: 14px;\n  line-height: 1.571429;\n}\n\n.button-container {\n  text-align: right;\n  padding-top: 4px;\n}\n\n.button-container button {\n  margin: 0 10px;\n  cursor: pointer;\n  border-radius: var(--appsmith-theme-borderRadius);\n  padding: 6px 16px;\n  background: none;\n  height: auto;\n  transition: all 0.3s ease;\n}\n\n.button-container button.primary {\n  background: var(--appsmith-theme-primaryColor) !important;\n  color: #fff;\n  border: 1px solid var(--appsmith-theme-primaryColor) !important;\n}\n\n.button-container button.reset {\n  border: 1px solid #999;\n  color: #999;\n  outline: none;\n  box-shadow: none;\n}\n\n.button-container button.reset:hover:not(:disabled) {\n  color: var(--appsmith-theme-primaryColor);\n  border-color: var(--appsmith-theme-primaryColor);\n}\n\n.button-container button.reset:disabled {\n  cursor: default;\n}\n.sub-note { font-size: 10px; color: var(--text-3); margin-top: 5px; }\n.ctip{position:fixed;z-index:99999;pointer-events:none;background:#222244;color:#f0f0f5;font-size:12px;font-family:var(--font,'Nunito',sans-serif);padding:6px 12px;border-radius:8px;max-width:320px;word-wrap:break-word;opacity:0;transition:opacity .15s;line-height:1.4;box-shadow:0 2px 8px rgba(0,0,0,.25)}\n.ctip.show{opacity:1}",
@@ -97,9 +101,5 @@
   },
   "version": 1,
   "widgetId": "rep_table_widget1",
-  "widgetName": "Rep_Table",
-  "onSelectQ1_2026": "{{JS_Filters.setQuarter('Q1 2026')}}",
-  "onSelectQ2_2026": "{{JS_Filters.setQuarter('Q2 2026')}}",
-  "onSelectQ3_2026": "{{JS_Filters.setQuarter('Q3 2026')}}",
-  "onSelectQ4_2026": "{{JS_Filters.setQuarter('Q4 2026')}}"
+  "widgetName": "Rep_Table"
 }
