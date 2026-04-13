@@ -1210,7 +1210,7 @@ export default {
     const teamBreakdown = {};
     ['wolves', 'titans', 'locos'].forEach(function(teamKey) {
       const t = JS_Config.TEAMS[teamKey] || {};
-      const tReps   = reps.filter(r => r.team === teamKey);
+      const tReps   = reps.filter(r => (t.reps || []).includes(r.repName));
       const tCount  = Math.max(1, tReps.length);
       const tSum    = f => tReps.reduce((s, r) => s + (r[f] || 0), 0);
       const tBkARR  = tSum('bookingsARR');
@@ -1247,14 +1247,17 @@ export default {
     const yesterday = (() => {
       if (!aq.isCurrent) return null;
       const now = new Date();
-      const yd  = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
-      const dow = yd.getDay();
-      if (dow === 0)      yd.setDate(yd.getDate() - 2);  // Sonntag → Freitag
-      else if (dow === 6) yd.setDate(yd.getDate() - 1);  // Samstag → Freitag
-      const ydStr      = yd.toISOString().substring(0, 10);
-      const l7End      = new Date(ydStr);
-      const l7StartD   = new Date(ydStr); l7StartD.setDate(l7StartD.getDate() - 6);
-      const l7StartStr = l7StartD.toISOString().substring(0, 10);
+      const toLocal = d => [d.getFullYear(), String(d.getMonth()+1).padStart(2,'0'), String(d.getDate()).padStart(2,'0')].join('-');
+      const holidays = new Set(JS_Config.QUARTER_HOLIDAYS[aq.label] || []);
+      const yd = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+      for (let i = 0; i < 10; i++) {
+        const dow = yd.getDay();
+        if (dow !== 0 && dow !== 6 && !holidays.has(toLocal(yd))) break;
+        yd.setDate(yd.getDate() - 1);
+      }
+      const ydStr      = toLocal(yd);
+      const l7StartD   = new Date(yd.getFullYear(), yd.getMonth(), yd.getDate() - 6);
+      const l7StartStr = toLocal(l7StartD);
       const isYd = d => (d || '').substring(0, 10) === ydStr;
       const isL7 = d => { const s = (d || '').substring(0, 10); return s >= l7StartStr && s <= ydStr; };
 
