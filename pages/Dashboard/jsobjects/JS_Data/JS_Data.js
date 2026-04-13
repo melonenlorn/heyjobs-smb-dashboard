@@ -618,9 +618,12 @@ export default {
                          || (bookings[id] && bookings[id].name)
                          || (JS_Data._r('Q_Users_Team').find(u => u.Id === id) || {}).Name
                          || id;
-      const bookingsARR  = (bookings[id] && bookings[id].arr)  || 0;
-      const closedPilots = (bookings[id] && bookings[id].pilots) || 0;
-      const selfSvcARR   = (selfSvc[id]  && selfSvc[id].arr)   || 0;
+      const bookingsARR   = (bookings[id] && bookings[id].arr)   || 0;
+      const closedPilots  = (bookings[id] && bookings[id].pilots) || 0;
+      const bookingsDeals = (bookings[id] && bookings[id].deals)  || 0;
+      const selfSvcARR    = (selfSvc[id]  && selfSvc[id].arr)    || 0;
+      const selfSvcDeals  = (selfSvc[id]  && selfSvc[id].deals)  || 0;
+      const totalDeals    = bookingsDeals + selfSvcDeals;
       const pipelineARR  = (pipeline[id] && pipeline[id].arr)  || 0;
       const totalOpen    = (pipeline[id] && pipeline[id].opps) || 0;
       // Bug 2 fix: use closed pilot deals (from bookings), not open pipeline
@@ -658,7 +661,7 @@ export default {
         closedPilots,
         wonCount,    // Bug 1 fix: expose for heroKPIs() sum
         lostCount,   // Bug 1 fix: expose for heroKPIs() sum
-        avgDealSize: wonCount > 0 ? Math.round((bookingsARR + selfSvcARR) / wonCount) : 0,
+        avgDealSize: totalDeals > 0 ? Math.round((bookingsARR + selfSvcARR) / totalDeals) : 0,
         dials:     (calls[id]    && calls[id].dials)    || 0,
         qualCalls: (calls[id]    && calls[id].qualCalls) || 0,
         meetings:  meetings[id]  || 0,
@@ -1386,6 +1389,56 @@ export default {
         if (d >= l7StartStr && d <= ydStr) l7Opps++;
       });
 
+      // ── Per-Rep-Breakdown für IC-Modal ──────────────────────────────────────
+      const ydRepMap = {};
+      const ensureRep = repId => {
+        if (!ydRepMap[repId]) ydRepMap[repId] = {
+          id: repId, name: JS_Config.ID_TO_NAME[repId] || repId,
+          calls: 0, emails: 0, qualCalls: 0, meetings: 0,
+          bookingsARR: 0, bookingsDeals: 0, wonCount: 0, lostCount: 0, newOpps: 0,
+        };
+        return ydRepMap[repId];
+      };
+      JS_Data._r('Q_Calls_L30').forEach(r => {
+        if (!filteredIds.has(r.OwnerId) || !isYd(r.ActivityDate)) return;
+        ensureRep(r.OwnerId).calls += Number(r.dials) || 0;
+      });
+      JS_Data._r('Q_Emails_L30').forEach(r => {
+        if (!filteredIds.has(r.OwnerId) || !isYd(r.ActivityDate)) return;
+        ensureRep(r.OwnerId).emails += Number(r.emailCount) || 0;
+      });
+      JS_Data._r('Q_QualCalls_L30').forEach(r => {
+        if (!filteredIds.has(r.OwnerId) || !isYd(r.ActivityDate)) return;
+        ensureRep(r.OwnerId).qualCalls += Number(r.qualCount) || 0;
+      });
+      JS_Data._r('Q_Meetings_L30').forEach(r => {
+        if (!filteredIds.has(r.OwnerId) || !isYd(r.ActivityDate)) return;
+        ensureRep(r.OwnerId).meetings += Number(r.meetingCount) || 1;
+      });
+      ['Q_Bookings_QTD', 'Q_SelfService_QTD'].forEach(qn => {
+        JS_Data._r(qn).forEach(r => {
+          if (!filteredIds.has(r.OwnerId)) return;
+          const dStr = (r.dateTimestampContractreceived__c || '').substring(0, 10);
+          if (dStr !== ydStr) return;
+          const repR = ensureRep(r.OwnerId);
+          repR.bookingsARR   += Number(r.Amount) || 0;
+          repR.bookingsDeals += 1;
+        });
+      });
+      JS_Data._r('Q_WinLoss').forEach(r => {
+        if (!filteredIds.has(r.OwnerId) || (r.CloseDate || '') !== ydStr) return;
+        const repR = ensureRep(r.OwnerId);
+        if (r.IsWon) repR.wonCount++; else repR.lostCount++;
+      });
+      JS_Data._r('Q_Opps_L30').forEach(r => {
+        if (!filteredIds.has(r.OwnerId)) return;
+        if ((r.CreatedDate || '').substring(0, 10) !== ydStr) return;
+        ensureRep(r.OwnerId).newOpps++;
+      });
+      const ydReps = Object.values(ydRepMap)
+        .filter(r => r.calls + r.emails + r.qualCalls + r.meetings + r.bookingsDeals + r.newOpps > 0)
+        .sort((a, b) => (b.bookingsARR + b.newOpps * 1000) - (a.bookingsARR + a.newOpps * 1000));
+
       return {
         ydStr,
         calls: ydCalls, emails: ydEmails, qualCalls: ydQC, meetings: ydMtg,
@@ -1396,6 +1449,7 @@ export default {
         pilots:        ydPilots,
         wonCount: ydWon, wonARR: ydWonARR, lostCount: ydLost,
         newOpps:  ydOpps,
+        ydReps,
         l7: {
           calls:        Math.round(l7Calls    / l7ActiveDays),
           emails:       Math.round(l7Emails   / l7ActiveDays),
