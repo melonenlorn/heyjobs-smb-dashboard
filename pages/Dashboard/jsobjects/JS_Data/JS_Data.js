@@ -710,6 +710,7 @@ export default {
           const days = oppDaysMap[id] && oppDaysMap[id].size > 0 ? oppDaysMap[id].size : l30WorkingDays;
           return Math.round(opps / days * 10) / 10;
         })(),
+        l30OppRaw:         oppL30Empty ? (qtdOppMap[id] || 0) : (oppL30Map[id] || 0),
         l30QualToOpp:      (() => {
           if (oppL30Empty) {
             const totalOpps = qtdOppMap[id] || 0;
@@ -1230,10 +1231,10 @@ export default {
       const tMtgPD     = Math.round(tSum('l30MeetingsPerDay')  / tCount * 10) / 10;
       const tCallMinPD = Math.round(tSum('l30CallMinPerDay')   / tCount * 10) / 10;
       const tTouchToQ  = tTouchPD > 0 ? Math.round((tQualPD / tTouchPD) * 100) : 0;
-      const tL30O      = tReps.reduce((s, r) => s + (r.l30OppPerDay  || 0), 0);
+      const tL30O      = tSum('l30OppRaw');   // raw opp count — divides by 22 like heroKPIs
       const tL30Q      = tReps.reduce((s, r) => s + (r.l30QualPerDay || 0), 0);
-      const tOppPD     = Math.round(tL30O / tCount * 10) / 10;
-      const tQualToOpp = tL30Q > 0 ? Math.round((tL30O / tCount) / (tL30Q / tCount) * 100) : 0;
+      const tOppPD     = Math.round(tL30O / tCount / 22 * 10) / 10;
+      const tQualToOpp = tL30Q > 0 ? Math.round((tL30O / tCount / 22) / (tL30Q / tCount) * 100) : 0;
 
       // Trend majority vote
       function trendMaj(field) {
