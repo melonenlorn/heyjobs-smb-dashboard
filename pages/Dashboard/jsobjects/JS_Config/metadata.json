@@ -9,7 +9,7 @@
     "variables": [
       {
         "name": "REP_LEVELS",
-        "value": "{\n  'Alina Kühne': '2',\n  'Pierre Byer': '2',\n  'Jan-Thore Kaulbach': '1',\n  'Hikmet Canbolat': '3',\n  'Tamina Stange': '3',\n  'Jane Siewert': '2',\n  'Florian Dalis': '2',\n  'Robert Eismann': '2',\n  'Michael Wahl': '1',\n  'Ebru Kizilkaya': '3',\n  'Marius Buga': '3',\n  'Marlies Konrad': '3',\n  'David Beck': '3',\n  'Philipp Schmidt': '2',\n  'Nina Hoffmann': '2'\n}"
+        "value": "{\n  'Alina Kühne': '2',\n  'Pierre Byer': '2',\n  'Jan-Thore Kaulbach': '1',\n  'Hikmet Canbolat': '3',\n  'Tamina Stange': '3',\n  'Jane Siewert': '2',\n  'Florian Dalis': '2',\n  'Robert Eismann': '2',\n  'Ebru Kizilkaya': '3',\n  'Marius Buga': '3',\n  'Marlies Konrad': '3',\n  'David Beck': '3',\n  'Philipp Schmidt': '2',\n  'Nina Hoffmann': '2'\n}"
       },
       {
         "name": "MANAGERS",
@@ -17,11 +17,11 @@
       },
       {
         "name": "QUARTER_HOLIDAYS",
-        "value": "{\n  'Q1 2026': ['2026-01-01'],\n  'Q2 2026': ['2026-05-01', '2026-05-14', '2026-05-25'],\n  'Q3 2026': [],\n  'Q4 2026': ['2026-12-25', '2026-12-26']\n}"
+        "value": "{\n  'Q1 2026': ['2026-01-01'],\n  'Q2 2026': ['2026-04-03', '2026-04-06', '2026-05-01', '2026-05-14', '2026-05-25'],\n  'Q3 2026': [],\n  'Q4 2026': ['2026-12-25', '2026-12-26']\n}"
       },
       {
         "name": "EXCLUDED_REPS",
-        "value": "['Friederike Wilsenack']"
+        "value": "['Friederike Wilsenack', 'Michael Wahl']"
       },
       {
         "name": "RAMPUP_REPS",
@@ -29,15 +29,15 @@
       },
       {
         "name": "TEAMS",
-        "value": "{\n  wolves: {\n    label: 'Wolves',\n    emoji: '🐺',\n    tlId: '005W7000006FAIDIA4',\n    reps: ['Alina Kühne', 'Pierre Byer', 'Jan-Thore Kaulbach']\n  },\n  titans: {\n    label: 'Titans',\n    emoji: '⚡',\n    tlId: '005W7000004kT37IAE',\n    reps: ['Hikmet Canbolat', 'Tamina Stange', 'Jane Siewert', 'Florian Dalis', 'Robert Eismann', 'Michael Wahl']\n  },\n  locos: {\n    label: 'Locos',\n    emoji: '🔥',\n    tlId: '005W700000AXqN3IAL',\n    reps: ['Raven Schulz', 'Ebru Kizilkaya', 'Marius Buga', 'Marlies Konrad', 'David Beck', 'Philipp Schmidt', 'Nina Hoffmann']\n  }\n}"
+        "value": "{\n  wolves: {\n    label: 'Wolves',\n    emoji: '🐺',\n    tlId: '005W7000006FAIDIA4',\n    reps: ['Alina Kühne', 'Pierre Byer', 'Jan-Thore Kaulbach']\n  },\n  titans: {\n    label: 'Titans',\n    emoji: '⚡',\n    tlId: '005W7000004kT37IAE',\n    reps: ['Hikmet Canbolat', 'Tamina Stange', 'Jane Siewert', 'Florian Dalis', 'Robert Eismann']\n  },\n  locos: {\n    label: 'Locos',\n    emoji: '🔥',\n    tlId: '005W700000AXqN3IAL',\n    reps: ['Raven Schulz', 'Ebru Kizilkaya', 'Marius Buga', 'Marlies Konrad', 'David Beck', 'Philipp Schmidt', 'Nina Hoffmann']\n  }\n}"
       },
       {
         "name": "ALL_REP_IDS",
-        "value": "['0059L000000JKG9QAO', '005W7000000zmHSIAY', '005W7000009NCmTIAW', '0051v00000BjKXAAA3', '0059L000000JKFlQAO', '005W7000005SzP3IAK', '005W7000005SxQTIA0', '005W7000004vQt7IAE', '005W7000005WNTFIA4', '0059L000000IlsvQAC', '0059L000000JKGDQA4', '005W7000002HR5tIAG', '005W70000048JRNIA2', '005W7000003UovJIAS', '0059L000000JKGOQA4', '005W7000004vQptIAE']"
+        "value": "['0059L000000JKG9QAO', '005W7000000zmHSIAY', '005W7000009NCmTIAW', '0051v00000BjKXAAA3', '0059L000000JKFlQAO', '005W7000005SzP3IAK', '005W7000005SxQTIA0', '005W7000004vQt7IAE', '0059L000000IlsvQAC', '0059L000000JKGDQA4', '005W7000002HR5tIAG', '005W70000048JRNIA2', '005W7000003UovJIAS', '0059L000000JKGOQA4', '005W7000004vQptIAE']"
       },
       {
         "name": "ID_TO_NAME",
-        "value": "{\n  '0059L000000JKG9QAO': 'Alina Kühne',\n  '005W7000000zmHSIAY': 'Pierre Byer',\n  '005W7000009NCmTIAW': 'Jan-Thore Kaulbach',\n  '0051v00000BjKXAAA3': 'Hikmet Canbolat',\n  '0059L000000JKFlQAO': 'Tamina Stange',\n  '005W7000005SzP3IAK': 'Jane Siewert',\n  '005W7000005SxQTIA0': 'Florian Dalis',\n  '005W7000004vQt7IAE': 'Robert Eismann',\n  '005W7000005WNTFIA4': 'Michael Wahl',\n  '0059L000000IlsvQAC': 'Raven Schulz',\n  '0059L000000JKGDQA4': 'Ebru Kizilkaya',\n  '005W7000002HR5tIAG': 'Marius Buga',\n  '005W70000048JRNIA2': 'Marlies Konrad',\n  '005W7000003UovJIAS': 'David Beck',\n  '0059L000000JKGOQA4': 'Philipp Schmidt',\n  '005W7000004vQptIAE': 'Nina Hoffmann'\n}"
+        "value": "{\n  '0059L000000JKG9QAO': 'Alina Kühne',\n  '005W7000000zmHSIAY': 'Pierre Byer',\n  '005W7000009NCmTIAW': 'Jan-Thore Kaulbach',\n  '0051v00000BjKXAAA3': 'Hikmet Canbolat',\n  '0059L000000JKFlQAO': 'Tamina Stange',\n  '005W7000005SzP3IAK': 'Jane Siewert',\n  '005W7000005SxQTIA0': 'Florian Dalis',\n  '005W7000004vQt7IAE': 'Robert Eismann',\n  '0059L000000IlsvQAC': 'Raven Schulz',\n  '0059L000000JKGDQA4': 'Ebru Kizilkaya',\n  '005W7000002HR5tIAG': 'Marius Buga',\n  '005W70000048JRNIA2': 'Marlies Konrad',\n  '005W7000003UovJIAS': 'David Beck',\n  '0059L000000JKGOQA4': 'Philipp Schmidt',\n  '005W7000004vQptIAE': 'Nina Hoffmann'\n}"
       },
       {
         "name": "_newReps",
