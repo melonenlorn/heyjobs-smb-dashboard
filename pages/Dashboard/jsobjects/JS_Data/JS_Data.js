@@ -658,6 +658,7 @@ export default {
         closedPilots,
         wonCount,    // Bug 1 fix: expose for heroKPIs() sum
         lostCount,   // Bug 1 fix: expose for heroKPIs() sum
+        avgDealSize: wonCount > 0 ? Math.round((bookingsARR + selfSvcARR) / wonCount) : 0,
         dials:     (calls[id]    && calls[id].dials)    || 0,
         qualCalls: (calls[id]    && calls[id].qualCalls) || 0,
         meetings:  meetings[id]  || 0,
@@ -1065,14 +1066,21 @@ export default {
     });
     const oppL30Map = {};
     JS_Data._r('Q_Opps_L30').forEach(r => { oppL30Map[r.OwnerId] = (oppL30Map[r.OwnerId] || 0) + 1; });
+    const oppL30HeroEmpty  = Object.keys(oppL30Map).length === 0;
     const l30OppTotal = filtered.reduce((s, r) => s + (oppL30Map[r.id] || 0), 0);
     const avgTouchPerDay   = Math.round(l30TouchSum   / repCount * 10) / 10;
     const avgQualPerDay    = Math.round(l30QualSum    / repCount * 10) / 10;
     const avgCallMinPerDay = Math.round(l30CallMinSum / repCount * 10) / 10;
     const l30WorkingDays   = 22;
-    const avgOppPerDay     = Math.round(l30OppTotal / repCount / l30WorkingDays * 10) / 10;
+    const wkDone           = Math.max(1, JS_Config.getWerktageContext().done);
+    // Fallback für historische Quartale: Q_Opps_L30 leer → QTD-Daten verwenden
+    const avgOppPerDay     = oppL30HeroEmpty
+      ? Math.round(oppCreated / repCount / wkDone * 10) / 10
+      : Math.round(l30OppTotal / repCount / l30WorkingDays * 10) / 10;
     const touchToQual      = avgTouchPerDay > 0 ? Math.round((avgQualPerDay  / avgTouchPerDay) * 100) : 0;
-    const qualToOpp        = avgQualPerDay  > 0 ? Math.round((avgOppPerDay   / avgQualPerDay)  * 100) : 0;
+    const qualToOpp        = oppL30HeroEmpty
+      ? (totalQT > 0 ? Math.round((oppCreated / totalQT) * 100) : 0)
+      : (avgQualPerDay > 0 ? Math.round((avgOppPerDay / avgQualPerDay) * 100) : 0);
     // Trend: CW daily rate vs L30 avg
     function trendArrow(cwVal, l30Val) {
       if (!l30Val || l30Val === 0) return { arrow: '→', cls: 'neutral' };
@@ -1086,7 +1094,6 @@ export default {
     const cwQualPerDay    = ((cwSum.qualCalls || 0) + (cwSum.meetings || 0)) / repCount / cwDaysElapsed;
     const trendTouch      = trendArrow(cwTouchPerDay, avgTouchPerDay);
     const trendQual       = trendArrow(cwQualPerDay,  avgQualPerDay);
-    const wkDone          = Math.max(1, JS_Config.getWerktageContext().done);
     const qtdOppPerDay    = oppCreated / repCount / wkDone;
     const trendOpp        = trendArrow(qtdOppPerDay, avgOppPerDay);
 
@@ -1199,6 +1206,140 @@ export default {
       return { week: wk, arr: _cumBk, pilots: _cumPil };
     });
 
+    // ── Team Breakdown (für Team Comparison Modal) ────────────────────────
+    const teamBreakdown = {};
+    ['wolves', 'titans', 'locos'].forEach(function(teamKey) {
+      const t = JS_Config.TEAMS[teamKey] || {};
+      const tReps   = reps.filter(r => r.team === teamKey);
+      const tCount  = Math.max(1, tReps.length);
+      const tSum    = f => tReps.reduce((s, r) => s + (r[f] || 0), 0);
+      const tBkARR  = tSum('bookingsARR');
+      const tBkTgt  = tSum('bookingsTarget');
+      const tPipe   = tSum('pipelineARR');
+      const tWon    = tSum('wonCount');
+      const tLost   = tSum('lostCount');
+      const tPilCnt = tSum('pilotenCount');
+      const tPilTgt = tSum('pilotenTarget');
+      const tStale  = tReps.reduce((s, r) => s + (r.staleCount  || 0), 0);
+      const tOpen   = tSum('openOpps');
+      const tL30Q   = tReps.reduce((s, r) => s + (r.l30QualPerDay || 0), 0);
+      const tL30O   = tReps.reduce((s, r) => s + (r.l30OppPerDay  || 0), 0);
+      teamBreakdown[teamKey] = {
+        label: t.label, emoji: t.emoji, repCount: tReps.length,
+        bookingsARR: tBkARR, bookingsTarget: tBkTgt,
+        bookingsAtt:  tBkTgt > 0 ? Math.round(tBkARR  / tBkTgt  * 100) : 0,
+        pilotenCount: tPilCnt, pilotenTarget: tPilTgt,
+        pilotenAtt:   tPilTgt > 0 ? Math.round(tPilCnt / tPilTgt * 100) : 0,
+        pipelineARR:  tPipe,
+        coverage:     (tBkTgt - tBkARR) > 0 ? Math.round(tPipe / (tBkTgt - tBkARR) * 10) / 10 : 99,
+        wonCount: tWon, lostCount: tLost,
+        winRate:    JS_Scoring.winRate(tWon, tLost),
+        avgDealSize: tWon > 0 ? Math.round(tBkARR / tWon) : 0,
+        staleCount: tStale, totalOpen: tOpen,
+        staleRate:  tOpen > 0 ? Math.round(tStale / tOpen * 100) : 0,
+        oppCreated: tSum('oppCreated'),
+        qualToOpp:  tL30Q > 0 ? Math.round((tL30O / tCount) / (tL30Q / tCount) * 100) : 0,
+        oppPerDay:  Math.round(tL30O / tCount * 10) / 10,
+      };
+    });
+
+    // ── Yesterday KPIs (nur laufendes Quartal) ────────────────────────────
+    const yesterday = (() => {
+      if (!aq.isCurrent) return null;
+      const now = new Date();
+      const yd  = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+      const dow = yd.getDay();
+      if (dow === 0)      yd.setDate(yd.getDate() - 2);  // Sonntag → Freitag
+      else if (dow === 6) yd.setDate(yd.getDate() - 1);  // Samstag → Freitag
+      const ydStr      = yd.toISOString().substring(0, 10);
+      const l7End      = new Date(ydStr);
+      const l7StartD   = new Date(ydStr); l7StartD.setDate(l7StartD.getDate() - 6);
+      const l7StartStr = l7StartD.toISOString().substring(0, 10);
+      const isYd = d => (d || '').substring(0, 10) === ydStr;
+      const isL7 = d => { const s = (d || '').substring(0, 10); return s >= l7StartStr && s <= ydStr; };
+
+      let ydCalls = 0, ydEmails = 0, ydQC = 0, ydMtg = 0;
+      let l7Calls = 0, l7Emails = 0, l7QC = 0, l7Mtg = 0;
+      const l7DaySet = new Set();
+      JS_Data._r('Q_Calls_L30').forEach(r => {
+        if (!filteredIds.has(r.OwnerId)) return;
+        const n = Number(r.dials) || 0;
+        if (isYd(r.ActivityDate))  ydCalls += n;
+        if (isL7(r.ActivityDate)) { l7Calls += n; l7DaySet.add(r.ActivityDate); }
+      });
+      JS_Data._r('Q_Emails_L30').forEach(r => {
+        if (!filteredIds.has(r.OwnerId)) return;
+        const n = Number(r.emailCount) || 0;
+        if (isYd(r.ActivityDate)) ydEmails += n;
+        if (isL7(r.ActivityDate)) l7Emails += n;
+      });
+      JS_Data._r('Q_QualCalls_L30').forEach(r => {
+        if (!filteredIds.has(r.OwnerId)) return;
+        const n = Number(r.qualCount) || 0;
+        if (isYd(r.ActivityDate)) ydQC += n;
+        if (isL7(r.ActivityDate)) l7QC += n;
+      });
+      JS_Data._r('Q_Meetings_L30').forEach(r => {
+        if (!filteredIds.has(r.OwnerId)) return;
+        const n = Number(r.meetingCount) || 1;
+        if (isYd(r.ActivityDate)) ydMtg += n;
+        if (isL7(r.ActivityDate)) l7Mtg += n;
+      });
+      const l7ActiveDays = Math.max(1, l7DaySet.size);
+
+      let ydBkARR = 0, ydBkDeals = 0, ydPilots = 0;
+      let l7BkARR = 0, l7BkDeals = 0;
+      ['Q_Bookings_QTD', 'Q_SelfService_QTD'].forEach(qn => {
+        JS_Data._r(qn).forEach(r => {
+          if (!filteredIds.has(r.OwnerId)) return;
+          const d   = (r.dateTimestampContractreceived__c || '').substring(0, 10);
+          const amt = Number(r.Amount) || 0;
+          const isPil = (Number(r.Winback_Pilot__c) || 0) > 0;
+          if (d === ydStr)                        { ydBkARR += amt; ydBkDeals++; if (isPil) ydPilots++; }
+          if (d >= l7StartStr && d <= ydStr)      { l7BkARR += amt; l7BkDeals++; }
+        });
+      });
+
+      let ydWon = 0, ydWonARR = 0, ydLost = 0, l7Won = 0, l7Lost = 0;
+      JS_Data._r('Q_WinLoss').forEach(r => {
+        if (!filteredIds.has(r.OwnerId)) return;
+        const d = r.CloseDate || '';
+        if (d === ydStr)                   { if (r.IsWon) { ydWon++; ydWonARR += Number(r.Amount) || 0; } else ydLost++; }
+        if (d >= l7StartStr && d <= ydStr) { if (r.IsWon) l7Won++; else l7Lost++; }
+      });
+
+      let ydOpps = 0, l7Opps = 0;
+      JS_Data._r('Q_Opps_L30').forEach(r => {
+        if (!filteredIds.has(r.OwnerId)) return;
+        const d = (r.CreatedDate || '').substring(0, 10);
+        if (d === ydStr)                   ydOpps++;
+        if (d >= l7StartStr && d <= ydStr) l7Opps++;
+      });
+
+      return {
+        ydStr,
+        calls: ydCalls, emails: ydEmails, qualCalls: ydQC, meetings: ydMtg,
+        touchTotal:    ydCalls + ydEmails,
+        qualTotal:     ydQC + ydMtg,
+        bookingsARR:   ydBkARR,
+        bookingsDeals: ydBkDeals,
+        pilots:        ydPilots,
+        wonCount: ydWon, wonARR: ydWonARR, lostCount: ydLost,
+        newOpps:  ydOpps,
+        l7: {
+          calls:        Math.round(l7Calls    / l7ActiveDays),
+          emails:       Math.round(l7Emails   / l7ActiveDays),
+          qualCalls:    Math.round(l7QC       / l7ActiveDays),
+          meetings:     Math.round(l7Mtg      / l7ActiveDays),
+          bookingsARR:  Math.round(l7BkARR    / 7),
+          bookingsDeals:Math.round(l7BkDeals  / 7 * 10) / 10,
+          wonCount:     Math.round(l7Won      / 7 * 10) / 10,
+          lostCount:    Math.round(l7Lost     / 7 * 10) / 10,
+          newOpps:      Math.round(l7Opps     / l7ActiveDays * 10) / 10,
+        },
+      };
+    })();
+
     return {
       progress,
       context: {
@@ -1269,6 +1410,7 @@ export default {
         value:          winRate,
         wonCount,
         lostCount,
+        avgDealSize:    wonCount > 0 ? Math.round(bookingsARR / wonCount) : 0,
         demos:          sum('demos'),
         pilotOpps:      sum('pilotOpps'),
         oppCreated:     sum('oppCreated'),
@@ -1340,6 +1482,8 @@ export default {
           total:   Object.values(overdueAccByStage).reduce((s, v) => s + v, 0),
         },
       },
+      teamBreakdown,
+      yesterday,
     };
   },
 

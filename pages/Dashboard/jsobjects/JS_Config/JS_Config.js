@@ -12,7 +12,6 @@ export default {
     'Jane Siewert':         '2',
     'Florian Dalis':        '2',
     'Robert Eismann':       '2',
-    'Michael Wahl':         '1',
     // Raven's team (Locos) — Raven selbst ist ab Q2 2026 Manager, kein IC mehr
     'Ebru Kizilkaya':       '3',
     'Marius Buga':          '3',
@@ -48,7 +47,7 @@ export default {
   },
 
   // ── Manuell ausgeschlossene Reps (aktiv in SF, aber nicht im Dashboard) ───
-  EXCLUDED_REPS: ['Friederike Wilsenack'],
+  EXCLUDED_REPS: ['Friederike Wilsenack', 'Michael Wahl'],
 
   // ── Reps in Probezeit (Ramp-up, ~6 Monate): kein Piloten-Target, nur Bookings ──
   // Ramp-up ist kein Level, sondern ein Flag. Jan-Thore ist L1 + Ramp-up.
@@ -58,13 +57,13 @@ export default {
   // WICHTIG: Appsmith JSObjects unterstützen keine ES6 Getter → direkte Properties
   TEAMS: {
     wolves: { label: 'Wolves', emoji: '🐺', tlId: '005W7000006FAIDIA4', reps: ['Alina Kühne', 'Pierre Byer', 'Jan-Thore Kaulbach'] },
-    titans: { label: 'Titans', emoji: '⚡', tlId: '005W7000004kT37IAE', reps: ['Hikmet Canbolat', 'Tamina Stange', 'Jane Siewert', 'Florian Dalis', 'Robert Eismann', 'Michael Wahl'] },
+    titans: { label: 'Titans', emoji: '⚡', tlId: '005W7000004kT37IAE', reps: ['Hikmet Canbolat', 'Tamina Stange', 'Jane Siewert', 'Florian Dalis', 'Robert Eismann'] },
     locos:  { label: 'Locos',  emoji: '🔥', tlId: '005W700000AXqN3IAL', reps: ['Raven Schulz', 'Ebru Kizilkaya', 'Marius Buga', 'Marlies Konrad', 'David Beck', 'Philipp Schmidt', 'Nina Hoffmann'] },
   },
   ALL_REP_IDS: [
     '0059L000000JKG9QAO', '005W7000000zmHSIAY', '005W7000009NCmTIAW',
     '0051v00000BjKXAAA3', '0059L000000JKFlQAO', '005W7000005SzP3IAK',
-    '005W7000005SxQTIA0', '005W7000004vQt7IAE', '005W7000005WNTFIA4',
+    '005W7000005SxQTIA0', '005W7000004vQt7IAE',
     '0059L000000IlsvQAC', '0059L000000JKGDQA4', '005W7000002HR5tIAG',
     '005W70000048JRNIA2', '005W7000003UovJIAS', '0059L000000JKGOQA4',
     '005W7000004vQptIAE',
@@ -74,7 +73,7 @@ export default {
     '005W7000009NCmTIAW': 'Jan-Thore Kaulbach', '0051v00000BjKXAAA3': 'Hikmet Canbolat',
     '0059L000000JKFlQAO': 'Tamina Stange',      '005W7000005SzP3IAK': 'Jane Siewert',
     '005W7000005SxQTIA0': 'Florian Dalis',      '005W7000004vQt7IAE': 'Robert Eismann',
-    '005W7000005WNTFIA4': 'Michael Wahl',        '0059L000000IlsvQAC': 'Raven Schulz',
+    '0059L000000IlsvQAC': 'Raven Schulz',
     '0059L000000JKGDQA4': 'Ebru Kizilkaya',     '005W7000002HR5tIAG': 'Marius Buga',
     '005W70000048JRNIA2': 'Marlies Konrad',      '005W7000003UovJIAS': 'David Beck',
     '0059L000000JKGOQA4': 'Philipp Schmidt',     '005W7000004vQptIAE': 'Nina Hoffmann',
