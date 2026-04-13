@@ -1209,21 +1209,68 @@ export default {
     // ── Team Breakdown (für Team Comparison Modal) ────────────────────────
     const teamBreakdown = {};
     ['wolves', 'titans', 'locos'].forEach(function(teamKey) {
-      const t = JS_Config.TEAMS[teamKey] || {};
-      const tReps   = reps.filter(r => (t.reps || []).includes(r.repName));
-      const tCount  = Math.max(1, tReps.length);
-      const tSum    = f => tReps.reduce((s, r) => s + (r[f] || 0), 0);
-      const tBkARR  = tSum('bookingsARR');
-      const tBkTgt  = tSum('bookingsTarget');
+      const t      = JS_Config.TEAMS[teamKey] || {};
+      const tReps  = reps.filter(r => (t.reps || []).includes(r.repName));
+      const tCount = Math.max(1, tReps.length);
+      const tSum   = f => tReps.reduce((s, r) => s + (r[f] || 0), 0);
+
+      // ── Bookings / Pilot attainment ────────────────────────────────────
+      const tBkARR  = tSum('bookingsARR'),  tBkTgt  = tSum('bookingsTarget');
+      const tPilCnt = tSum('pilotenCount'), tPilTgt = tSum('pilotenTarget');
       const tPipe   = tSum('pipelineARR');
-      const tWon    = tSum('wonCount');
-      const tLost   = tSum('lostCount');
-      const tPilCnt = tSum('pilotenCount');
-      const tPilTgt = tSum('pilotenTarget');
-      const tStale  = tReps.reduce((s, r) => s + (r.staleCount  || 0), 0);
-      const tOpen   = tSum('openOpps');
-      const tL30Q   = tReps.reduce((s, r) => s + (r.l30QualPerDay || 0), 0);
-      const tL30O   = tReps.reduce((s, r) => s + (r.l30OppPerDay  || 0), 0);
+      const tWon    = tSum('wonCount'),     tLost   = tSum('lostCount');
+      const tStale  = tSum('staleCount'),   tOpen   = tSum('openOpps');
+
+      // ── Activity L30 averages ──────────────────────────────────────────
+      const tTouchPD   = Math.round(tSum('l30TouchPerDay')     / tCount * 10) / 10;
+      const tQualPD    = Math.round(tSum('l30QualPerDay')      / tCount * 10) / 10;
+      const tDialsPD   = Math.round(tSum('l30DialsPerDay')     / tCount * 10) / 10;
+      const tEmailsPD  = Math.round(tSum('l30EmailsPerDay')    / tCount * 10) / 10;
+      const tQualCPD   = Math.round(tSum('l30QualCallsPerDay') / tCount * 10) / 10;
+      const tMtgPD     = Math.round(tSum('l30MeetingsPerDay')  / tCount * 10) / 10;
+      const tCallMinPD = Math.round(tSum('l30CallMinPerDay')   / tCount * 10) / 10;
+      const tTouchToQ  = tTouchPD > 0 ? Math.round((tQualPD / tTouchPD) * 100) : 0;
+      const tL30O      = tReps.reduce((s, r) => s + (r.l30OppPerDay  || 0), 0);
+      const tL30Q      = tReps.reduce((s, r) => s + (r.l30QualPerDay || 0), 0);
+      const tOppPD     = Math.round(tL30O / tCount * 10) / 10;
+      const tQualToOpp = tL30Q > 0 ? Math.round((tL30O / tCount) / (tL30Q / tCount) * 100) : 0;
+
+      // Trend majority vote
+      function trendMaj(field) {
+        let g = 0, r2 = 0;
+        tReps.forEach(function(r) {
+          const c = (r[field] && r[field].cls) || 'neutral';
+          if (c === 'green') g++; else if (c === 'red') r2++;
+        });
+        if (g  > tCount / 2) return { arrow: '\u2191', cls: 'green' };
+        if (r2 > tCount / 2) return { arrow: '\u2193', cls: 'red' };
+        return { arrow: '\u2192', cls: 'neutral' };
+      }
+
+      // ── Pipeline fields ────────────────────────────────────────────────
+      const tPilotArr    = tSum('pilotPipeArr'),  tPilotOpps   = tSum('pilotPipeOpps');
+      const tBestandArr  = tSum('bestandArr'),    tBestandOpps = tSum('bestandOpps');
+      const tNewPipeArr  = tSum('newPipeArr'),    tNewPipeOpps = tSum('newPipeOpps');
+      const tWonCW       = tSum('wonCW'),         tWonCWArr    = tSum('wonCWArr');
+      const tLostCW      = tSum('lostCW'),        tLostCWArr   = tSum('lostCWArr');
+
+      // ── Win Rate funnel ────────────────────────────────────────────────
+      const tDemos       = tSum('demos');
+      const tPilotOppsWR = tSum('pilotOpps');
+      const tClosedPil   = tSum('closedPilots');
+
+      // ── Stale buckets (from allStaleList filtered to team rep IDs) ─────
+      const tRepIds    = new Set(tReps.map(function(r) { return r.id; }));
+      const tStaleList = allStaleList.filter(function(o) { return tRepIds.has(o.ownerId); });
+      const tBuckets   = { '14-21d': 0, '21-30d': 0, '30d+': 0 };
+      tStaleList.forEach(function(o) {
+        if (o.daysSinceActivity >= 30)      tBuckets['30d+']++;
+        else if (o.daysSinceActivity >= 21) tBuckets['21-30d']++;
+        else                                tBuckets['14-21d']++;
+      });
+      const tOverdueCnt = tReps.reduce(function(s, r) { return s + ((overdueMap[r.id] && overdueMap[r.id].count) || 0); }, 0);
+      const tOverdueArr = tReps.reduce(function(s, r) { return s + ((overdueMap[r.id] && overdueMap[r.id].arr)   || 0); }, 0);
+
       teamBreakdown[teamKey] = {
         label: t.label, emoji: t.emoji, repCount: tReps.length,
         bookingsARR: tBkARR, bookingsTarget: tBkTgt,
@@ -1232,14 +1279,33 @@ export default {
         pilotenAtt:   tPilTgt > 0 ? Math.round(tPilCnt / tPilTgt * 100) : 0,
         pipelineARR:  tPipe,
         coverage:     (tBkTgt - tBkARR) > 0 ? Math.round(tPipe / (tBkTgt - tBkARR) * 10) / 10 : 99,
+        pilotArr: tPilotArr, pilotOpps: tPilotOpps,
+        bestandArr: tBestandArr, bestandOpps: tBestandOpps,
+        cWow: { wonCW: tWonCW, wonCWArr: tWonCWArr, lostCW: tLostCW, lostCWArr: tLostCWArr,
+                newArr: tNewPipeArr, newOpps: tNewPipeOpps },
         wonCount: tWon, lostCount: tLost,
-        winRate:    JS_Scoring.winRate(tWon, tLost),
+        winRate:     JS_Scoring.winRate(tWon, tLost),
         avgDealSize: tWon > 0 ? Math.round(tBkARR / tWon) : 0,
+        demos: tDemos, pilotOppsWR: tPilotOppsWR, closedPilots: tClosedPil,
+        demoToPilotOpp: tDemos > 0 ? Math.round((tPilotOppsWR / tDemos) * 100) : 0,
+        pilotToOpp: tPilotOppsWR > 0 ? Math.round((tClosedPil / tPilotOppsWR) * 100) : 0,
         staleCount: tStale, totalOpen: tOpen,
         staleRate:  tOpen > 0 ? Math.round(tStale / tOpen * 100) : 0,
+        staleBuckets: tBuckets,
+        overdueCount: tOverdueCnt, overdueArr: tOverdueArr,
         oppCreated: tSum('oppCreated'),
-        qualToOpp:  tL30Q > 0 ? Math.round((tL30O / tCount) / (tL30Q / tCount) * 100) : 0,
-        oppPerDay:  Math.round(tL30O / tCount * 10) / 10,
+        l30: {
+          touchPerDay: tTouchPD, dialsPerDay: tDialsPD, emailsPerDay: tEmailsPD,
+          qualTouchPerDay: tQualPD, qualCallsPerDay: tQualCPD, meetingsPerDay: tMtgPD,
+          callMinPerDay: tCallMinPD, touchToQual: tTouchToQ,
+          qualToOpp: tQualToOpp, oppPerDay: tOppPD,
+          trendTouch: trendMaj('l30TrendTouch'),
+          trendQual:  trendMaj('l30TrendQual'),
+          trendOpp:   trendMaj('l30TrendOpp'),
+          uniqueAccountsAvg:  tReps.length ? Math.round(tSum('l90UniqueAccounts')  / tReps.length * 10) / 10 : 0,
+          uniqueProspectsAvg: tReps.length ? Math.round(tSum('l90UniqueProspects') / tReps.length * 10) / 10 : 0,
+          uniqueBKsAvg:       tReps.length ? Math.round(tSum('l90UniqueBKs')       / tReps.length * 10) / 10 : 0,
+        },
       };
     });
 
