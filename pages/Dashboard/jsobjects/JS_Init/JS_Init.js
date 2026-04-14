@@ -73,6 +73,14 @@ export default {
     // Phase 4: Auto-Snapshot + finales Re-Render (jetzt auch Trenddaten sichtbar)
     await JS_Init.saveSnapshot();
     await storeValue('_refreshTs', Date.now());
+
+    // Phase 5: Filter-Ping-Pong — erzwingt Widget-Re-Evaluierung nach initialem Load.
+    // Hintergrund: Appsmith reagiert auf storeValue('_refreshTs') nicht zuverlässig
+    // beim ersten Page-Load. Ein kurzes Toggle des filterTeam-Stores triggert das
+    // nötige Re-Render sicher (entspricht manuellem Wolves→Alle-Klick des Nutzers).
+    const _currentTeam = appsmith.store.filterTeam || 'all';
+    await storeValue('filterTeam', '__init__');
+    await storeValue('filterTeam', _currentTeam);
   },
 
   // ── Snapshot für aktuelles Quartal speichern ──────────────────────────────
