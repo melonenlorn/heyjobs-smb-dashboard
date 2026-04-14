@@ -31,7 +31,7 @@ export default {
       locos:  { label: 'Locos',  emoji: '🔥', tlName: 'Philipp Bahls',          tlId: '005W700000AXqN3IAL' },
     },
     'Q2 2026': {
-      wolves: { label: 'Wolves', emoji: '🐺', tlName: 'Mareike Schliesser',     tlId: '005W7000006FAIDIA4' },
+      wolves: { label: 'Wolves', emoji: '🐺', tlName: 'Mareike Schliesser',     tlId: '005W700000AyjpJIAR', tlIdFallback: '005W7000006FAIDIA4' },
       titans: { label: 'Titans', emoji: '⚡', tlName: 'Jan Hinrichsen',         tlId: '005W7000004kT37IAE' },
       // tlIdFallback: Locos ICs berichten in SF noch an Philipp bis zum SF-Umbau
       locos:  { label: 'Locos',  emoji: '🔥', tlName: 'Raven Schulz',           tlId: '0059L000000IlsvQAC', tlIdFallback: '005W700000AXqN3IAL' },
