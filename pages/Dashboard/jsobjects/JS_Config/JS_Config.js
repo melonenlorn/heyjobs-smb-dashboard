@@ -205,6 +205,22 @@ export default {
       }
     }
 
+    // Fallback: wenn ein Team 0 Reps aus SF bekommen hat (z.B. weil TL-ID noch nicht aktualisiert),
+    // statische TEAMS-Config als Basis nehmen und fehlende IDs aus ID_TO_NAME ergänzen.
+    const staticTeams = JS_Config.TEAMS || {};
+    for (const [key, t] of Object.entries(teams)) {
+      if (t.reps.length === 0 && staticTeams[key] && staticTeams[key].reps && staticTeams[key].reps.length > 0) {
+        t.reps = staticTeams[key].reps.slice();
+        // Static IDs für diese Reps aus statischer ID_TO_NAME rückwärts nachschlagen
+        const staticIdToName = JS_Config.ID_TO_NAME || {};
+        for (const [sid, sname] of Object.entries(staticIdToName)) {
+          if (t.reps.includes(sname) && !allIds.includes(sid)) {
+            allIds.push(sid);
+            idToName[sid] = sname;
+          }
+        }
+      }
+    }
     JS_Config.TEAMS      = teams;
     JS_Config.ALL_REP_IDS = allIds;
     JS_Config.ID_TO_NAME  = idToName;
