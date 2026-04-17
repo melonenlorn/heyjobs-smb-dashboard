@@ -82,9 +82,9 @@ export default {
 
   // ── Level config: weights and pilot targets ───────────────────────────────
   LEVEL_CONFIG: {
-    '3': { bookingsWeight: 0.75, pilotenWeight: 0.25, pilotenTarget: 12 },
-    '2': { bookingsWeight: 0.50, pilotenWeight: 0.50, pilotenTarget: 16 },
-    '1': { bookingsWeight: 0.25, pilotenWeight: 0.75, pilotenTarget: 18 },
+    '3': { bookingsWeight: 0.75, pilotenWeight: 0.25, pilotenTarget: 8  },
+    '2': { bookingsWeight: 0.50, pilotenWeight: 0.50, pilotenTarget: 10 },
+    '1': { bookingsWeight: 0.25, pilotenWeight: 0.75, pilotenTarget: 15 },
   },
 
   // ── Per-rep overrides (quartals-aware) ────────────────────────────────────
